@@ -1,0 +1,1098 @@
+Mar 20 10:00:00 server01 python3[5013]: Executing /usr/bin/python3 script.py
+Mar 20 10:00:01 server01 cron[7001]: Scheduled task started
+Mar 20 10:00:02 server01 sshd[1001]: New connection from 192.168.1.50
+Mar 20 10:00:03 server01 systemd[4]: Service started
+Mar 20 10:00:04 server01 nginx[6002]: Worker process spawned
+Mar 20 10:00:05 server01 bash[4007]: Command executed
+Mar 20 10:00:06 server01 apache2[8001]: Request processed
+Mar 20 10:00:07 server01 mysql[9001]: Query executed
+Mar 20 10:00:08 server01 postfix[1002]: Message delivered
+Mar 20 10:00:09 server01 dovecot[1003]: IMAP connection
+Mar 20 10:00:10 server01 python3[5014]: Script execution completed
+Mar 20 10:00:11 server01 sshd[1004]: Authentication successful
+Mar 20 10:00:12 server01 cron[7002]: Daily task running
+Mar 20 10:00:13 server01 systemd[5]: Timer triggered
+Mar 20 10:00:14 server01 bash[4008]: User session opened
+Mar 20 10:00:15 server01 nginx[6003]: Access log entry
+Mar 20 10:00:16 server01 python3[5015]: Starting data processing
+Mar 20 10:00:17 server01 apache2[8002]: Serving content
+Mar 20 10:00:18 server01 mysql[9002]: Database backup started
+Mar 20 10:00:19 server01 postfix[1003]: Queue processing
+Mar 20 10:00:20 server01 dovecot[1004]: Email fetched
+Mar 20 10:00:21 server01 sshd[1005]: Connection closed
+Mar 20 10:00:22 server01 cron[7003]: Task completed
+Mar 20 10:00:23 server01 systemd[6]: Service stopped
+Mar 20 10:00:24 server01 bash[4009]: Process exited
+Mar 20 10:00:25 server01 nginx[6004]: Configuration reloaded
+Mar 20 10:00:26 server01 python3[5016]: Data export finished
+Mar 20 10:00:27 server01 apache2[8003]: Virtual host accessed
+Mar 20 10:00:28 server01 mysql[9003]: Query optimized
+Mar 20 10:00:29 server01 postfix[1004]: Message bounced
+Mar 20 10:00:30 server01 dovecot[1005]: Mailbox checked
+Mar 20 10:00:31 server01 sshd[1006]: Key exchange initiated
+Mar 20 10:00:32 server01 cron[7004]: Weekly job scheduled
+Mar 20 10:00:33 server01 systemd[7]: Unit activated
+Mar 20 10:00:34 server01 bash[4010]: Script running
+Mar 20 10:00:35 server01 nginx[6005]: Cache cleared
+Mar 20 10:00:36 server01 python3[5017]: Module imported
+Mar 20 10:00:37 server01 apache2[8004]: HTTP request logged
+Mar 20 10:00:38 server01 mysql[9004]: Connection pool stats
+Mar 20 10:00:39 server01 postfix[1005]: Relay accepted
+Mar 20 10:00:40 server01 dovecot[1006]: User authenticated
+Mar 20 10:00:41 server01 sshd[1007]: Session terminated
+Mar 20 10:00:42 server01 cron[7005]: Hourly check running
+Mar 20 10:00:43 server01 systemd[8]: Target reached
+Mar 20 10:00:44 server01 bash[4011]: Command completed
+Mar 20 10:00:45 server01 nginx[6006]: Worker restarted
+Mar 20 10:00:46 server01 python3[5018]: Async task started
+Mar 20 10:00:47 server01 apache2[8005]: SSL handshake
+Mar 20 10:00:48 server01 mysql[9005]: Table analyzed
+Mar 20 10:00:49 server01 postfix[1006]: Delivery deferred
+Mar 20 10:00:50 server01 dovecot[1007]: Folder synced
+Mar 20 10:10:01 server01 systemd[1137]: Regular system activity
+Mar 20 10:10:01 server01 cron[1138]: Scheduled maintenance
+Mar 20 10:10:01 server01 nginx[1139]: Handling web request
+Mar 20 10:10:02 server01 systemd[1274]: Regular system activity
+Mar 20 10:10:02 server01 cron[1275]: Scheduled maintenance
+Mar 20 10:10:02 server01 nginx[1276]: Handling web request
+Mar 20 10:10:03 server01 systemd[1411]: Regular system activity
+Mar 20 10:10:03 server01 cron[1412]: Scheduled maintenance
+Mar 20 10:10:03 server01 nginx[1413]: Handling web request
+Mar 20 10:10:04 server01 systemd[1548]: Regular system activity
+Mar 20 10:10:04 server01 cron[1549]: Scheduled maintenance
+Mar 20 10:10:04 server01 nginx[1550]: Handling web request
+Mar 20 10:10:05 server01 systemd[1685]: Regular system activity
+Mar 20 10:10:05 server01 cron[1686]: Scheduled maintenance
+Mar 20 10:10:05 server01 nginx[1687]: Handling web request
+Mar 20 10:10:06 server01 systemd[1822]: Regular system activity
+Mar 20 10:10:06 server01 cron[1823]: Scheduled maintenance
+Mar 20 10:10:06 server01 nginx[1824]: Handling web request
+Mar 20 10:10:07 server01 systemd[1959]: Regular system activity
+Mar 20 10:10:07 server01 cron[1960]: Scheduled maintenance
+Mar 20 10:10:07 server01 nginx[1961]: Handling web request
+Mar 20 10:10:08 server01 systemd[2096]: Regular system activity
+Mar 20 10:10:08 server01 cron[2097]: Scheduled maintenance
+Mar 20 10:10:08 server01 nginx[2098]: Handling web request
+Mar 20 10:10:09 server01 systemd[2233]: Regular system activity
+Mar 20 10:10:09 server01 cron[2234]: Scheduled maintenance
+Mar 20 10:10:09 server01 nginx[2235]: Handling web request
+Mar 20 10:10:10 server01 systemd[2370]: Regular system activity
+Mar 20 10:10:10 server01 cron[2371]: Scheduled maintenance
+Mar 20 10:10:10 server01 nginx[2372]: Handling web request
+Mar 20 10:10:11 server01 systemd[2507]: Regular system activity
+Mar 20 10:10:11 server01 cron[2508]: Scheduled maintenance
+Mar 20 10:10:11 server01 nginx[2509]: Handling web request
+Mar 20 10:10:12 server01 systemd[2644]: Regular system activity
+Mar 20 10:10:12 server01 cron[2645]: Scheduled maintenance
+Mar 20 10:10:12 server01 nginx[2646]: Handling web request
+Mar 20 10:10:13 server01 systemd[2781]: Regular system activity
+Mar 20 10:10:13 server01 cron[2782]: Scheduled maintenance
+Mar 20 10:10:13 server01 nginx[2783]: Handling web request
+Mar 20 10:10:14 server01 systemd[2918]: Regular system activity
+Mar 20 10:10:14 server01 cron[2919]: Scheduled maintenance
+Mar 20 10:10:14 server01 nginx[2920]: Handling web request
+Mar 20 10:10:15 server01 systemd[3055]: Regular system activity
+Mar 20 10:10:15 server01 cron[3056]: Scheduled maintenance
+Mar 20 10:10:15 server01 nginx[3057]: Handling web request
+Mar 20 10:10:16 server01 systemd[3192]: Regular system activity
+Mar 20 10:10:16 server01 cron[3193]: Scheduled maintenance
+Mar 20 10:10:16 server01 nginx[3194]: Handling web request
+Mar 20 10:10:17 server01 systemd[3329]: Regular system activity
+Mar 20 10:10:17 server01 cron[3330]: Scheduled maintenance
+Mar 20 10:10:17 server01 nginx[3331]: Handling web request
+Mar 20 10:10:18 server01 systemd[3466]: Regular system activity
+Mar 20 10:10:18 server01 cron[3467]: Scheduled maintenance
+Mar 20 10:10:18 server01 nginx[3468]: Handling web request
+Mar 20 10:10:19 server01 systemd[3603]: Regular system activity
+Mar 20 10:10:19 server01 cron[3604]: Scheduled maintenance
+Mar 20 10:10:19 server01 nginx[3605]: Handling web request
+Mar 20 10:10:20 server01 systemd[3740]: Regular system activity
+Mar 20 10:10:20 server01 cron[3741]: Scheduled maintenance
+Mar 20 10:10:20 server01 nginx[3742]: Handling web request
+Mar 20 10:10:21 server01 systemd[3877]: Regular system activity
+Mar 20 10:10:21 server01 cron[3878]: Scheduled maintenance
+Mar 20 10:10:21 server01 nginx[3879]: Handling web request
+Mar 20 10:10:22 server01 systemd[4014]: Regular system activity
+Mar 20 10:10:22 server01 cron[4015]: Scheduled maintenance
+Mar 20 10:10:22 server01 nginx[4016]: Handling web request
+Mar 20 10:10:23 server01 systemd[4151]: Regular system activity
+Mar 20 10:10:23 server01 cron[4152]: Scheduled maintenance
+Mar 20 10:10:23 server01 nginx[4153]: Handling web request
+Mar 20 10:10:24 server01 systemd[4288]: Regular system activity
+Mar 20 10:10:24 server01 cron[4289]: Scheduled maintenance
+Mar 20 10:10:24 server01 nginx[4290]: Handling web request
+Mar 20 10:10:25 server01 systemd[4425]: Regular system activity
+Mar 20 10:10:25 server01 cron[4426]: Scheduled maintenance
+Mar 20 10:10:25 server01 nginx[4427]: Handling web request
+Mar 20 10:10:26 server01 systemd[4562]: Regular system activity
+Mar 20 10:10:26 server01 cron[4563]: Scheduled maintenance
+Mar 20 10:10:26 server01 nginx[4564]: Handling web request
+Mar 20 10:10:27 server01 systemd[4699]: Regular system activity
+Mar 20 10:10:27 server01 cron[4700]: Scheduled maintenance
+Mar 20 10:10:27 server01 nginx[4701]: Handling web request
+Mar 20 10:10:28 server01 systemd[4836]: Regular system activity
+Mar 20 10:10:28 server01 cron[4837]: Scheduled maintenance
+Mar 20 10:10:28 server01 nginx[4838]: Handling web request
+Mar 20 10:10:29 server01 systemd[4973]: Regular system activity
+Mar 20 10:10:29 server01 cron[4974]: Scheduled maintenance
+Mar 20 10:10:29 server01 nginx[4975]: Handling web request
+Mar 20 10:10:30 server01 systemd[5110]: Regular system activity
+Mar 20 10:10:30 server01 cron[5111]: Scheduled maintenance
+Mar 20 10:10:30 server01 nginx[5112]: Handling web request
+Mar 20 10:10:31 server01 systemd[5247]: Regular system activity
+Mar 20 10:10:31 server01 cron[5248]: Scheduled maintenance
+Mar 20 10:10:31 server01 nginx[5249]: Handling web request
+Mar 20 10:10:32 server01 systemd[5384]: Regular system activity
+Mar 20 10:10:32 server01 cron[5385]: Scheduled maintenance
+Mar 20 10:10:32 server01 nginx[5386]: Handling web request
+Mar 20 10:10:33 server01 systemd[5521]: Regular system activity
+Mar 20 10:10:33 server01 cron[5522]: Scheduled maintenance
+Mar 20 10:10:33 server01 nginx[5523]: Handling web request
+Mar 20 10:10:34 server01 systemd[5658]: Regular system activity
+Mar 20 10:10:34 server01 cron[5659]: Scheduled maintenance
+Mar 20 10:10:34 server01 nginx[5660]: Handling web request
+Mar 20 10:10:35 server01 systemd[5795]: Regular system activity
+Mar 20 10:10:35 server01 cron[5796]: Scheduled maintenance
+Mar 20 10:10:35 server01 nginx[5797]: Handling web request
+Mar 20 10:10:36 server01 systemd[5932]: Regular system activity
+Mar 20 10:10:36 server01 cron[5933]: Scheduled maintenance
+Mar 20 10:10:36 server01 nginx[5934]: Handling web request
+Mar 20 10:10:37 server01 systemd[6069]: Regular system activity
+Mar 20 10:10:37 server01 cron[6070]: Scheduled maintenance
+Mar 20 10:10:37 server01 nginx[6071]: Handling web request
+Mar 20 10:10:38 server01 systemd[6206]: Regular system activity
+Mar 20 10:10:38 server01 cron[6207]: Scheduled maintenance
+Mar 20 10:10:38 server01 nginx[6208]: Handling web request
+Mar 20 10:10:39 server01 systemd[6343]: Regular system activity
+Mar 20 10:10:39 server01 cron[6344]: Scheduled maintenance
+Mar 20 10:10:39 server01 nginx[6345]: Handling web request
+Mar 20 10:10:40 server01 systemd[6480]: Regular system activity
+Mar 20 10:10:40 server01 cron[6481]: Scheduled maintenance
+Mar 20 10:10:40 server01 nginx[6482]: Handling web request
+Mar 20 10:10:41 server01 systemd[6617]: Regular system activity
+Mar 20 10:10:41 server01 cron[6618]: Scheduled maintenance
+Mar 20 10:10:41 server01 nginx[6619]: Handling web request
+Mar 20 10:10:42 server01 systemd[6754]: Regular system activity
+Mar 20 10:10:42 server01 cron[6755]: Scheduled maintenance
+Mar 20 10:10:42 server01 nginx[6756]: Handling web request
+Mar 20 10:10:43 server01 systemd[6891]: Regular system activity
+Mar 20 10:10:43 server01 cron[6892]: Scheduled maintenance
+Mar 20 10:10:43 server01 nginx[6893]: Handling web request
+Mar 20 10:10:44 server01 systemd[7028]: Regular system activity
+Mar 20 10:10:44 server01 cron[7029]: Scheduled maintenance
+Mar 20 10:10:44 server01 nginx[7030]: Handling web request
+Mar 20 10:10:45 server01 systemd[7165]: Regular system activity
+Mar 20 10:10:45 server01 cron[7166]: Scheduled maintenance
+Mar 20 10:10:45 server01 nginx[7167]: Handling web request
+Mar 20 10:10:46 server01 systemd[7302]: Regular system activity
+Mar 20 10:10:46 server01 cron[7303]: Scheduled maintenance
+Mar 20 10:10:46 server01 nginx[7304]: Handling web request
+Mar 20 10:10:47 server01 systemd[7439]: Regular system activity
+Mar 20 10:10:47 server01 cron[7440]: Scheduled maintenance
+Mar 20 10:10:47 server01 nginx[7441]: Handling web request
+Mar 20 10:10:48 server01 systemd[7576]: Regular system activity
+Mar 20 10:10:48 server01 cron[7577]: Scheduled maintenance
+Mar 20 10:10:48 server01 nginx[7578]: Handling web request
+Mar 20 10:10:49 server01 systemd[7713]: Regular system activity
+Mar 20 10:10:49 server01 cron[7714]: Scheduled maintenance
+Mar 20 10:10:49 server01 nginx[7715]: Handling web request
+Mar 20 10:10:50 server01 systemd[7850]: Regular system activity
+Mar 20 10:10:50 server01 cron[7851]: Scheduled maintenance
+Mar 20 10:10:50 server01 nginx[7852]: Handling web request
+Mar 20 10:10:51 server01 systemd[7987]: Regular system activity
+Mar 20 10:10:51 server01 cron[7988]: Scheduled maintenance
+Mar 20 10:10:51 server01 nginx[7989]: Handling web request
+Mar 20 10:10:52 server01 systemd[8124]: Regular system activity
+Mar 20 10:10:52 server01 cron[8125]: Scheduled maintenance
+Mar 20 10:10:52 server01 nginx[8126]: Handling web request
+Mar 20 10:10:53 server01 systemd[8261]: Regular system activity
+Mar 20 10:10:53 server01 cron[8262]: Scheduled maintenance
+Mar 20 10:10:53 server01 nginx[8263]: Handling web request
+Mar 20 10:10:54 server01 systemd[8398]: Regular system activity
+Mar 20 10:10:54 server01 cron[8399]: Scheduled maintenance
+Mar 20 10:10:54 server01 nginx[8400]: Handling web request
+Mar 20 10:10:55 server01 systemd[8535]: Regular system activity
+Mar 20 10:10:55 server01 cron[8536]: Scheduled maintenance
+Mar 20 10:10:55 server01 nginx[8537]: Handling web request
+Mar 20 10:10:56 server01 systemd[8672]: Regular system activity
+Mar 20 10:10:56 server01 cron[8673]: Scheduled maintenance
+Mar 20 10:10:56 server01 nginx[8674]: Handling web request
+Mar 20 10:10:57 server01 systemd[8809]: Regular system activity
+Mar 20 10:10:57 server01 cron[8810]: Scheduled maintenance
+Mar 20 10:10:57 server01 nginx[8811]: Handling web request
+Mar 20 10:10:58 server01 systemd[8946]: Regular system activity
+Mar 20 10:10:58 server01 cron[8947]: Scheduled maintenance
+Mar 20 10:10:58 server01 nginx[8948]: Handling web request
+Mar 20 10:10:59 server01 systemd[9083]: Regular system activity
+Mar 20 10:10:59 server01 cron[9084]: Scheduled maintenance
+Mar 20 10:10:59 server01 nginx[9085]: Handling web request
+Mar 20 10:11:00 server01 systemd[9220]: Regular system activity
+Mar 20 10:11:00 server01 cron[9221]: Scheduled maintenance
+Mar 20 10:11:00 server01 nginx[9222]: Handling web request
+Mar 20 10:11:01 server01 systemd[9357]: Regular system activity
+Mar 20 10:11:01 server01 cron[9358]: Scheduled maintenance
+Mar 20 10:11:01 server01 nginx[9359]: Handling web request
+Mar 20 10:11:02 server01 systemd[9494]: Regular system activity
+Mar 20 10:11:02 server01 cron[9495]: Scheduled maintenance
+Mar 20 10:11:02 server01 nginx[9496]: Handling web request
+Mar 20 10:11:03 server01 systemd[9631]: Regular system activity
+Mar 20 10:11:03 server01 cron[9632]: Scheduled maintenance
+Mar 20 10:11:03 server01 nginx[9633]: Handling web request
+Mar 20 10:11:04 server01 systemd[9768]: Regular system activity
+Mar 20 10:11:04 server01 cron[9769]: Scheduled maintenance
+Mar 20 10:11:04 server01 nginx[9770]: Handling web request
+Mar 20 10:11:05 server01 systemd[9905]: Regular system activity
+Mar 20 10:11:05 server01 cron[9906]: Scheduled maintenance
+Mar 20 10:11:05 server01 nginx[9907]: Handling web request
+Mar 20 10:11:06 server01 systemd[10042]: Regular system activity
+Mar 20 10:11:06 server01 cron[10043]: Scheduled maintenance
+Mar 20 10:11:06 server01 nginx[10044]: Handling web request
+Mar 20 10:11:07 server01 systemd[10179]: Regular system activity
+Mar 20 10:11:07 server01 cron[10180]: Scheduled maintenance
+Mar 20 10:11:07 server01 nginx[10181]: Handling web request
+Mar 20 10:11:08 server01 systemd[10316]: Regular system activity
+Mar 20 10:11:08 server01 cron[10317]: Scheduled maintenance
+Mar 20 10:11:08 server01 nginx[10318]: Handling web request
+Mar 20 10:11:09 server01 systemd[10453]: Regular system activity
+Mar 20 10:11:09 server01 cron[10454]: Scheduled maintenance
+Mar 20 10:11:09 server01 nginx[10455]: Handling web request
+Mar 20 10:11:10 server01 systemd[10590]: Regular system activity
+Mar 20 10:11:10 server01 cron[10591]: Scheduled maintenance
+Mar 20 10:11:10 server01 nginx[10592]: Handling web request
+Mar 20 10:11:11 server01 systemd[10727]: Regular system activity
+Mar 20 10:11:11 server01 cron[10728]: Scheduled maintenance
+Mar 20 10:11:11 server01 nginx[10729]: Handling web request
+Mar 20 10:11:12 server01 systemd[10864]: Regular system activity
+Mar 20 10:11:12 server01 cron[10865]: Scheduled maintenance
+Mar 20 10:11:12 server01 nginx[10866]: Handling web request
+Mar 20 10:11:13 server01 systemd[11001]: Regular system activity
+Mar 20 10:11:13 server01 cron[11002]: Scheduled maintenance
+Mar 20 10:11:13 server01 nginx[11003]: Handling web request
+Mar 20 10:11:14 server01 systemd[11138]: Regular system activity
+Mar 20 10:11:14 server01 cron[11139]: Scheduled maintenance
+Mar 20 10:11:14 server01 nginx[11140]: Handling web request
+Mar 20 10:11:15 server01 systemd[11275]: Regular system activity
+Mar 20 10:11:15 server01 cron[11276]: Scheduled maintenance
+Mar 20 10:11:15 server01 nginx[11277]: Handling web request
+Mar 20 10:11:16 server01 systemd[11412]: Regular system activity
+Mar 20 10:11:16 server01 cron[11413]: Scheduled maintenance
+Mar 20 10:11:16 server01 nginx[11414]: Handling web request
+Mar 20 10:11:17 server01 systemd[11549]: Regular system activity
+Mar 20 10:11:17 server01 cron[11550]: Scheduled maintenance
+Mar 20 10:11:17 server01 nginx[11551]: Handling web request
+Mar 20 10:11:18 server01 systemd[11686]: Regular system activity
+Mar 20 10:11:18 server01 cron[11687]: Scheduled maintenance
+Mar 20 10:11:18 server01 nginx[11688]: Handling web request
+Mar 20 10:11:19 server01 systemd[11823]: Regular system activity
+Mar 20 10:11:19 server01 cron[11824]: Scheduled maintenance
+Mar 20 10:11:19 server01 nginx[11825]: Handling web request
+Mar 20 10:11:20 server01 systemd[11960]: Regular system activity
+Mar 20 10:11:20 server01 cron[11961]: Scheduled maintenance
+Mar 20 10:11:20 server01 nginx[11962]: Handling web request
+Mar 20 10:11:21 server01 systemd[12097]: Regular system activity
+Mar 20 10:11:21 server01 cron[12098]: Scheduled maintenance
+Mar 20 10:11:21 server01 nginx[12099]: Handling web request
+Mar 20 10:11:22 server01 systemd[12234]: Regular system activity
+Mar 20 10:11:22 server01 cron[12235]: Scheduled maintenance
+Mar 20 10:11:22 server01 nginx[12236]: Handling web request
+Mar 20 10:11:23 server01 systemd[12371]: Regular system activity
+Mar 20 10:11:23 server01 cron[12372]: Scheduled maintenance
+Mar 20 10:11:23 server01 nginx[12373]: Handling web request
+Mar 20 10:11:24 server01 systemd[12508]: Regular system activity
+Mar 20 10:11:24 server01 cron[12509]: Scheduled maintenance
+Mar 20 10:11:24 server01 nginx[12510]: Handling web request
+Mar 20 10:11:25 server01 systemd[12645]: Regular system activity
+Mar 20 10:11:25 server01 cron[12646]: Scheduled maintenance
+Mar 20 10:11:25 server01 nginx[12647]: Handling web request
+Mar 20 10:11:26 server01 systemd[12782]: Regular system activity
+Mar 20 10:11:26 server01 cron[12783]: Scheduled maintenance
+Mar 20 10:11:26 server01 nginx[12784]: Handling web request
+Mar 20 10:11:27 server01 systemd[12919]: Regular system activity
+Mar 20 10:11:27 server01 cron[12920]: Scheduled maintenance
+Mar 20 10:11:27 server01 nginx[12921]: Handling web request
+Mar 20 10:11:28 server01 systemd[13056]: Regular system activity
+Mar 20 10:11:28 server01 cron[13057]: Scheduled maintenance
+Mar 20 10:11:28 server01 nginx[13058]: Handling web request
+Mar 20 10:11:29 server01 systemd[13193]: Regular system activity
+Mar 20 10:11:29 server01 cron[13194]: Scheduled maintenance
+Mar 20 10:11:29 server01 nginx[13195]: Handling web request
+Mar 20 10:11:30 server01 systemd[13330]: Regular system activity
+Mar 20 10:11:30 server01 cron[13331]: Scheduled maintenance
+Mar 20 10:11:30 server01 nginx[13332]: Handling web request
+Mar 20 10:11:31 server01 systemd[13467]: Regular system activity
+Mar 20 10:11:31 server01 cron[13468]: Scheduled maintenance
+Mar 20 10:11:31 server01 nginx[13469]: Handling web request
+Mar 20 10:11:32 server01 systemd[13604]: Regular system activity
+Mar 20 10:11:32 server01 cron[13605]: Scheduled maintenance
+Mar 20 10:11:32 server01 nginx[13606]: Handling web request
+Mar 20 10:11:33 server01 systemd[13741]: Regular system activity
+Mar 20 10:11:33 server01 cron[13742]: Scheduled maintenance
+Mar 20 10:11:33 server01 nginx[13743]: Handling web request
+Mar 20 10:11:34 server01 systemd[13878]: Regular system activity
+Mar 20 10:11:34 server01 cron[13879]: Scheduled maintenance
+Mar 20 10:11:34 server01 nginx[13880]: Handling web request
+Mar 20 10:11:35 server01 systemd[14015]: Regular system activity
+Mar 20 10:11:35 server01 cron[14016]: Scheduled maintenance
+Mar 20 10:11:35 server01 nginx[14017]: Handling web request
+Mar 20 10:11:36 server01 systemd[14152]: Regular system activity
+Mar 20 10:11:36 server01 cron[14153]: Scheduled maintenance
+Mar 20 10:11:36 server01 nginx[14154]: Handling web request
+Mar 20 10:11:37 server01 systemd[14289]: Regular system activity
+Mar 20 10:11:37 server01 cron[14290]: Scheduled maintenance
+Mar 20 10:11:37 server01 nginx[14291]: Handling web request
+Mar 20 10:11:38 server01 systemd[14426]: Regular system activity
+Mar 20 10:11:38 server01 cron[14427]: Scheduled maintenance
+Mar 20 10:11:38 server01 nginx[14428]: Handling web request
+Mar 20 10:11:39 server01 systemd[14563]: Regular system activity
+Mar 20 10:11:39 server01 cron[14564]: Scheduled maintenance
+Mar 20 10:11:39 server01 nginx[14565]: Handling web request
+Mar 20 10:11:40 server01 systemd[14700]: Regular system activity
+Mar 20 10:11:40 server01 cron[14701]: Scheduled maintenance
+Mar 20 10:11:40 server01 nginx[14702]: Handling web request
+Mar 20 10:11:41 server01 systemd[14837]: Regular system activity
+Mar 20 10:11:41 server01 cron[14838]: Scheduled maintenance
+Mar 20 10:11:41 server01 nginx[14839]: Handling web request
+Mar 20 10:11:42 server01 systemd[14974]: Regular system activity
+Mar 20 10:11:42 server01 cron[14975]: Scheduled maintenance
+Mar 20 10:11:42 server01 nginx[14976]: Handling web request
+Mar 20 10:11:43 server01 systemd[15111]: Regular system activity
+Mar 20 10:11:43 server01 cron[15112]: Scheduled maintenance
+Mar 20 10:11:43 server01 nginx[15113]: Handling web request
+Mar 20 10:11:44 server01 systemd[15248]: Regular system activity
+Mar 20 10:11:44 server01 cron[15249]: Scheduled maintenance
+Mar 20 10:11:44 server01 nginx[15250]: Handling web request
+Mar 20 10:11:45 server01 systemd[15385]: Regular system activity
+Mar 20 10:11:45 server01 cron[15386]: Scheduled maintenance
+Mar 20 10:11:45 server01 nginx[15387]: Handling web request
+Mar 20 10:11:46 server01 systemd[15522]: Regular system activity
+Mar 20 10:11:46 server01 cron[15523]: Scheduled maintenance
+Mar 20 10:11:46 server01 nginx[15524]: Handling web request
+Mar 20 10:11:47 server01 systemd[15659]: Regular system activity
+Mar 20 10:11:47 server01 cron[15660]: Scheduled maintenance
+Mar 20 10:11:47 server01 nginx[15661]: Handling web request
+Mar 20 10:11:48 server01 systemd[15796]: Regular system activity
+Mar 20 10:11:48 server01 cron[15797]: Scheduled maintenance
+Mar 20 10:11:48 server01 nginx[15798]: Handling web request
+Mar 20 10:11:49 server01 systemd[15933]: Regular system activity
+Mar 20 10:11:49 server01 cron[15934]: Scheduled maintenance
+Mar 20 10:11:49 server01 nginx[15935]: Handling web request
+Mar 20 10:11:50 server01 systemd[16070]: Regular system activity
+Mar 20 10:11:50 server01 cron[16071]: Scheduled maintenance
+Mar 20 10:11:50 server01 nginx[16072]: Handling web request
+Mar 20 10:11:51 server01 systemd[16207]: Regular system activity
+Mar 20 10:11:51 server01 cron[16208]: Scheduled maintenance
+Mar 20 10:11:51 server01 nginx[16209]: Handling web request
+Mar 20 10:11:52 server01 systemd[16344]: Regular system activity
+Mar 20 10:11:52 server01 cron[16345]: Scheduled maintenance
+Mar 20 10:11:52 server01 nginx[16346]: Handling web request
+Mar 20 10:11:53 server01 systemd[16481]: Regular system activity
+Mar 20 10:11:53 server01 cron[16482]: Scheduled maintenance
+Mar 20 10:11:53 server01 nginx[16483]: Handling web request
+Mar 20 10:11:54 server01 systemd[16618]: Regular system activity
+Mar 20 10:11:54 server01 cron[16619]: Scheduled maintenance
+Mar 20 10:11:54 server01 nginx[16620]: Handling web request
+Mar 20 10:11:55 server01 systemd[16755]: Regular system activity
+Mar 20 10:11:55 server01 cron[16756]: Scheduled maintenance
+Mar 20 10:11:55 server01 nginx[16757]: Handling web request
+Mar 20 10:11:56 server01 systemd[16892]: Regular system activity
+Mar 20 10:11:56 server01 cron[16893]: Scheduled maintenance
+Mar 20 10:11:56 server01 nginx[16894]: Handling web request
+Mar 20 10:11:57 server01 systemd[17029]: Regular system activity
+Mar 20 10:11:57 server01 cron[17030]: Scheduled maintenance
+Mar 20 10:11:57 server01 nginx[17031]: Handling web request
+Mar 20 10:11:58 server01 systemd[17166]: Regular system activity
+Mar 20 10:11:58 server01 cron[17167]: Scheduled maintenance
+Mar 20 10:11:58 server01 nginx[17168]: Handling web request
+Mar 20 10:11:59 server01 systemd[17303]: Regular system activity
+Mar 20 10:11:59 server01 cron[17304]: Scheduled maintenance
+Mar 20 10:11:59 server01 nginx[17305]: Handling web request
+Mar 20 10:12:00 server01 systemd[17440]: Regular system activity
+Mar 20 10:12:00 server01 cron[17441]: Scheduled maintenance
+Mar 20 10:12:00 server01 nginx[17442]: Handling web request
+Mar 20 10:12:01 server01 systemd[17577]: Regular system activity
+Mar 20 10:12:01 server01 cron[17578]: Scheduled maintenance
+Mar 20 10:12:01 server01 nginx[17579]: Handling web request
+Mar 20 10:12:02 server01 systemd[17714]: Regular system activity
+Mar 20 10:12:02 server01 cron[17715]: Scheduled maintenance
+Mar 20 10:12:02 server01 nginx[17716]: Handling web request
+Mar 20 10:12:03 server01 systemd[17851]: Regular system activity
+Mar 20 10:12:03 server01 cron[17852]: Scheduled maintenance
+Mar 20 10:12:03 server01 nginx[17853]: Handling web request
+Mar 20 10:12:04 server01 systemd[17988]: Regular system activity
+Mar 20 10:12:04 server01 cron[17989]: Scheduled maintenance
+Mar 20 10:12:04 server01 nginx[17990]: Handling web request
+Mar 20 10:12:05 server01 systemd[18125]: Regular system activity
+Mar 20 10:12:05 server01 cron[18126]: Scheduled maintenance
+Mar 20 10:12:05 server01 nginx[18127]: Handling web request
+Mar 20 10:12:06 server01 systemd[18262]: Regular system activity
+Mar 20 10:12:06 server01 cron[18263]: Scheduled maintenance
+Mar 20 10:12:06 server01 nginx[18264]: Handling web request
+Mar 20 10:12:07 server01 systemd[18399]: Regular system activity
+Mar 20 10:12:07 server01 cron[18400]: Scheduled maintenance
+Mar 20 10:12:07 server01 nginx[18401]: Handling web request
+Mar 20 10:12:08 server01 systemd[18536]: Regular system activity
+Mar 20 10:12:08 server01 cron[18537]: Scheduled maintenance
+Mar 20 10:12:08 server01 nginx[18538]: Handling web request
+Mar 20 10:12:09 server01 systemd[18673]: Regular system activity
+Mar 20 10:12:09 server01 cron[18674]: Scheduled maintenance
+Mar 20 10:12:09 server01 nginx[18675]: Handling web request
+Mar 20 10:12:10 server01 systemd[18810]: Regular system activity
+Mar 20 10:12:10 server01 cron[18811]: Scheduled maintenance
+Mar 20 10:12:10 server01 nginx[18812]: Handling web request
+Mar 20 10:12:11 server01 systemd[18947]: Regular system activity
+Mar 20 10:12:11 server01 cron[18948]: Scheduled maintenance
+Mar 20 10:12:11 server01 nginx[18949]: Handling web request
+Mar 20 10:12:12 server01 systemd[19084]: Regular system activity
+Mar 20 10:12:12 server01 cron[19085]: Scheduled maintenance
+Mar 20 10:12:12 server01 nginx[19086]: Handling web request
+Mar 20 10:12:13 server01 systemd[19221]: Regular system activity
+Mar 20 10:12:13 server01 cron[19222]: Scheduled maintenance
+Mar 20 10:12:13 server01 nginx[19223]: Handling web request
+Mar 20 10:12:14 server01 systemd[19358]: Regular system activity
+Mar 20 10:12:14 server01 cron[19359]: Scheduled maintenance
+Mar 20 10:12:14 server01 nginx[19360]: Handling web request
+Mar 20 10:12:15 server01 systemd[19495]: Regular system activity
+Mar 20 10:12:15 server01 cron[19496]: Scheduled maintenance
+Mar 20 10:12:15 server01 nginx[19497]: Handling web request
+Mar 20 10:12:16 server01 systemd[19632]: Regular system activity
+Mar 20 10:12:16 server01 cron[19633]: Scheduled maintenance
+Mar 20 10:12:16 server01 nginx[19634]: Handling web request
+Mar 20 10:12:17 server01 systemd[19769]: Regular system activity
+Mar 20 10:12:17 server01 cron[19770]: Scheduled maintenance
+Mar 20 10:12:17 server01 nginx[19771]: Handling web request
+Mar 20 10:12:18 server01 systemd[19906]: Regular system activity
+Mar 20 10:12:18 server01 cron[19907]: Scheduled maintenance
+Mar 20 10:12:18 server01 nginx[19908]: Handling web request
+Mar 20 10:12:19 server01 systemd[20043]: Regular system activity
+Mar 20 10:12:19 server01 cron[20044]: Scheduled maintenance
+Mar 20 10:12:19 server01 nginx[20045]: Handling web request
+Mar 20 10:12:20 server01 systemd[20180]: Regular system activity
+Mar 20 10:12:20 server01 cron[20181]: Scheduled maintenance
+Mar 20 10:12:20 server01 nginx[20182]: Handling web request
+Mar 20 10:12:21 server01 systemd[20317]: Regular system activity
+Mar 20 10:12:21 server01 cron[20318]: Scheduled maintenance
+Mar 20 10:12:21 server01 nginx[20319]: Handling web request
+Mar 20 10:12:22 server01 systemd[20454]: Regular system activity
+Mar 20 10:12:22 server01 cron[20455]: Scheduled maintenance
+Mar 20 10:12:22 server01 nginx[20456]: Handling web request
+Mar 20 10:12:23 server01 systemd[20591]: Regular system activity
+Mar 20 10:12:23 server01 cron[20592]: Scheduled maintenance
+Mar 20 10:12:23 server01 nginx[20593]: Handling web request
+Mar 20 10:12:24 server01 systemd[20728]: Regular system activity
+Mar 20 10:12:24 server01 cron[20729]: Scheduled maintenance
+Mar 20 10:12:24 server01 nginx[20730]: Handling web request
+Mar 20 10:12:25 server01 systemd[20865]: Regular system activity
+Mar 20 10:12:25 server01 cron[20866]: Scheduled maintenance
+Mar 20 10:12:25 server01 nginx[20867]: Handling web request
+Mar 20 10:12:26 server01 systemd[21002]: Regular system activity
+Mar 20 10:12:26 server01 cron[21003]: Scheduled maintenance
+Mar 20 10:12:26 server01 nginx[21004]: Handling web request
+Mar 20 10:12:27 server01 systemd[21139]: Regular system activity
+Mar 20 10:12:27 server01 cron[21140]: Scheduled maintenance
+Mar 20 10:12:27 server01 nginx[21141]: Handling web request
+Mar 20 10:12:28 server01 systemd[21276]: Regular system activity
+Mar 20 10:12:28 server01 cron[21277]: Scheduled maintenance
+Mar 20 10:12:28 server01 nginx[21278]: Handling web request
+Mar 20 10:12:29 server01 systemd[21413]: Regular system activity
+Mar 20 10:12:29 server01 cron[21414]: Scheduled maintenance
+Mar 20 10:12:29 server01 nginx[21415]: Handling web request
+Mar 20 10:12:30 server01 systemd[21550]: Regular system activity
+Mar 20 10:12:30 server01 cron[21551]: Scheduled maintenance
+Mar 20 10:12:30 server01 nginx[21552]: Handling web request
+Mar 20 10:12:31 server01 systemd[21687]: Regular system activity
+Mar 20 10:12:31 server01 cron[21688]: Scheduled maintenance
+Mar 20 10:12:31 server01 nginx[21689]: Handling web request
+Mar 20 10:12:32 server01 systemd[21824]: Regular system activity
+Mar 20 10:12:32 server01 cron[21825]: Scheduled maintenance
+Mar 20 10:12:32 server01 nginx[21826]: Handling web request
+Mar 20 10:12:33 server01 systemd[21961]: Regular system activity
+Mar 20 10:12:33 server01 cron[21962]: Scheduled maintenance
+Mar 20 10:12:33 server01 nginx[21963]: Handling web request
+Mar 20 10:12:34 server01 systemd[22098]: Regular system activity
+Mar 20 10:12:34 server01 cron[22099]: Scheduled maintenance
+Mar 20 10:12:34 server01 nginx[22100]: Handling web request
+Mar 20 10:12:35 server01 systemd[22235]: Regular system activity
+Mar 20 10:12:35 server01 cron[22236]: Scheduled maintenance
+Mar 20 10:12:35 server01 nginx[22237]: Handling web request
+Mar 20 10:12:36 server01 systemd[22372]: Regular system activity
+Mar 20 10:12:36 server01 cron[22373]: Scheduled maintenance
+Mar 20 10:12:36 server01 nginx[22374]: Handling web request
+Mar 20 10:12:37 server01 systemd[22509]: Regular system activity
+Mar 20 10:12:37 server01 cron[22510]: Scheduled maintenance
+Mar 20 10:12:37 server01 nginx[22511]: Handling web request
+Mar 20 10:12:38 server01 systemd[22646]: Regular system activity
+Mar 20 10:12:38 server01 cron[22647]: Scheduled maintenance
+Mar 20 10:12:38 server01 nginx[22648]: Handling web request
+Mar 20 10:12:39 server01 systemd[22783]: Regular system activity
+Mar 20 10:12:39 server01 cron[22784]: Scheduled maintenance
+Mar 20 10:12:39 server01 nginx[22785]: Handling web request
+Mar 20 10:12:40 server01 systemd[22920]: Regular system activity
+Mar 20 10:12:40 server01 cron[22921]: Scheduled maintenance
+Mar 20 10:12:40 server01 nginx[22922]: Handling web request
+Mar 20 10:12:41 server01 systemd[23057]: Regular system activity
+Mar 20 10:12:41 server01 cron[23058]: Scheduled maintenance
+Mar 20 10:12:41 server01 nginx[23059]: Handling web request
+Mar 20 10:12:42 server01 systemd[23194]: Regular system activity
+Mar 20 10:12:42 server01 cron[23195]: Scheduled maintenance
+Mar 20 10:12:42 server01 nginx[23196]: Handling web request
+Mar 20 10:12:43 server01 systemd[23331]: Regular system activity
+Mar 20 10:12:43 server01 cron[23332]: Scheduled maintenance
+Mar 20 10:12:43 server01 nginx[23333]: Handling web request
+Mar 20 10:12:44 server01 systemd[23468]: Regular system activity
+Mar 20 10:12:44 server01 cron[23469]: Scheduled maintenance
+Mar 20 10:12:44 server01 nginx[23470]: Handling web request
+Mar 20 10:12:45 server01 systemd[23605]: Regular system activity
+Mar 20 10:12:45 server01 cron[23606]: Scheduled maintenance
+Mar 20 10:12:45 server01 nginx[23607]: Handling web request
+Mar 20 10:12:46 server01 systemd[23742]: Regular system activity
+Mar 20 10:12:46 server01 cron[23743]: Scheduled maintenance
+Mar 20 10:12:46 server01 nginx[23744]: Handling web request
+Mar 20 10:12:47 server01 systemd[23879]: Regular system activity
+Mar 20 10:12:47 server01 cron[23880]: Scheduled maintenance
+Mar 20 10:12:47 server01 nginx[23881]: Handling web request
+Mar 20 10:12:48 server01 systemd[24016]: Regular system activity
+Mar 20 10:12:48 server01 cron[24017]: Scheduled maintenance
+Mar 20 10:12:48 server01 nginx[24018]: Handling web request
+Mar 20 10:12:49 server01 systemd[24153]: Regular system activity
+Mar 20 10:12:49 server01 cron[24154]: Scheduled maintenance
+Mar 20 10:12:49 server01 nginx[24155]: Handling web request
+Mar 20 10:12:50 server01 systemd[24290]: Regular system activity
+Mar 20 10:12:50 server01 cron[24291]: Scheduled maintenance
+Mar 20 10:12:50 server01 nginx[24292]: Handling web request
+Mar 20 10:12:51 server01 systemd[24427]: Regular system activity
+Mar 20 10:12:51 server01 cron[24428]: Scheduled maintenance
+Mar 20 10:12:51 server01 nginx[24429]: Handling web request
+Mar 20 10:12:52 server01 systemd[24564]: Regular system activity
+Mar 20 10:12:52 server01 cron[24565]: Scheduled maintenance
+Mar 20 10:12:52 server01 nginx[24566]: Handling web request
+Mar 20 10:12:53 server01 systemd[24701]: Regular system activity
+Mar 20 10:12:53 server01 cron[24702]: Scheduled maintenance
+Mar 20 10:12:53 server01 nginx[24703]: Handling web request
+Mar 20 10:12:54 server01 systemd[24838]: Regular system activity
+Mar 20 10:12:54 server01 cron[24839]: Scheduled maintenance
+Mar 20 10:12:54 server01 nginx[24840]: Handling web request
+Mar 20 10:12:55 server01 systemd[24975]: Regular system activity
+Mar 20 10:12:55 server01 cron[24976]: Scheduled maintenance
+Mar 20 10:12:55 server01 nginx[24977]: Handling web request
+Mar 20 10:12:56 server01 systemd[25112]: Regular system activity
+Mar 20 10:12:56 server01 cron[25113]: Scheduled maintenance
+Mar 20 10:12:56 server01 nginx[25114]: Handling web request
+Mar 20 10:12:57 server01 systemd[25249]: Regular system activity
+Mar 20 10:12:57 server01 cron[25250]: Scheduled maintenance
+Mar 20 10:12:57 server01 nginx[25251]: Handling web request
+Mar 20 10:12:58 server01 systemd[25386]: Regular system activity
+Mar 20 10:12:58 server01 cron[25387]: Scheduled maintenance
+Mar 20 10:12:58 server01 nginx[25388]: Handling web request
+Mar 20 10:12:59 server01 systemd[25523]: Regular system activity
+Mar 20 10:12:59 server01 cron[25524]: Scheduled maintenance
+Mar 20 10:12:59 server01 nginx[25525]: Handling web request
+Mar 20 10:13:00 server01 systemd[25660]: Regular system activity
+Mar 20 10:13:00 server01 cron[25661]: Scheduled maintenance
+Mar 20 10:13:00 server01 nginx[25662]: Handling web request
+Mar 20 10:13:01 server01 systemd[25797]: Regular system activity
+Mar 20 10:13:01 server01 cron[25798]: Scheduled maintenance
+Mar 20 10:13:01 server01 nginx[25799]: Handling web request
+Mar 20 10:13:02 server01 systemd[25934]: Regular system activity
+Mar 20 10:13:02 server01 cron[25935]: Scheduled maintenance
+Mar 20 10:13:02 server01 nginx[25936]: Handling web request
+Mar 20 10:13:03 server01 systemd[26071]: Regular system activity
+Mar 20 10:13:03 server01 cron[26072]: Scheduled maintenance
+Mar 20 10:13:03 server01 nginx[26073]: Handling web request
+Mar 20 10:13:04 server01 systemd[26208]: Regular system activity
+Mar 20 10:13:04 server01 cron[26209]: Scheduled maintenance
+Mar 20 10:13:04 server01 nginx[26210]: Handling web request
+Mar 20 10:13:05 server01 systemd[26345]: Regular system activity
+Mar 20 10:13:05 server01 cron[26346]: Scheduled maintenance
+Mar 20 10:13:05 server01 nginx[26347]: Handling web request
+Mar 20 10:13:06 server01 systemd[26482]: Regular system activity
+Mar 20 10:13:06 server01 cron[26483]: Scheduled maintenance
+Mar 20 10:13:06 server01 nginx[26484]: Handling web request
+Mar 20 10:13:07 server01 systemd[26619]: Regular system activity
+Mar 20 10:13:07 server01 cron[26620]: Scheduled maintenance
+Mar 20 10:13:07 server01 nginx[26621]: Handling web request
+Mar 20 10:13:08 server01 systemd[26756]: Regular system activity
+Mar 20 10:13:08 server01 cron[26757]: Scheduled maintenance
+Mar 20 10:13:08 server01 nginx[26758]: Handling web request
+Mar 20 10:13:09 server01 systemd[26893]: Regular system activity
+Mar 20 10:13:09 server01 cron[26894]: Scheduled maintenance
+Mar 20 10:13:09 server01 nginx[26895]: Handling web request
+Mar 20 10:13:10 server01 systemd[27030]: Regular system activity
+Mar 20 10:13:10 server01 cron[27031]: Scheduled maintenance
+Mar 20 10:13:10 server01 nginx[27032]: Handling web request
+Mar 20 10:13:11 server01 systemd[27167]: Regular system activity
+Mar 20 10:13:11 server01 cron[27168]: Scheduled maintenance
+Mar 20 10:13:11 server01 nginx[27169]: Handling web request
+Mar 20 10:13:12 server01 systemd[27304]: Regular system activity
+Mar 20 10:13:12 server01 cron[27305]: Scheduled maintenance
+Mar 20 10:13:12 server01 nginx[27306]: Handling web request
+Mar 20 10:13:13 server01 systemd[27441]: Regular system activity
+Mar 20 10:13:13 server01 cron[27442]: Scheduled maintenance
+Mar 20 10:13:13 server01 nginx[27443]: Handling web request
+Mar 20 10:13:14 server01 systemd[27578]: Regular system activity
+Mar 20 10:13:14 server01 cron[27579]: Scheduled maintenance
+Mar 20 10:13:14 server01 nginx[27580]: Handling web request
+Mar 20 10:13:15 server01 systemd[27715]: Regular system activity
+Mar 20 10:13:15 server01 cron[27716]: Scheduled maintenance
+Mar 20 10:13:15 server01 nginx[27717]: Handling web request
+Mar 20 10:13:16 server01 systemd[27852]: Regular system activity
+Mar 20 10:13:16 server01 cron[27853]: Scheduled maintenance
+Mar 20 10:13:16 server01 nginx[27854]: Handling web request
+Mar 20 10:13:17 server01 systemd[27989]: Regular system activity
+Mar 20 10:13:17 server01 cron[27990]: Scheduled maintenance
+Mar 20 10:13:17 server01 nginx[27991]: Handling web request
+Mar 20 10:13:18 server01 systemd[28126]: Regular system activity
+Mar 20 10:13:18 server01 cron[28127]: Scheduled maintenance
+Mar 20 10:13:18 server01 nginx[28128]: Handling web request
+Mar 20 10:13:19 server01 systemd[28263]: Regular system activity
+Mar 20 10:13:19 server01 cron[28264]: Scheduled maintenance
+Mar 20 10:13:19 server01 nginx[28265]: Handling web request
+Mar 20 10:13:20 server01 systemd[28400]: Regular system activity
+Mar 20 10:13:20 server01 cron[28401]: Scheduled maintenance
+Mar 20 10:13:20 server01 nginx[28402]: Handling web request
+Mar 20 03:10:44 server01 inject_shell[18505]: Executing from /dev/shm 45.76.12.34:4444
+Mar 20 05:35:39 server01 tmp_exec[35803]: Injecting code
+Mar 20 05:24:11 server01 backdoor[31340]: Exfiltrating data 45.76.12.34:4444
+Mar 20 04:50:53 server01 tmp_exec[19150]: Connecting to C2 server
+Mar 20 04:41:03 server01 unknown_proc[8213]: Reading /etc/shadow
+Mar 20 05:35:30 server01 tmp_exec[32169]: Injecting code 45.76.12.34:4444
+Mar 20 02:24:51 server01 tmp_exec[38722]: Connecting to C2 server 103.20.10.50:31337
+Mar 20 02:23:35 server01 tmp_exec[11636]: Exfiltrating data 185.220.101.1:6666
+Mar 20 05:17:14 server01 unknown_proc[24611]: Modifying /etc/passwd
+Mar 20 05:49:20 server01 tmp_exec[8707]: Reading /etc/shadow 45.76.12.34:4444
+Mar 20 04:40:25 server01 .hidden_malware[34540]: Listening on suspicious port
+Mar 20 04:17:08 server01 tmp_exec[11161]: Modifying /etc/passwd 185.220.101.1:6666
+Mar 20 03:41:14 server01 payload[10159]: Exfiltrating data
+Mar 20 06:00:00 server01 apache2[24811]: Regular handling
+Mar 20 06:05:00 server01 systemd[21414]: Regular started
+Mar 20 06:00:00 server01 mysql[1169]: Regular executing
+Mar 20 06:05:00 server01 nginx[26411]: Regular checking
+Mar 20 06:10:00 server01 python3[27160]: Regular checking
+Mar 20 06:15:00 server01 nginx[7254]: Regular executing
+Mar 20 06:20:00 server01 mysql[16333]: Regular started
+Mar 20 06:25:00 server01 apache2[31250]: Regular running
+Mar 20 06:30:00 server01 systemd[27013]: Regular handling
+Mar 20 06:35:00 server01 python3[18316]: Regular executing
+Mar 20 06:40:00 server01 apache2[3969]: Regular started
+Mar 20 06:45:00 server01 apache2[1034]: Regular serving
+Mar 20 06:50:00 server01 bash[7935]: Regular executing
+Mar 20 06:55:00 server01 nginx[4053]: Regular serving
+Mar 20 07:00:00 server01 bash[23279]: Regular processing
+Mar 20 07:05:00 server01 cron[28291]: Regular running
+Mar 20 07:10:00 server01 python3[8298]: Regular started
+Mar 20 07:15:00 server01 cron[29307]: Regular checking
+Mar 20 07:20:00 server01 python3[29473]: Regular handling
+Mar 20 07:25:00 server01 python3[21368]: Regular handling
+Mar 20 07:30:00 server01 python3[13884]: Regular executing
+Mar 20 07:35:00 server01 mysql[31519]: Regular processing
+Mar 20 07:40:00 server01 sshd[29749]: Regular started
+Mar 20 07:45:00 server01 apache2[9967]: Regular checking
+Mar 20 07:50:00 server01 python3[25431]: Regular handling
+Mar 20 07:55:00 server01 mysql[13557]: Regular serving
+Mar 20 00:00:00 server01 sshd[31843]: Regular serving
+Mar 20 00:05:00 server01 python3[29415]: Regular serving
+Mar 20 00:10:00 server01 mysql[1860]: Regular serving
+Mar 20 00:15:00 server01 python3[30824]: Regular processing
+Mar 20 00:20:00 server01 sshd[28275]: Regular processing
+Mar 20 00:25:00 server01 cron[12861]: Regular running
+Mar 20 00:30:00 server01 cron[31153]: Regular checking
+Mar 20 00:35:00 server01 bash[28488]: Regular running
+Mar 20 00:40:00 server01 nginx[6192]: Regular running
+Mar 20 00:45:00 server01 nginx[5295]: Regular executing
+Mar 20 00:50:00 server01 apache2[22965]: Regular serving
+Mar 20 00:55:00 server01 bash[18756]: Regular checking
+Mar 20 00:00:00 server01 systemd[17070]: Regular processing
+Mar 20 00:05:00 server01 sshd[12616]: Regular checking
+Mar 20 00:10:00 server01 apache2[16048]: Regular checking
+Mar 20 00:15:00 server01 mysql[8914]: Regular handling
+Mar 20 00:20:00 server01 systemd[24322]: Regular running
+Mar 20 00:25:00 server01 python3[3673]: Regular executing
+Mar 20 00:30:00 server01 python3[15952]: Regular handling
+Mar 20 00:35:00 server01 cron[30594]: Regular executing
+Mar 20 00:40:00 server01 sshd[7709]: Regular processing
+Mar 20 00:45:00 server01 systemd[8035]: Regular handling
+Mar 20 00:50:00 server01 apache2[6475]: Regular processing
+Mar 20 00:55:00 server01 apache2[11835]: Regular checking
+Mar 20 10:00:00 server01 bash[26762]: Regular started
+Mar 20 10:05:00 server01 sshd[15601]: Regular executing
+Mar 20 10:10:00 server01 cron[18921]: Regular checking
+Mar 20 10:15:00 server01 apache2[20028]: Regular executing
+Mar 20 10:20:00 server01 sshd[12390]: Regular executing
+Mar 20 10:25:00 server01 bash[14296]: Regular handling
+Mar 20 10:30:00 server01 apache2[27342]: Regular checking
+Mar 20 10:35:00 server01 mysql[26931]: Regular processing
+Mar 20 10:40:00 server01 apache2[23206]: Regular started
+Mar 20 10:45:00 server01 sshd[16831]: Regular executing
+Mar 20 10:50:00 server01 cron[18366]: Regular running
+Mar 20 10:55:00 server01 apache2[32053]: Regular checking
+Mar 20 11:00:00 server01 sshd[29650]: Regular processing
+Mar 20 11:05:00 server01 python3[7115]: Regular checking
+Mar 20 11:10:00 server01 nginx[20356]: Regular serving
+Mar 20 11:15:00 server01 systemd[6964]: Regular serving
+Mar 20 11:20:00 server01 python3[8862]: Regular started
+Mar 20 11:25:00 server01 bash[16851]: Regular executing
+Mar 20 11:30:00 server01 nginx[32342]: Regular started
+Mar 20 11:35:00 server01 mysql[17050]: Regular processing
+Mar 20 11:40:00 server01 apache2[15483]: Regular processing
+Mar 20 11:45:00 server01 systemd[5665]: Regular processing
+Mar 20 11:50:00 server01 cron[12040]: Regular serving
+Mar 20 11:55:00 server01 bash[14779]: Regular checking
+Mar 20 12:00:00 server01 python3[20538]: Regular processing
+Mar 20 12:05:00 server01 sshd[19608]: Regular executing
+Mar 20 12:10:00 server01 nginx[26686]: Regular handling
+Mar 20 12:15:00 server01 mysql[29620]: Regular checking
+Mar 20 12:20:00 server01 cron[15740]: Regular started
+Mar 20 12:25:00 server01 sshd[7250]: Regular running
+Mar 20 12:30:00 server01 sshd[12021]: Regular serving
+Mar 20 12:35:00 server01 systemd[10593]: Regular serving
+Mar 20 12:40:00 server01 systemd[1779]: Regular checking
+Mar 20 12:45:00 server01 python3[16334]: Regular started
+Mar 20 12:50:00 server01 sshd[14874]: Regular executing
+Mar 20 12:55:00 server01 bash[26409]: Regular checking
+Mar 20 13:00:00 server01 python3[15615]: Regular running
+Mar 20 13:05:00 server01 mysql[26661]: Regular processing
+Mar 20 13:10:00 server01 cron[30761]: Regular executing
+Mar 20 13:15:00 server01 mysql[31272]: Regular serving
+Mar 20 13:20:00 server01 apache2[9727]: Regular executing
+Mar 20 13:25:00 server01 systemd[7812]: Regular checking
+Mar 20 13:30:00 server01 bash[16081]: Regular checking
+Mar 20 13:35:00 server01 bash[13093]: Regular executing
+Mar 20 13:40:00 server01 bash[16622]: Regular handling
+Mar 20 13:45:00 server01 mysql[31534]: Regular executing
+Mar 20 13:50:00 server01 nginx[13669]: Regular checking
+Mar 20 13:55:00 server01 bash[24255]: Regular handling
+Mar 20 14:00:00 server01 mysql[4152]: Regular executing
+Mar 20 14:05:00 server01 systemd[32422]: Regular serving
+Mar 20 14:10:00 server01 cron[11966]: Regular serving
+Mar 20 14:15:00 server01 sshd[14475]: Regular serving
+Mar 20 14:20:00 server01 mysql[22648]: Regular serving
+Mar 20 14:25:00 server01 mysql[2125]: Regular serving
+Mar 20 14:30:00 server01 nginx[12457]: Regular executing
+Mar 20 14:35:00 server01 systemd[3375]: Regular processing
+Mar 20 14:40:00 server01 apache2[27793]: Regular checking
+Mar 20 14:45:00 server01 mysql[3264]: Regular executing
+Mar 20 14:50:00 server01 systemd[7885]: Regular started
+Mar 20 14:55:00 server01 python3[18048]: Regular executing
+Mar 20 15:00:00 server01 apache2[2850]: Regular checking
+Mar 20 15:05:00 server01 nginx[3315]: Regular checking
+Mar 20 15:10:00 server01 bash[14306]: Regular handling
+Mar 20 15:15:00 server01 systemd[4358]: Regular handling
+Mar 20 15:20:00 server01 mysql[15910]: Regular handling
+Mar 20 15:25:00 server01 nginx[2160]: Regular serving
+Mar 20 15:30:00 server01 mysql[29533]: Regular started
+Mar 20 15:35:00 server01 cron[29887]: Regular running
+Mar 20 15:40:00 server01 systemd[25235]: Regular serving
+Mar 20 15:45:00 server01 apache2[25861]: Regular processing
+Mar 20 15:50:00 server01 bash[30652]: Regular started
+Mar 20 15:55:00 server01 systemd[13938]: Regular handling
+Mar 20 16:00:00 server01 bash[19127]: Regular executing
+Mar 20 16:05:00 server01 apache2[21502]: Regular checking
+Mar 20 16:10:00 server01 nginx[4117]: Regular handling
+Mar 20 16:15:00 server01 apache2[32576]: Regular running
+Mar 20 16:20:00 server01 sshd[2107]: Regular checking
+Mar 20 16:25:00 server01 cron[24452]: Regular executing
+Mar 20 16:30:00 server01 python3[25865]: Regular started
+Mar 20 16:35:00 server01 sshd[30326]: Regular serving
+Mar 20 16:40:00 server01 apache2[1589]: Regular handling
+Mar 20 16:45:00 server01 bash[30089]: Regular executing
+Mar 20 16:50:00 server01 cron[27056]: Regular started
+Mar 20 16:55:00 server01 nginx[28179]: Regular processing
+Mar 20 17:00:00 server01 mysql[4033]: Regular serving
+Mar 20 17:05:00 server01 mysql[9783]: Regular running
+Mar 20 17:10:00 server01 python3[17325]: Regular started
+Mar 20 17:15:00 server01 apache2[5925]: Regular executing
+Mar 20 17:20:00 server01 python3[25282]: Regular checking
+Mar 20 17:25:00 server01 nginx[3234]: Regular serving
+Mar 20 17:30:00 server01 systemd[19596]: Regular executing
+Mar 20 17:35:00 server01 bash[2393]: Regular processing
+Mar 20 17:40:00 server01 apache2[17058]: Regular executing
+Mar 20 17:45:00 server01 nginx[16579]: Regular processing
+Mar 20 17:50:00 server01 systemd[18171]: Regular handling
+Mar 20 17:55:00 server01 mysql[9669]: Regular executing
+Mar 20 18:00:00 server01 systemd[3373]: Regular processing
+Mar 20 18:05:00 server01 bash[7829]: Regular executing
+Mar 20 18:10:00 server01 apache2[11149]: Regular processing
+Mar 20 18:15:00 server01 cron[13137]: Regular checking
+Mar 20 18:20:00 server01 bash[3555]: Regular processing
+Mar 20 18:25:00 server01 mysql[21156]: Regular handling
+Mar 20 18:30:00 server01 bash[25436]: Regular handling
+Mar 20 18:35:00 server01 apache2[23546]: Regular started
+Mar 20 18:40:00 server01 sshd[23316]: Regular started
+Mar 20 18:45:00 server01 cron[13902]: Regular checking
+Mar 20 18:50:00 server01 apache2[3081]: Regular checking
+Mar 20 18:55:00 server01 apache2[13348]: Regular running
+Mar 20 19:00:00 server01 systemd[28139]: Regular processing
+Mar 20 19:05:00 server01 python3[17364]: Regular started
+Mar 20 19:10:00 server01 cron[11855]: Regular started
+Mar 20 19:15:00 server01 mysql[32907]: Regular started
+Mar 20 19:20:00 server01 apache2[20547]: Regular started
+Mar 20 19:25:00 server01 mysql[21075]: Regular checking
+Mar 20 19:30:00 server01 sshd[30289]: Regular started
+Mar 20 19:35:00 server01 sshd[33509]: Regular started
+Mar 20 19:40:00 server01 nginx[1279]: Regular processing
+Mar 20 19:45:00 server01 nginx[25954]: Regular started
+Mar 20 19:50:00 server01 mysql[11484]: Regular executing
+Mar 20 19:55:00 server01 systemd[15936]: Regular checking
+Mar 20 20:00:00 server01 python3[31616]: Regular serving
+Mar 20 20:05:00 server01 apache2[28298]: Regular checking
+Mar 20 20:10:00 server01 apache2[27003]: Regular running
+Mar 20 20:15:00 server01 apache2[2208]: Regular serving
+Mar 20 20:20:00 server01 bash[22172]: Regular serving
+Mar 20 20:25:00 server01 mysql[20669]: Regular running
+Mar 20 20:30:00 server01 python3[21496]: Regular checking
+Mar 20 20:35:00 server01 nginx[32028]: Regular handling
+Mar 20 20:40:00 server01 sshd[10290]: Regular started
+Mar 20 20:45:00 server01 apache2[13357]: Regular handling
+Mar 20 20:50:00 server01 sshd[25264]: Regular executing
+Mar 20 20:55:00 server01 nginx[21932]: Regular handling
+Mar 20 21:00:00 server01 python3[1529]: Regular processing
+Mar 20 21:05:00 server01 sshd[8076]: Regular processing
+Mar 20 21:10:00 server01 systemd[30097]: Regular running
+Mar 20 21:15:00 server01 bash[17242]: Regular processing
+Mar 20 21:20:00 server01 systemd[15144]: Regular executing
+Mar 20 21:25:00 server01 bash[33380]: Regular serving
+Mar 20 21:30:00 server01 sshd[15551]: Regular handling
+Mar 20 21:35:00 server01 cron[22550]: Regular checking
+Mar 20 21:40:00 server01 mysql[26802]: Regular serving
+Mar 20 21:45:00 server01 python3[10608]: Regular started
+Mar 20 21:50:00 server01 cron[10862]: Regular executing
+Mar 20 21:55:00 server01 bash[26679]: Regular processing
+Mar 20 22:00:00 server01 sshd[19062]: Regular started
+Mar 20 22:05:00 server01 python3[15265]: Regular executing
+Mar 20 22:10:00 server01 apache2[24706]: Regular executing
+Mar 20 22:15:00 server01 nginx[29656]: Regular processing
+Mar 20 22:20:00 server01 sshd[5151]: Regular checking
+Mar 20 22:25:00 server01 bash[21632]: Regular started
+Mar 20 22:30:00 server01 sshd[4351]: Regular started
+Mar 20 22:35:00 server01 apache2[5196]: Regular processing
+Mar 20 22:40:00 server01 bash[2195]: Regular checking
+Mar 20 22:45:00 server01 cron[24382]: Regular started
+Mar 20 22:50:00 server01 apache2[10808]: Regular executing
+Mar 20 22:55:00 server01 bash[3015]: Regular started
+Mar 20 23:00:00 server01 sshd[25526]: Regular serving
+Mar 20 23:05:00 server01 systemd[24169]: Regular processing
+Mar 20 23:10:00 server01 nginx[19520]: Regular executing
+Mar 20 23:15:00 server01 python3[9194]: Regular running
+Mar 20 23:20:00 server01 mysql[31120]: Regular processing
+Mar 20 23:25:00 server01 systemd[19787]: Regular started
+Mar 20 23:30:00 server01 nginx[6337]: Regular handling
+Mar 20 23:35:00 server01 python3[14351]: Regular serving
+Mar 20 23:40:00 server01 nginx[14633]: Regular started
+Mar 20 23:45:00 server01 nginx[15811]: Regular running
+Mar 20 23:50:00 server01 mysql[21552]: Regular serving
+Mar 20 23:55:00 server01 nginx[9475]: Regular started
+Mar 20 06:00:00 server01 bash[7494]: Regular processing
+Mar 20 06:05:00 server01 nginx[25040]: Regular running
+Mar 20 06:10:00 server01 python3[24152]: Regular handling
+Mar 20 06:15:00 server01 apache2[30779]: Regular running
+Mar 20 06:20:00 server01 python3[2643]: Regular checking
+Mar 20 06:25:00 server01 sshd[23370]: Regular processing
+Mar 20 06:30:00 server01 sshd[2278]: Regular handling
+Mar 20 06:35:00 server01 nginx[25741]: Regular serving
+Mar 20 06:40:00 server01 mysql[3488]: Regular processing
+Mar 20 06:45:00 server01 systemd[14636]: Regular handling
+Mar 20 06:50:00 server01 bash[2998]: Regular checking
+Mar 20 06:55:00 server01 apache2[24772]: Regular handling
+Mar 20 07:00:00 server01 apache2[7916]: Regular running
+Mar 20 07:05:00 server01 systemd[28504]: Regular started
+Mar 20 07:10:00 server01 python3[22634]: Regular handling
+Mar 20 07:15:00 server01 bash[33192]: Regular running
+Mar 20 07:20:00 server01 nginx[8752]: Regular checking
+Mar 20 07:25:00 server01 sshd[22919]: Regular executing
+Mar 20 07:30:00 server01 cron[30766]: Regular running
+Mar 20 07:35:00 server01 bash[3855]: Regular handling
+Mar 20 07:40:00 server01 apache2[8493]: Regular handling
+Mar 20 07:45:00 server01 cron[31729]: Regular serving
+Mar 20 07:50:00 server01 systemd[19085]: Regular handling
+Mar 20 07:55:00 server01 cron[14855]: Regular started
+Mar 20 08:00:00 server01 systemd[13926]: Regular processing
+Mar 20 08:05:00 server01 mysql[17185]: Regular running
+Mar 20 08:10:00 server01 nginx[26547]: Regular running
+Mar 20 08:15:00 server01 systemd[32077]: Regular checking
+Mar 20 08:20:00 server01 bash[1029]: Regular serving
+Mar 20 08:25:00 server01 systemd[17350]: Regular processing
+Mar 20 08:30:00 server01 nginx[28783]: Regular handling
+Mar 20 08:35:00 server01 apache2[23078]: Regular serving
+Mar 20 08:40:00 server01 systemd[4653]: Regular started
+Mar 20 08:45:00 server01 apache2[14317]: Regular running
+Mar 20 08:50:00 server01 mysql[15763]: Regular handling
+Mar 20 08:55:00 server01 cron[21079]: Regular processing
+Mar 20 09:00:00 server01 apache2[14627]: Regular executing
+Mar 20 09:05:00 server01 python3[10890]: Regular checking
+Mar 20 09:10:00 server01 nginx[22295]: Regular running
+Mar 20 09:15:00 server01 python3[31097]: Regular processing
+Mar 20 09:20:00 server01 mysql[7077]: Regular executing
+Mar 20 09:25:00 server01 mysql[2212]: Regular processing
+Mar 20 09:30:00 server01 systemd[23715]: Regular checking
+Mar 20 09:35:00 server01 sshd[9745]: Regular checking
+Mar 20 09:40:00 server01 systemd[8266]: Regular checking
+Mar 20 09:45:00 server01 apache2[2658]: Regular processing
+Mar 20 09:50:00 server01 python3[5005]: Regular checking
+Mar 20 09:55:00 server01 cron[7539]: Regular started
+Mar 20 10:00:00 server01 systemd[13514]: Regular executing
+Mar 20 10:05:00 server01 bash[5300]: Regular serving
+Mar 20 10:10:00 server01 cron[28798]: Regular checking
+Mar 20 10:15:00 server01 cron[10066]: Regular running
+Mar 20 10:20:00 server01 cron[32109]: Regular serving
+Mar 20 10:25:00 server01 mysql[24890]: Regular executing
+Mar 20 10:30:00 server01 apache2[33610]: Regular running
+Mar 20 10:35:00 server01 cron[23373]: Regular handling
+Mar 20 10:40:00 server01 apache2[30545]: Regular executing
+Mar 20 10:45:00 server01 sshd[24961]: Regular checking
+Mar 20 10:50:00 server01 apache2[18204]: Regular executing
+Mar 20 10:55:00 server01 python3[22137]: Regular executing
+Mar 20 11:00:00 server01 python3[17342]: Regular running
+Mar 20 11:05:00 server01 cron[28313]: Regular handling
+Mar 20 11:10:00 server01 systemd[14435]: Regular checking
+Mar 20 11:15:00 server01 bash[11680]: Regular running
+Mar 20 11:20:00 server01 systemd[7601]: Regular serving
+Mar 20 11:25:00 server01 python3[15041]: Regular running
+Mar 20 11:30:00 server01 bash[28341]: Regular running
+Mar 20 11:35:00 server01 sshd[29179]: Regular checking
+Mar 20 11:40:00 server01 sshd[13633]: Regular executing
+Mar 20 11:45:00 server01 mysql[11213]: Regular handling
+Mar 20 11:50:00 server01 cron[3996]: Regular handling
+Mar 20 11:55:00 server01 cron[27114]: Regular executing
+Mar 20 12:00:00 server01 python3[30348]: Regular processing
+Mar 20 12:05:00 server01 systemd[11346]: Regular running
+Mar 20 12:10:00 server01 bash[5534]: Regular checking
+Mar 20 12:15:00 server01 nginx[6187]: Regular handling
+Mar 20 12:20:00 server01 bash[22955]: Regular processing
+Mar 20 12:25:00 server01 systemd[23162]: Regular executing
+Mar 20 12:30:00 server01 apache2[5318]: Regular started
+Mar 20 12:35:00 server01 python3[11016]: Regular serving
+Mar 20 12:40:00 server01 mysql[7783]: Regular processing
+Mar 20 12:45:00 server01 cron[17284]: Regular started
+Mar 20 12:50:00 server01 systemd[4611]: Regular processing
+Mar 20 12:55:00 server01 apache2[5587]: Regular processing
+Mar 20 13:00:00 server01 nginx[27519]: Regular checking
+Mar 20 13:05:00 server01 bash[31549]: Regular started
+Mar 20 13:10:00 server01 python3[6314]: Regular serving
+Mar 20 13:15:00 server01 apache2[4931]: Regular checking
+Mar 20 13:20:00 server01 nginx[8773]: Regular checking
+Mar 20 13:25:00 server01 nginx[32124]: Regular checking
+Mar 20 13:30:00 server01 systemd[17026]: Regular started
+Mar 20 13:35:00 server01 mysql[11413]: Regular executing
+Mar 20 13:40:00 server01 nginx[6903]: Regular executing
+Mar 20 13:45:00 server01 systemd[20292]: Regular running
+Mar 20 13:50:00 server01 python3[11078]: Regular checking
+Mar 20 13:55:00 server01 nginx[19860]: Regular running
+Mar 20 14:00:00 server01 bash[27118]: Regular executing
+Mar 20 14:05:00 server01 systemd[14206]: Regular running
+Mar 20 14:10:00 server01 cron[15449]: Regular executing
+Mar 20 14:15:00 server01 mysql[32869]: Regular started
+Mar 20 14:20:00 server01 apache2[11068]: Regular handling
+Mar 20 14:25:00 server01 nginx[16924]: Regular processing
+Mar 20 14:30:00 server01 systemd[17336]: Regular processing
+Mar 20 14:35:00 server01 systemd[23205]: Regular handling
+Mar 20 14:40:00 server01 systemd[32995]: Regular processing
+Mar 20 14:45:00 server01 python3[14909]: Regular checking
+Mar 20 14:50:00 server01 python3[10406]: Regular executing
+Mar 20 14:55:00 server01 apache2[3176]: Regular serving
+Mar 20 15:00:00 server01 bash[3007]: Regular started
+Mar 20 15:05:00 server01 nginx[11948]: Regular checking
+Mar 20 15:10:00 server01 sshd[14568]: Regular handling
+Mar 20 15:15:00 server01 nginx[8677]: Regular executing
+Mar 20 15:20:00 server01 mysql[10007]: Regular checking
+Mar 20 15:25:00 server01 bash[25494]: Regular executing
+Mar 20 15:30:00 server01 python3[26087]: Regular started
+Mar 20 15:35:00 server01 sshd[6399]: Regular running
+Mar 20 15:40:00 server01 nginx[29868]: Regular handling
+Mar 20 15:45:00 server01 systemd[29660]: Regular started
+Mar 20 15:50:00 server01 bash[11339]: Regular running
+Mar 20 15:55:00 server01 mysql[29796]: Regular started
+Mar 20 16:00:00 server01 cron[25738]: Regular serving
+Mar 20 16:05:00 server01 python3[12639]: Regular handling
+Mar 20 16:10:00 server01 mysql[12294]: Regular serving
+Mar 20 16:15:00 server01 nginx[12703]: Regular started
+Mar 20 16:20:00 server01 apache2[14080]: Regular checking
+Mar 20 16:25:00 server01 apache2[8653]: Regular checking
+Mar 20 16:30:00 server01 python3[5165]: Regular checking
+Mar 20 16:35:00 server01 sshd[17449]: Regular started
+Mar 20 16:40:00 server01 nginx[28646]: Regular processing
+Mar 20 16:45:00 server01 python3[19011]: Regular executing
+Mar 20 16:50:00 server01 sshd[6334]: Regular started
+Mar 20 16:55:00 server01 mysql[5788]: Regular serving
+Mar 20 17:00:00 server01 systemd[32284]: Regular running
+Mar 20 17:05:00 server01 bash[32595]: Regular processing
+Mar 20 17:10:00 server01 systemd[23721]: Regular serving
+Mar 20 17:15:00 server01 cron[32452]: Regular checking
+Mar 20 17:20:00 server01 systemd[26114]: Regular handling
+Mar 20 17:25:00 server01 sshd[2295]: Regular processing
+Mar 20 17:30:00 server01 apache2[23559]: Regular started
+Mar 20 17:35:00 server01 apache2[15192]: Regular processing
+Mar 20 17:40:00 server01 apache2[12848]: Regular handling
+Mar 20 17:45:00 server01 mysql[20680]: Regular started
+Mar 20 17:50:00 server01 bash[21920]: Regular running
+Mar 20 17:55:00 server01 systemd[24479]: Regular running
+Mar 20 18:00:00 server01 cron[4796]: Regular running
+Mar 20 18:05:00 server01 bash[17871]: Regular processing
+Mar 20 18:10:00 server01 nginx[22064]: Regular handling
+Mar 20 18:15:00 server01 cron[1400]: Regular started
+Mar 20 18:20:00 server01 bash[23652]: Regular checking
+Mar 20 18:25:00 server01 systemd[32081]: Regular checking
+Mar 20 18:30:00 server01 bash[14161]: Regular executing
+Mar 20 18:35:00 server01 apache2[25659]: Regular handling
+Mar 20 18:40:00 server01 systemd[19834]: Regular checking
+Mar 20 18:45:00 server01 bash[28171]: Regular executing
+Mar 20 18:50:00 server01 sshd[11091]: Regular processing
+Mar 20 18:55:00 server01 python3[12823]: Regular running
+Mar 20 19:00:00 server01 bash[18536]: Regular checking
+Mar 20 19:05:00 server01 bash[17930]: Regular handling
+Mar 20 19:10:00 server01 mysql[21309]: Regular started
+Mar 20 19:15:00 server01 apache2[32538]: Regular serving
+Mar 20 19:20:00 server01 mysql[25969]: Regular running
+Mar 20 19:25:00 server01 mysql[29455]: Regular serving
+Mar 20 19:30:00 server01 mysql[15081]: Regular processing
+Mar 20 19:35:00 server01 nginx[4376]: Regular started
+Mar 20 19:40:00 server01 mysql[33142]: Regular handling
+Mar 20 19:45:00 server01 sshd[22561]: Regular started
+Mar 20 19:50:00 server01 nginx[31775]: Regular processing
+Mar 20 19:55:00 server01 cron[4012]: Regular serving
+Mar 20 20:00:00 server01 bash[30286]: Regular running
+Mar 20 20:05:00 server01 mysql[7155]: Regular checking
+Mar 20 20:10:00 server01 apache2[8422]: Regular handling
+Mar 20 20:15:00 server01 nginx[10109]: Regular processing
+Mar 20 20:20:00 server01 mysql[22818]: Regular checking
+Mar 20 20:25:00 server01 sshd[12301]: Regular processing
+Mar 20 20:30:00 server01 python3[21550]: Regular started
+Mar 20 20:35:00 server01 bash[7674]: Regular serving
+Mar 20 20:40:00 server01 apache2[23821]: Regular processing
+Mar 20 20:45:00 server01 apache2[17348]: Regular executing
+Mar 20 20:50:00 server01 nginx[4762]: Regular checking
+Mar 20 20:55:00 server01 systemd[8924]: Regular handling
+Mar 20 21:00:00 server01 cron[1150]: Regular started
+Mar 20 21:05:00 server01 systemd[24447]: Regular serving
+Mar 20 21:10:00 server01 apache2[29118]: Regular running
+Mar 20 21:15:00 server01 apache2[4617]: Regular started
+Mar 20 21:20:00 server01 apache2[6116]: Regular processing
+Mar 20 21:25:00 server01 sshd[32684]: Regular started
+Mar 20 21:30:00 server01 sshd[22205]: Regular started
+Mar 20 21:35:00 server01 systemd[3832]: Regular handling
+Mar 20 21:40:00 server01 bash[29189]: Regular handling
+Mar 20 21:45:00 server01 apache2[2729]: Regular executing
+Mar 20 21:50:00 server01 systemd[25806]: Regular running
+Mar 20 21:55:00 server01 apache2[25843]: Regular processing
+Mar 20 22:00:00 server01 mysql[20963]: Regular started
+Mar 20 22:05:00 server01 python3[16836]: Regular running
+Mar 20 22:10:00 server01 mysql[24411]: Regular started
+Mar 20 22:15:00 server01 cron[6231]: Regular running
+Mar 20 22:20:00 server01 systemd[4126]: Regular started
+Mar 20 22:25:00 server01 sshd[9172]: Regular handling
+Mar 20 22:30:00 server01 bash[31750]: Regular executing
+Mar 20 22:35:00 server01 sshd[24558]: Regular checking
+Mar 20 22:40:00 server01 nginx[2233]: Regular running
+Mar 20 22:45:00 server01 python3[1217]: Regular running
+Mar 20 22:50:00 server01 nginx[7657]: Regular checking
+Mar 20 22:55:00 server01 python3[5420]: Regular processing
+Mar 20 23:00:00 server01 apache2[12881]: Regular running
+Mar 20 23:05:00 server01 mysql[3443]: Regular handling
+Mar 20 23:10:00 server01 apache2[31405]: Regular started
+Mar 20 23:15:00 server01 apache2[27515]: Regular processing
+Mar 20 23:20:00 server01 cron[31744]: Regular handling
+Mar 20 23:25:00 server01 cron[11908]: Regular serving
+Mar 20 23:30:00 server01 cron[15619]: Regular executing
+Mar 20 23:35:00 server01 apache2[18188]: Regular running
+Mar 20 23:40:00 server01 nginx[13238]: Regular executing
+Mar 20 23:45:00 server01 systemd[9120]: Regular processing
+Mar 20 23:50:00 server01 sshd[7689]: Regular executing
+Mar 20 23:55:00 server01 sshd[4250]: Regular serving
