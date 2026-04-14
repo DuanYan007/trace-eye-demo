@@ -894,6 +894,400 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* 关系挖掘统计卡片增强 */
+.relations-stats-full {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.relation-stat-card {
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.relation-stat-card.orange {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.relation-stat-card.green {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.relation-stat-card.purple {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+.relation-stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.relation-stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* 可疑关系列表 */
+.suspicious-relations-section {
+    grid-column: 1 / -1;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.suspicious-relations-section h4 {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.relations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.relation-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    background: var(--light-bg);
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+    transition: all 0.2s;
+}
+
+.relation-item:hover {
+    background: #f0f0f0;
+    transform: translateX(5px);
+}
+
+.relation-item.high {
+    border-left-color: var(--danger-color);
+}
+
+.relation-item.medium {
+    border-left-color: var(--warning-color);
+}
+
+.relation-item.low {
+    border-left-color: var(--success-color);
+}
+
+.relation-source, .relation-target {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.relation-node-type {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.relation-node-type.process {
+    background: #2196F3;
+    color: white;
+}
+
+.relation-node-type.file {
+    background: #FF9800;
+    color: white;
+}
+
+.relation-node-type.socket {
+    background: #9C27B0;
+    color: white;
+}
+
+.relation-node-name {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.relation-arrow {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.relation-correlation {
+    min-width: 80px;
+    text-align: center;
+}
+
+.relation-correlation-value {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.relation-correlation-value.high {
+    color: var(--danger-color);
+}
+
+.relation-correlation-value.medium {
+    color: var(--warning-color);
+}
+
+.relation-correlation-value.low {
+    color: var(--success-color);
+}
+
+.relation-correlation-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+/* 关系图可视化 */
+.relations-graph-section {
+    grid-column: 1 / -1;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.relations-graph-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.relations-graph-header h4 {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.relations-graph-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.relations-graph-controls button {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color);
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.relations-graph-controls button:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.relations-graph-container {
+    height: 400px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: #fafafa;
+    position: relative;
+}
+
+.relations-graph-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-top: 10px;
+    font-size: 0.85rem;
+}
+
+.relations-graph-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.relations-graph-legend .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.relations-graph-legend .legend-dot.anomaly {
+    background: var(--danger-color);
+}
+
+.relations-graph-legend .legend-dot.suspicious {
+    background: var(--warning-color);
+}
+
+.relations-graph-legend .legend-dot.normal {
+    background: #2196F3;
+}
+
+/* 可疑子图列表 */
+.suspicious-subgraphs-section {
+    grid-column: 1 / -1;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.suspicious-subgraphs-section h4 {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.subgraphs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.subgraph-card {
+    padding: 15px;
+    background: var(--light-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+}
+
+.subgraph-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.subgraph-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.subgraph-id {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.subgraph-threat {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.subgraph-threat.high {
+    background: #ffebee;
+    color: var(--danger-color);
+}
+
+.subgraph-threat.medium {
+    background: #fff3e0;
+    color: var(--warning-color);
+}
+
+.subgraph-threat.low {
+    background: #e8f5e9;
+    color: var(--success-color);
+}
+
+.subgraph-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.subgraph-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.subgraph-nodes-preview {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.subgraph-nodes-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.subgraph-node-tag {
+    padding: 2px 8px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.subgraph-node-tag.anomaly {
+    background: #ffebee;
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+}
+
+/* 分页控件增强 */
+.relations-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+    padding: 10px;
+}
+
+.relations-pagination button {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.relations-pagination button:hover:not(:disabled) {
+    background: var(--primary-color);
+    color: white;
+}
+
+.relations-pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.relations-pagination span {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
 }
 
 /* ==================== 攻击链列表 ==================== */

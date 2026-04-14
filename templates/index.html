@@ -684,29 +684,66 @@
                                 📥 下载关系数据
                             </a>
                         </div>
-                        <div class="relations-result">
-                            <div class="preview-stat-card">
-                                <span class="preview-icon">🔗</span>
-                                <div class="preview-info">
-                                    <span class="preview-value" id="relationsOutTotal">-</span>
-                                    <span class="preview-label">可疑关系数</span>
-                                </div>
+
+                        <!-- 增强统计卡片 -->
+                        <div class="relations-stats-full">
+                            <div class="relation-stat-card">
+                                <span class="relation-stat-value" id="relationsOutTotal">0</span>
+                                <span class="relation-stat-label">可疑关系数</span>
                             </div>
-                            <div class="preview-stat-card">
-                                <span class="preview-icon">📊</span>
-                                <div class="preview-info">
-                                    <span class="preview-value" id="relationsOutSubgraphs">-</span>
-                                    <span class="preview-label">可疑子图</span>
-                                </div>
+                            <div class="relation-stat-card orange">
+                                <span class="relation-stat-value" id="relationsOutHighRisk">0</span>
+                                <span class="relation-stat-label">高风险关系</span>
                             </div>
-                            <div class="preview-stat-card">
-                                <span class="preview-icon">📈</span>
-                                <div class="preview-info">
-                                    <span class="preview-value" id="relationsOutCorrelation">-</span>
-                                    <span class="preview-label">平均关联度</span>
-                                </div>
+                            <div class="relation-stat-card green">
+                                <span class="relation-stat-value" id="relationsOutSubgraphs">0</span>
+                                <span class="relation-stat-label">可疑子图</span>
+                            </div>
+                            <div class="relation-stat-card purple">
+                                <span class="relation-stat-value" id="relationsOutCorrelation">0.00</span>
+                                <span class="relation-stat-label">平均关联度</span>
                             </div>
                         </div>
+
+                        <!-- 关系图可视化 -->
+                        <div class="relations-graph-section">
+                            <div class="relations-graph-header">
+                                <h4>🕸️ 可疑关系网络图</h4>
+                                <div class="relations-graph-controls">
+                                    <button id="btnResetGraphView">🔄 重置视图</button>
+                                    <button id="btnToggleLabels">🏷️ 显示/隐藏标签</button>
+                                </div>
+                            </div>
+                            <div class="relations-graph-container" id="relationsGraphContainer"></div>
+                            <div class="relations-graph-legend">
+                                <span class="legend-item"><span class="legend-dot anomaly"></span> 异常节点</span>
+                                <span class="legend-item"><span class="legend-dot suspicious"></span> 可疑节点</span>
+                                <span class="legend-item"><span class="legend-dot normal"></span> 普通节点</span>
+                                <span class="legend-item">线条粗细 = 关联强度</span>
+                            </div>
+                        </div>
+
+                        <!-- 可疑关系列表 -->
+                        <div class="suspicious-relations-section">
+                            <h4>🔍 可疑关系详情 <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal;">(Top 20)</span></h4>
+                            <div class="relations-list" id="suspiciousRelationsList">
+                                <p style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无可疑关系</p>
+                            </div>
+                            <div class="relations-pagination" id="relationsPagination" style="display:none;">
+                                <button id="relationsPrevPage" disabled>← 上一页</button>
+                                <span id="relationsPageInfo">第 1 / 1 页</span>
+                                <button id="relationsNextPage" disabled>下一页 →</button>
+                            </div>
+                        </div>
+
+                        <!-- 可疑子图 -->
+                        <div class="suspicious-subgraphs-section">
+                            <h4>📊 可疑子图 <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal;">(按威胁评分排序)</span></h4>
+                            <div class="subgraphs-grid" id="suspiciousSubgraphsList">
+                                <p style="text-align: center; color: var(--text-secondary); padding: 20px; grid-column: 1 / -1;">暂无可疑子图</p>
+                            </div>
+                        </div>
+
                         <div class="next-step-hint">
                             <span>✓ 关系挖掘完成</span>
                             <a href="#page-chains" class="next-link" onclick="navigateTo('chains')">下一步: 攻击链重建 →</a>

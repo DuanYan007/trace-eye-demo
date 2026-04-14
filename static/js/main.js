@@ -1,7 +1,24 @@
 // ==================== 全局变量 ====================
 let graphChart = null;
+let relationsChart = null;
 let currentPage = null;
 let pollInterval = null;
+
+// 关系挖掘分页状态
+let relationsPagination = {
+    page: 1,
+    pageSize: 20,
+    total: 0,
+    totalPages: 1,
+    relations: []
+};
+
+// 关系图配置
+let relationsGraphConfig = {
+    showLabels: true,
+    maxNodes: 100,
+    maxEdges: 200
+};
 
 // 告警分页状态
 let alertsPagination = {
@@ -688,15 +705,29 @@ async function loadRelationsData(status) {
             showOutputSection('relations');
 
             try {
-                const relationsCache = await apiRequest('/api/cache/relations');
-                const data = relationsCache.data || {};
-                const summary = relationsCache.summary || {};
+                // 获取完整的关系数据
+                const relationsData = await apiRequest('/api/relations');
 
-                document.getElementById('relationsOutTotal').textContent = summary.relations || data.relation_count || 0;
-                document.getElementById('relationsOutSubgraphs').textContent = data.subgraph_count || 0;
+                // 更新统计卡片
+                const stats = relationsData.statistics || {};
+                document.getElementById('relationsOutTotal').textContent = stats.total_relations || 0;
+                document.getElementById('relationsOutSubgraphs').textContent = stats.total_subgraphs || 0;
+                document.getElementById('relationsOutCorrelation').textContent =
+                    (stats.avg_correlation || 0).toFixed(3);
 
-                // 计算平均相关性（模拟）
-                document.getElementById('relationsOutCorrelation').textContent = '0.000';
+                // 计算高风险关系数（关联度 > 0.7）
+                const highRiskCount = (relationsData.suspicious_relations || [])
+                    .filter(r => r.correlation > 0.7).length;
+                document.getElementById('relationsOutHighRisk').textContent = highRiskCount;
+
+                // 加载并显示可疑关系列表
+                await loadSuspiciousRelations(relationsData.suspicious_relations || []);
+
+                // 加载并显示可疑子图
+                displaySuspiciousSubgraphs(relationsData.suspicious_subgraphs || []);
+
+                // 渲染关系网络图
+                await renderRelationsGraph(relationsData);
 
                 // 显示下载按钮
                 showDownloadButton('relations');
@@ -706,6 +737,349 @@ async function loadRelationsData(status) {
         }
     }
 }
+
+// 加载可疑关系列表（分页）
+async function loadSuspiciousRelations(relations) {
+    // 保存所有关系
+    relationsPagination.relations = relations;
+    relationsPagination.total = relations.length;
+    relationsPagination.totalPages = Math.ceil(relations.length / relationsPagination.pageSize) || 1;
+    relationsPagination.page = 1;
+
+    await renderRelationsPage();
+}
+
+// 渲染关系列表当前页
+async function renderRelationsPage() {
+    const { relations, page, pageSize } = relationsPagination;
+    const startIdx = (page - 1) * pageSize;
+    const endIdx = startIdx + pageSize;
+    const pageRelations = relations.slice(startIdx, endIdx);
+
+    const listContainer = document.getElementById('suspiciousRelationsList');
+    const pagination = document.getElementById('relationsPagination');
+
+    if (!pageRelations || pageRelations.length === 0) {
+        listContainer.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无可疑关系</p>';
+        pagination.style.display = 'none';
+        return;
+    }
+
+    // 获取节点信息用于显示名称
+    let nodeInfoMap = new Map();
+    try {
+        const graphData = await apiRequest('/api/graph');
+        (graphData.nodes || []).forEach(node => {
+            nodeInfoMap.set(node.id, {
+                name: node.name || node.id,
+                type: node.type || 'unknown'
+            });
+        });
+    } catch (e) {
+        console.error('Failed to load graph data:', e);
+    }
+
+    // 渲染关系列表
+    listContainer.innerHTML = pageRelations.map(rel => {
+        const sourceInfo = nodeInfoMap.get(rel.source) || { name: rel.source, type: 'unknown' };
+        const targetInfo = nodeInfoMap.get(rel.target) || { name: rel.target, type: 'unknown' };
+
+        const correlationClass = rel.correlation > 0.7 ? 'high' : rel.correlation > 0.5 ? 'medium' : 'low';
+        const itemClass = rel.correlation > 0.7 ? 'high' : rel.correlation > 0.5 ? 'medium' : 'low';
+
+        return `
+            <div class="relation-item ${itemClass}">
+                <div class="relation-source">
+                    <span class="relation-node-type ${sourceInfo.type}">${getTypeIcon(sourceInfo.type)}</span>
+                    <span class="relation-node-name" title="${escapeHtml(sourceInfo.name)}">${escapeHtml(truncateName(sourceInfo.name, 15))}</span>
+                </div>
+                <span class="relation-arrow">→</span>
+                <div class="relation-target">
+                    <span class="relation-node-type ${targetInfo.type}">${getTypeIcon(targetInfo.type)}</span>
+                    <span class="relation-node-name" title="${escapeHtml(targetInfo.name)}">${escapeHtml(truncateName(targetInfo.name, 15))}</span>
+                </div>
+                <div class="relation-correlation">
+                    <span class="relation-correlation-value ${correlationClass}">${rel.correlation.toFixed(2)}</span>
+                    <span class="relation-correlation-label">关联度</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // 更新分页控件
+    if (relationsPagination.total > pageSize) {
+        pagination.style.display = 'flex';
+        document.getElementById('relationsPageInfo').textContent =
+            `第 ${page} / ${relationsPagination.totalPages} 页 (共 ${relationsPagination.total} 条)`;
+        document.getElementById('relationsPrevPage').disabled = page <= 1;
+        document.getElementById('relationsNextPage').disabled = page >= relationsPagination.totalPages;
+    } else {
+        pagination.style.display = 'none';
+    }
+}
+
+// 获取类型图标
+function getTypeIcon(type) {
+    const icons = {
+        'process': '⚙️',
+        'file': '📄',
+        'socket': '🌐',
+        'unknown': '❓'
+    };
+    return icons[type] || '❓';
+}
+
+// 截断名称
+function truncateName(name, maxLength) {
+    if (!name || name.length <= maxLength) return name || '-';
+    return name.substring(0, maxLength) + '...';
+}
+
+// 分页按钮事件
+document.getElementById('relationsPrevPage')?.addEventListener('click', () => {
+    if (relationsPagination.page > 1) {
+        relationsPagination.page--;
+        renderRelationsPage();
+    }
+});
+
+document.getElementById('relationsNextPage')?.addEventListener('click', () => {
+    if (relationsPagination.page < relationsPagination.totalPages) {
+        relationsPagination.page++;
+        renderRelationsPage();
+    }
+});
+
+// 显示可疑子图
+async function displaySuspiciousSubgraphs(subgraphs) {
+    const container = document.getElementById('suspiciousSubgraphsList');
+
+    if (!subgraphs || subgraphs.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px; grid-column: 1 / -1;">暂无可疑子图</p>';
+        return;
+    }
+
+    // 按威胁评分排序，取前8个
+    const sortedSubgraphs = subgraphs
+        .sort((a, b) => (b.threat_score || 0) - (a.threat_score || 0))
+        .slice(0, 8);
+
+    container.innerHTML = sortedSubgraphs.map(subgraph => {
+        const threatClass = subgraph.threat_score > 0.7 ? 'high' : subgraph.threat_score > 0.4 ? 'medium' : 'low';
+        const threatLabel = subgraph.threat_score > 0.7 ? '高危' : subgraph.threat_score > 0.4 ? '中危' : '低危';
+
+        // 预览节点（最多显示5个）
+        const nodePreview = (subgraph.nodes || []).slice(0, 5);
+
+        return `
+            <div class="subgraph-card">
+                <div class="subgraph-card-header">
+                    <span class="subgraph-id">子图 #${escapeHtml(subgraph.id?.replace('subgraph_', '') || 'N/A')}</span>
+                    <span class="subgraph-threat ${threatClass}">${threatLabel}</span>
+                </div>
+                <div class="subgraph-stats">
+                    <span class="subgraph-stat">
+                        <span>🔢</span>
+                        <span>${subgraph.node_count || 0} 节点</span>
+                    </span>
+                    <span class="subgraph-stat">
+                        <span>🔗</span>
+                        <span>${subgraph.edge_count || 0} 边</span>
+                    </span>
+                    <span class="subgraph-stat">
+                        <span>⚠️</span>
+                        <span>${(subgraph.threat_score * 100).toFixed(0)}% 威胁</span>
+                    </span>
+                </div>
+                <div class="subgraph-nodes-preview">
+                    <div class="subgraph-nodes-list">
+                        ${nodePreview.map(nodeId =>
+                            `<span class="subgraph-node-tag">${escapeHtml(truncateName(nodeId, 12))}</span>`
+                        ).join('')}
+                        ${(subgraph.nodes?.length || 0) > 5 ? `<span class="subgraph-node-tag">+${subgraph.nodes.length - 5} 更多</span>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// 渲染关系网络图
+async function renderRelationsGraph(relationsData) {
+    const container = document.getElementById('relationsGraphContainer');
+    if (!container || container.clientWidth === 0) return;
+
+    if (!relationsData.suspicious_relations || relationsData.suspicious_relations.length === 0) {
+        container.innerHTML = '<p style="text-align:center; padding:50px; color:#999;">暂无可疑关系数据</p>';
+        return;
+    }
+
+    // 初始化 ECharts
+    if (!relationsChart) {
+        relationsChart = echarts.init(container);
+    }
+
+    // 获取图数据和异常节点
+    let graphData, anomalyNodes;
+    try {
+        graphData = await apiRequest('/api/graph');
+        const threatData = await apiRequest('/api/threat');
+        anomalyNodes = new Set(threatData.anomaly_detection?.anomaly_nodes || []);
+    } catch (e) {
+        console.error('Failed to load data for relations graph:', e);
+        return;
+    }
+
+    // 构建节点集合（异常节点 + 可疑关系中的节点）
+    const nodeSet = new Set(anomalyNodes);
+    const relations = relationsData.suspicious_relations.slice(0, relationsGraphConfig.maxEdges);
+
+    relations.forEach(rel => {
+        nodeSet.add(rel.source);
+        nodeSet.add(rel.target);
+    });
+
+    // 限制节点数量
+    const limitedNodes = Array.from(nodeSet).slice(0, relationsGraphConfig.maxNodes);
+
+    // 构建节点数据
+    const nodes = limitedNodes.map(nodeId => {
+        const node = (graphData.nodes || []).find(n => n.id === nodeId) || {};
+        const isAnomaly = anomalyNodes.has(nodeId);
+        const isInRelations = relations.some(r => r.source === nodeId || r.target === nodeId);
+
+        let category = 0; // 普通
+        if (isAnomaly) category = 2; // 异常
+        else if (isInRelations) category = 1; // 可疑
+
+        const nodeType = node.type || 'unknown';
+        const baseColor = category === 2 ? '#f44336' :
+                         category === 1 ? '#ff9800' :
+                         NODE_TYPE_COLORS[nodeType] || '#2196F3';
+
+        return {
+            id: nodeId,
+            name: node.name || nodeId,
+            value: node.degree || 1,
+            category: category,
+            symbolSize: isAnomaly ? 20 : (category === 1 ? 15 : 10),
+            itemStyle: {
+                color: baseColor
+            },
+            label: {
+                show: relationsGraphConfig.showLabels,
+                formatter: function(params) {
+                    const name = params.data.name;
+                    return name.length > 10 ? name.substring(0, 8) + '...' : name;
+                }
+            }
+        };
+    });
+
+    // 构建边数据
+    const links = relations.map(rel => {
+        return {
+            source: rel.source,
+            target: rel.target,
+            value: rel.correlation,
+            lineStyle: {
+                width: Math.max(1, rel.correlation * 3),
+                color: rel.correlation > 0.7 ? '#f44336' :
+                       rel.correlation > 0.5 ? '#ff9800' : '#999',
+                opacity: 0.6
+            }
+        };
+    });
+
+    const option = {
+        tooltip: {
+            formatter: function(params) {
+                if (params.dataType === 'node') {
+                    const category = params.data.category === 2 ? '异常' :
+                                   params.data.category === 1 ? '可疑' : '普通';
+                    return `
+                        <div style="padding:8px;">
+                            <strong>${escapeHtml(params.data.name)}</strong><br/>
+                            <span style="color:#666;">类型: ${category}</span><br/>
+                            <span style="color:#666;">度数: ${params.data.value}</span>
+                        </div>
+                    `;
+                } else if (params.dataType === 'edge') {
+                    return `关联度: ${(params.data.value * 100).toFixed(1)}%`;
+                }
+            }
+        },
+        legend: [{
+            data: ['普通节点', '可疑节点', '异常节点'],
+            top: 10,
+            right: 10
+        }],
+        series: [{
+            type: 'graph',
+            layout: 'force',
+            data: nodes,
+            links: links,
+            categories: [
+                { name: '普通节点', itemStyle: { color: '#2196F3' } },
+                { name: '可疑节点', itemStyle: { color: '#ff9800' } },
+                { name: '异常节点', itemStyle: { color: '#f44336' } }
+            ],
+            roam: true,
+            draggable: true,
+            focusNodeAdjacency: true,
+            emphasis: {
+                focus: 'adjacency',
+                lineStyle: {
+                    width: 4
+                }
+            },
+            force: {
+                repulsion: 200,
+                edgeLength: [50, 150],
+                gravity: 0.1
+            },
+            lineStyle: {
+                curveness: 0.1
+            }
+        }]
+    };
+
+    relationsChart.setOption(option, true);
+
+    // 窗口调整
+    window.removeEventListener('resize', onRelationsGraphResize);
+    window.addEventListener('resize', onRelationsGraphResize);
+}
+
+function onRelationsGraphResize() {
+    if (relationsChart) {
+        relationsChart.resize();
+    }
+}
+
+// 关系图控制按钮
+document.getElementById('btnResetGraphView')?.addEventListener('click', () => {
+    if (relationsChart) {
+        relationsChart.dispatchAction({
+            type: 'restore'
+        });
+    }
+});
+
+document.getElementById('btnToggleLabels')?.addEventListener('click', async () => {
+    relationsGraphConfig.showLabels = !relationsGraphConfig.showLabels;
+
+    // 重新加载当前页数据以刷新图表
+    try {
+        const status = await apiRequest('/api/status');
+        if (status.steps_completed?.relations) {
+            const relationsData = await apiRequest('/api/relations');
+            await renderRelationsGraph(relationsData);
+        }
+    } catch (e) {
+        console.error('Failed to toggle labels:', e);
+    }
+});
 
 async function loadChainsData(status) {
     // 检查relations步骤是否完成
