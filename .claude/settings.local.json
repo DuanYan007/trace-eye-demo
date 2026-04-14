@@ -100,7 +100,9 @@
       "Bash(find . -name \"*.pyc\" -delete)",
       "Bash(find . -name \"__pycache__\" -type d -exec rm -rf {} +)",
       "Bash(node -c O:/trace-eye-demo/static/js/main.js)",
-      "Bash(curl -s http://localhost:5000/api/status)"
+      "Bash(curl -s http://localhost:5000/api/status)",
+      "Bash(curl -s http://localhost:5000/api/relations)",
+      "Bash(pkill -f \"python app.py\")"
     ]
   }
 }

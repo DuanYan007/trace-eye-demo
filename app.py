@@ -1644,6 +1644,6 @@ if __name__ == "__main__":
     # Demo 模式下确保数据目录存在
     if IS_DEMO_MODE:
         ensure_demo_data_exists()
-        print("✓ Demo 数据已加载")
+        print("[OK] Demo data loaded")
 
     app.run(host="0.0.0.0", port=5000, debug=True)
