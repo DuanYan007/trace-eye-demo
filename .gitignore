@@ -61,3 +61,5 @@ htmlcov/
 *.tmp
 *.bak
 *.swp
+cashe/
+data/

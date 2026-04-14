@@ -92,7 +92,14 @@
       "Bash(python3 -m py_compile modules/threat_detector.py && echo \"✓ 语法验证通过\")",
       "Bash(node -c static/js/main.js && echo \"✓ 前端 JavaScript 语法正确\")",
       "Bash(python3 -m py_compile modules/cache_manager.py && echo \"✓ 语法正确\")",
-      "Bash(node -c static/js/main.js && echo \"✓ JavaScript 语法正确\")"
+      "Bash(node -c static/js/main.js && echo \"✓ JavaScript 语法正确\")",
+      "Read(//mnt/o/**)",
+      "Bash(python3 -m py_compile app.py)",
+      "Bash(python:*)",
+      "Bash(node -c static/js/main.js)",
+      "Bash(find . -name \"*.pyc\" -delete)",
+      "Bash(find . -name \"__pycache__\" -type d -exec rm -rf {} +)",
+      "Bash(node -c O:/trace-eye-demo/static/js/main.js)"
     ]
   }
 }

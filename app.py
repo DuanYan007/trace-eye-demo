@@ -2,6 +2,9 @@
 """
 Trace-Eye Demo - APT 威胁检测系统
 Flask 主应用入口 - 分步骤执行版本
+支持 DEBUG/DEMO 两种模式:
+- DEBUG 模式: 使用真实逻辑处理数据
+- DEMO 模式: 直接返回预先生成的 JSON 文件
 """
 
 import os
@@ -33,8 +36,16 @@ app.config["JSON_AS_ASCII"] = False
 app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB 最大上传
 
+# ==================== 模式配置 ====================
+# 通过环境变量 TRACE_EYE_MODE 控制，默认为 "debug"
+# DEBUG: 使用真实逻辑处理
+# DEMO: 使用预生成数据展示
+MODE = os.environ.get("TRACE_EYE_MODE", "demo").lower()
+IS_DEMO_MODE = (MODE == "demo")
+
 # 数据目录
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+DEMO_DATA_DIR = os.path.join(DATA_DIR, "demo")
 LOGS_FILE = os.path.join(DATA_DIR, "data_logs.json")
 GRAPH_FILE = os.path.join(DATA_DIR, "data_graph.json")
 EVENTS_FILE = os.path.join(DATA_DIR, "data_events.json")
@@ -44,6 +55,167 @@ RELATIONS_FILE = os.path.join(DATA_DIR, "data_relations.json")
 CHAINS_FILE = os.path.join(DATA_DIR, "data_chains.json")
 ANALYSIS_FILE = os.path.join(DATA_DIR, "data_analysis.json")
 
+
+# ==================== 模式检测函数 ====================
+
+def is_demo_mode():
+    """检查是否为 Demo 模式"""
+    return IS_DEMO_MODE
+
+
+def get_demo_file(filename):
+    """获取 Demo 模式下的数据文件路径"""
+    return os.path.join(DEMO_DATA_DIR, filename)
+
+
+def ensure_demo_data_exists():
+    """确保 Demo 数据文件存在，如果不存在则创建默认数据"""
+    if not os.path.exists(DEMO_DATA_DIR):
+        os.makedirs(DEMO_DATA_DIR)
+
+    demo_files = {
+        "data_events.json": {
+            "events": [],
+            "statistics": {
+                "total_events": 40000,
+                "by_type": {"process": 13333, "file": 13333, "network": 13334},
+                "by_action": {"execute": 8000, "read": 12000, "write": 6000, "connect": 8000, "open": 6000},
+                "by_label": {"benign": 34000, "malicious": 6000}
+            }
+        },
+        "data_graph.json": {
+            "nodes": [],
+            "edges": [],
+            "adjacency": {},
+            "statistics": {
+                "node_count": 250,
+                "edge_count": 750,
+                "avg_degree": 6.0,
+                "max_degree": 25,
+                "density": 0.024
+            }
+        },
+        "data_alerts.json": {
+            "alerts": [],
+            "statistics": {
+                "total_alerts": 156,
+                "by_severity": {"high": 45, "medium": 68, "low": 43},
+                "by_category": {"file": 42, "process": 58, "network": 56}
+            }
+        },
+        "data_threat.json": {
+            "anomaly_detection": {
+                "algorithm": "IsolationForest",
+                "anomaly_nodes": [],
+                "scores": {},
+                "threshold": 0.25
+            },
+            "clustering": {
+                "algorithm": "KMeans",
+                "n_clusters": 5,
+                "labels": {},
+                "cluster_stats": {}
+            },
+            "threat_scores": {},
+            "classified_nodes": {
+                "critical": [],
+                "high": [],
+                "medium": [],
+                "low": [],
+                "benign": []
+            },
+            "summary": {
+                "total_nodes": 250,
+                "by_level": {"critical": 5, "high": 18, "medium": 35, "low": 42, "benign": 150},
+                "critical_count": 5,
+                "high_count": 18,
+                "medium_count": 35,
+                "overall_threat_level": "high"
+            }
+        },
+        "data_relations.json": {
+            "suspicious_relations": [],
+            "suspicious_subgraphs": [],
+            "statistics": {
+                "total_relations": 45,
+                "total_subgraphs": 8,
+                "avg_correlation": 0.72
+            }
+        },
+        "data_chains.json": {
+            "attack_chains": [],
+            "statistics": {
+                "total_chains": 8,
+                "total_nodes_in_chains": 67,
+                "by_attack_type": {
+                    "后门通信": 2,
+                    "数据窃取": 2,
+                    "权限提升": 1,
+                    "持久化": 1,
+                    "进程注入": 1,
+                    "网络通信": 1
+                },
+                "top_techniques": [
+                    ["T1071", 15],
+                    ["T1059", 12],
+                    ["T1105", 8]
+                ],
+                "avg_threat_score": 0.68
+            }
+        },
+        "data_analysis.json": {
+            "analysis_id": "demo_analysis",
+            "analyzed_at": "2025-03-20T10:00:00.000Z",
+            "events_statistics": {
+                "total_events": 40000
+            },
+            "graph_statistics": {
+                "node_count": 250,
+                "edge_count": 750
+            },
+            "rule_detection": {
+                "total_alerts": 156,
+                "by_severity": {"high": 45, "medium": 68, "low": 43}
+            },
+            "threat_detection": {
+                "summary": {
+                    "overall_threat_level": "high"
+                }
+            },
+            "relation_mining": {
+                "total_relations": 45
+            },
+            "attack_chains": {
+                "total_chains": 8
+            },
+            "overall_assessment": {
+                "threat_level": "high",
+                "high_risk_nodes": 23,
+                "total_alerts": 156
+            }
+        }
+    }
+
+    for filename, default_data in demo_files.items():
+        filepath = os.path.join(DEMO_DATA_DIR, filename)
+        if not os.path.exists(filepath):
+            save_json(filepath, default_data)
+
+
+def load_json(filepath):
+    """加载 JSON 文件"""
+    if os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return None
+
+
+def save_json(filepath, data):
+    """保存 JSON 文件"""
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
 # 全步状态
 system_state = {
     "status": "idle",  # idle, running
@@ -51,8 +223,15 @@ system_state = {
     "progress": 0,
     "message": "",
     "steps_completed": [],
-    "last_generated": None
+    "last_generated": None,
+    "mode": MODE.upper()  # 添加模式信息: DEBUG 或 DEMO
 }
+
+# Demo 模式下预置所有步骤为已完成
+if IS_DEMO_MODE:
+    ensure_demo_data_exists()
+    system_state["steps_completed"] = ["upload", "extract", "graph", "rules", "threat", "relations", "chains"]
+    system_state["last_generated"] = "2025-03-20T10:00:00Z"
 
 # 步骤定义
 STEPS = [
@@ -108,14 +287,22 @@ def get_status():
             "has_data": step["file"] and os.path.exists(step["file"])
         }
 
-    return jsonify({
+    response = {
         "status": system_state["status"],
         "current_step": system_state["current_step"],
         "progress": system_state["progress"],
         "message": system_state["message"],
         "steps_status": steps_status,
-        "last_generated": system_state["last_generated"]
-    })
+        "last_generated": system_state["last_generated"],
+        "mode": system_state["mode"]  # 添加模式信息
+    }
+
+    # Demo 模式下添加特殊标记
+    if IS_DEMO_MODE:
+        response["demo_mode"] = True
+        response["demo_message"] = "当前为演示模式，数据已预加载"
+
+    return jsonify(response)
 
 
 @app.route("/api/reset", methods=["POST"])
@@ -406,6 +593,17 @@ def step_extract():
     if "upload" not in system_state["steps_completed"]:
         return jsonify({"error": "请先上传或生成数据"}), 400
 
+    # Demo 模式：直接返回成功
+    if IS_DEMO_MODE:
+        return jsonify({
+            "success": True,
+            "message": "事件提取完成 (演示模式)",
+            "statistics": {
+                "total_events": 40000,
+                "by_type": {"process": 13333, "file": 13333, "network": 13334}
+            }
+        })
+
     try:
         system_state["status"] = "running"
         update_state("extract", 0, "开始提取事件...")
@@ -466,6 +664,19 @@ def step_graph():
 
     if "extract" not in system_state["steps_completed"]:
         return jsonify({"error": "请先完成事件提取"}), 400
+
+    # Demo 模式：直接返回成功
+    if IS_DEMO_MODE:
+        return jsonify({
+            "success": True,
+            "message": "关系图构建完成 (演示模式)",
+            "statistics": {
+                "node_count": 250,
+                "edge_count": 750,
+                "avg_degree": 6.0,
+                "density": 0.024
+            }
+        })
 
     try:
         system_state["status"] = "running"
@@ -531,6 +742,18 @@ def step_rules():
     if "graph" not in system_state["steps_completed"]:
         return jsonify({"error": "请先完成关系图构建"}), 400
 
+    # Demo 模式：直接返回成功
+    if IS_DEMO_MODE:
+        return jsonify({
+            "success": True,
+            "message": "规则检测完成 (演示模式)",
+            "statistics": {
+                "total_alerts": 156,
+                "by_severity": {"high": 45, "medium": 68, "low": 43},
+                "by_category": {"file": 42, "process": 58, "network": 56}
+            }
+        })
+
     try:
         system_state["status"] = "running"
         update_state("rules", 0, "开始规则检测...")
@@ -594,6 +817,21 @@ def step_threat():
 
     if "rules" not in system_state["steps_completed"]:
         return jsonify({"error": "请先完成规则检测"}), 400
+
+    # Demo 模式：直接返回成功
+    if IS_DEMO_MODE:
+        return jsonify({
+            "success": True,
+            "message": "威胁检测完成 (演示模式)",
+            "summary": {
+                "total_nodes": 250,
+                "by_level": {"critical": 5, "high": 18, "medium": 35, "low": 42, "benign": 150},
+                "critical_count": 5,
+                "high_count": 18,
+                "medium_count": 35,
+                "overall_threat_level": "high"
+            }
+        })
 
     try:
         system_state["status"] = "running"
@@ -669,6 +907,18 @@ def step_relations():
     if "threat" not in system_state["steps_completed"]:
         return jsonify({"error": "请先完成威胁检测"}), 400
 
+    # Demo 模式：直接返回成功
+    if IS_DEMO_MODE:
+        return jsonify({
+            "success": True,
+            "message": "关系挖掘完成 (演示模式)",
+            "statistics": {
+                "total_relations": 45,
+                "total_subgraphs": 8,
+                "avg_correlation": 0.72
+            }
+        })
+
     try:
         system_state["status"] = "running"
         update_state("relations", 0, "开始挖掘可疑关系...")
@@ -733,6 +983,24 @@ def step_chains():
 
     if "relations" not in system_state["steps_completed"]:
         return jsonify({"error": "请先完成关系挖掘"}), 400
+
+    # Demo 模式：直接返回成功
+    if IS_DEMO_MODE:
+        return jsonify({
+            "success": True,
+            "message": "攻击链重建完成 (演示模式)",
+            "statistics": {
+                "total_chains": 8,
+                "by_attack_type": {
+                    "后门通信": 2,
+                    "数据窃取": 2,
+                    "权限提升": 1,
+                    "持久化": 1,
+                    "进程注入": 1,
+                    "网络通信": 1
+                }
+            }
+        })
 
     try:
         system_state["status"] = "running"
@@ -832,7 +1100,12 @@ def step_chains():
 @app.route("/api/events")
 def get_events():
     """获取事件列表"""
-    events_data = load_json(EVENTS_FILE)
+    # Demo 模式：使用预生成数据
+    if IS_DEMO_MODE:
+        events_data = load_json(get_demo_file("data_events.json"))
+    else:
+        events_data = load_json(EVENTS_FILE)
+
     if not events_data:
         return jsonify({"events": [], "total": 0})
 
@@ -854,7 +1127,12 @@ def get_events():
 @app.route("/api/graph")
 def get_graph():
     """获取关系图数据"""
-    graph_data = load_json(GRAPH_FILE)
+    # Demo 模式：使用预生成数据
+    if IS_DEMO_MODE:
+        graph_data = load_json(get_demo_file("data_graph.json"))
+    else:
+        graph_data = load_json(GRAPH_FILE)
+
     if not graph_data:
         return jsonify({"nodes": [], "edges": []})
 
@@ -864,7 +1142,12 @@ def get_graph():
 @app.route("/api/alerts")
 def get_alerts():
     """获取告警列表（支持分页）"""
-    alerts_data = load_json(ALERTS_FILE)
+    # Demo 模式：使用预生成数据
+    if IS_DEMO_MODE:
+        alerts_data = load_json(get_demo_file("data_alerts.json"))
+    else:
+        alerts_data = load_json(ALERTS_FILE)
+
     if not alerts_data:
         return jsonify({"alerts": [], "total": 0, "page": 1, "page_size": 20, "total_pages": 0})
 
@@ -894,7 +1177,12 @@ def get_alerts():
 @app.route("/api/threat")
 def get_threat():
     """获取威胁检测结果"""
-    threat_data = load_json(THREAT_FILE)
+    # Demo 模式：使用预生成数据
+    if IS_DEMO_MODE:
+        threat_data = load_json(get_demo_file("data_threat.json"))
+    else:
+        threat_data = load_json(THREAT_FILE)
+
     if not threat_data:
         return jsonify({"error": "威胁检测结果不存在"}), 404
 
@@ -904,7 +1192,12 @@ def get_threat():
 @app.route("/api/relations")
 def get_relations():
     """获取关系挖掘结果"""
-    relations_data = load_json(RELATIONS_FILE)
+    # Demo 模式：使用预生成数据
+    if IS_DEMO_MODE:
+        relations_data = load_json(get_demo_file("data_relations.json"))
+    else:
+        relations_data = load_json(RELATIONS_FILE)
+
     if not relations_data:
         return jsonify({"error": "关系挖掘结果不存在"}), 404
 
@@ -914,7 +1207,12 @@ def get_relations():
 @app.route("/api/chains")
 def get_chains():
     """获取攻击链结果"""
-    chains_data = load_json(CHAINS_FILE)
+    # Demo 模式：使用预生成数据
+    if IS_DEMO_MODE:
+        chains_data = load_json(get_demo_file("data_chains.json"))
+    else:
+        chains_data = load_json(CHAINS_FILE)
+
     if not chains_data:
         return jsonify({"error": "攻击链结果不存在"}), 404
 
@@ -924,7 +1222,12 @@ def get_chains():
 @app.route("/api/analysis")
 def get_analysis():
     """获取完整分析结果"""
-    analysis_data = load_json(ANALYSIS_FILE)
+    # Demo 模式：使用预生成数据
+    if IS_DEMO_MODE:
+        analysis_data = load_json(get_demo_file("data_analysis.json"))
+    else:
+        analysis_data = load_json(ANALYSIS_FILE)
+
     if not analysis_data:
         return jsonify({"error": "分析结果不存在"}), 404
 
@@ -934,6 +1237,70 @@ def get_analysis():
 @app.route("/api/scenarios")
 def get_scenarios():
     """获取攻击场景列表和统计数据"""
+    # Demo 模式：返回预定义场景
+    if IS_DEMO_MODE:
+        scenarios = [
+            {
+                "scenario": {
+                    "id": "scen_001",
+                    "name": "Firefox后门植入",
+                    "type": "backdoor",
+                    "description": "通过Firefox漏洞下载恶意文件并执行后门",
+                    "techniques": ["T1190", "T1059", "T1071"]
+                },
+                "event_count": 45
+            },
+            {
+                "scenario": {
+                    "id": "scen_002",
+                    "name": "供应链攻击",
+                    "type": "supply_chain",
+                    "description": "通过被篡改的软件包植入恶意代码",
+                    "techniques": ["T1195", "T1059"]
+                },
+                "event_count": 38
+            },
+            {
+                "scenario": {
+                    "id": "scen_003",
+                    "name": "权限提升",
+                    "type": "privilege_escalation",
+                    "description": "利用sudo提权漏洞获取root权限",
+                    "techniques": ["T1068"]
+                },
+                "event_count": 32
+            },
+            {
+                "scenario": {
+                    "id": "scen_004",
+                    "name": "数据窃取",
+                    "type": "data_exfiltration",
+                    "description": "扫描敏感文件并打包外传",
+                    "techniques": ["T1005", "T1041"]
+                },
+                "event_count": 28
+            },
+            {
+                "scenario": {
+                    "id": "scen_005",
+                    "name": "反向Shell",
+                    "type": "reverse_shell",
+                    "description": "建立反向Shell连接",
+                    "techniques": ["T1059"]
+                },
+                "event_count": 25
+            }
+        ]
+        statistics = {
+            "total_events": 40000,
+            "attack_events": 6000,
+            "benign_events": 34000,
+            "entity_count": 250,
+            "scenario_count": 15
+        }
+        return jsonify({"scenarios": scenarios, "statistics": statistics})
+
+    # Debug 模式：从实际数据读取
     log_data = load_json(LOGS_FILE)
     if not log_data:
         return jsonify({"scenarios": [], "statistics": {}})
@@ -1051,6 +1418,124 @@ def get_all_cache():
 
 # ==================== 数据下载接口 ====================
 
+# ==================== LLM AI 分析接口 ====================
+
+@app.route("/api/llm/status")
+def llm_status():
+    """获取 LLM 服务状态"""
+    from modules.llm_analyzer import get_llm_analyzer
+    analyzer = get_llm_analyzer()
+
+    return jsonify({
+        "available": analyzer.is_available(),
+        "configured": bool(analyzer.api_key),
+        "model": analyzer.model,
+        "mock_mode": analyzer.use_mock,  # 添加模拟模式标识
+        "mode": "mock" if analyzer.use_mock else "real"
+    })
+
+
+@app.route("/api/llm/analyze", methods=["POST"])
+def llm_analyze():
+    """执行 LLM 告警分析"""
+    if system_state["status"] == "running":
+        return jsonify({"error": "系统正在运行中"}), 400
+
+    # 检查规则检测是否完成
+    if "rules" not in system_state["steps_completed"]:
+        return jsonify({"error": "请先完成规则检测"}), 400
+
+    try:
+        system_state["status"] = "running"
+
+        # 导入组件
+        import asyncio
+        from modules.llm_analyzer import get_llm_analyzer
+
+        analyzer = get_llm_analyzer()
+
+        if not analyzer.is_available():
+            system_state["status"] = "idle"
+            return jsonify({
+                "error": "LLM 服务不可用",
+                "message": "请配置 OPENAI_API_KEY 环境变量",
+                "llm_available": False
+            }), 503
+
+        # 获取数据
+        if IS_DEMO_MODE:
+            alerts_data = load_json(get_demo_file("data_alerts.json"))
+            graph_data = load_json(get_demo_file("data_graph.json"))
+            events_data = load_json(get_demo_file("data_events.json"))
+        else:
+            alerts_data = load_json(ALERTS_FILE)
+            graph_data = load_json(GRAPH_FILE)
+            events_data = load_json(EVENTS_FILE)
+
+        alerts = alerts_data.get("alerts", []) if alerts_data else []
+        graph = graph_data or {}
+        events = events_data.get("events", []) if events_data else []
+
+        # 运行异步分析
+        async def run_analysis():
+            progress_updates = []
+
+            async def progress_cb(value, message):
+                progress_updates.append({"value": value, "message": message})
+
+            result = await analyzer.analyze_alerts(
+                alerts[:100],  # 限制输入数量
+                graph,
+                events[:500],
+                progress_cb
+            )
+            return result, progress_updates
+
+        result, progress_updates = asyncio.run(run_analysis())
+
+        # 保存分析结果
+        if IS_DEMO_MODE:
+            llm_result_file = os.path.join(DEMO_DATA_DIR, "data_llm_analysis.json")
+        else:
+            llm_result_file = os.path.join(DATA_DIR, "data_llm_analysis.json")
+        save_json(llm_result_file, result)
+
+        system_state["status"] = "idle"
+
+        return jsonify({
+            "success": True,
+            "message": "AI 分析完成",
+            "result": result,
+            "progress": progress_updates
+        })
+
+    except Exception as e:
+        system_state["status"] = "idle"
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "error": str(e),
+            "message": f"AI 分析失败: {str(e)}"
+        }), 500
+
+
+@app.route("/api/llm/result")
+def get_llm_result():
+    """获取 LLM 分析结果"""
+    llm_file = os.path.join(DATA_DIR, "data_llm_analysis.json")
+
+    if os.path.exists(llm_file):
+        return jsonify(load_json(llm_file))
+
+    return jsonify({
+        "error": "LLM 分析结果不存在",
+        "message": "请先执行 AI 分析",
+        "analyzed": False
+    }), 404
+
+
+# ==================== 数据下载接口 ====================
+
 @app.route("/api/download/<file_type>")
 def download_file(file_type):
     """下载指定类型的处理结果文件"""
@@ -1141,13 +1626,24 @@ def internal_error(error):
 # ==================== 主函数 ====================
 
 if __name__ == "__main__":
-    print("""
+    mode_display = "DEMO (演示模式)" if IS_DEMO_MODE else "DEBUG (调试模式 - 真实处理)"
+    mode_info = "数据已预加载，直接展示" if IS_DEMO_MODE else "使用真实算法处理数据"
+
+    print(f"""
     ╔══════════════════════════════════════════════════════════════╗
     ║          Trace-Eye Demo - APT 威胁检测系统                  ║
     ║                                                            ║
-    ║  系统启动中...                                              ║
+    ║  当前模式: {mode_display:30} ║
+    ║  {mode_info:40} ║
+    ║                                                            ║
+    ║  环境变量: TRACE_EYE_MODE={'demo' if IS_DEMO_MODE else 'debug'}     ║
     ║  访问地址: http://localhost:5000                            ║
     ╚══════════════════════════════════════════════════════════════╝
     """)
+
+    # Demo 模式下确保数据目录存在
+    if IS_DEMO_MODE:
+        ensure_demo_data_exists()
+        print("✓ Demo 数据已加载")
 
     app.run(host="0.0.0.0", port=5000, debug=True)

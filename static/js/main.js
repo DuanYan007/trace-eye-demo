@@ -157,6 +157,9 @@ async function loadPageData(pageId) {
             case 'chains':
                 await loadChainsData(status);
                 break;
+            case 'ai':
+                await loadAIData(status);
+                break;
         }
 
     } catch (error) {
@@ -760,6 +763,49 @@ async function loadChainsData(status) {
     }
 }
 
+async function loadAIData(status) {
+    // 检查rules步骤是否完成
+    if (status.steps_completed?.rules) {
+        document.getElementById('aiInputEmpty').style.display = 'none';
+        document.getElementById('aiInputFilled').style.display = 'block';
+        document.getElementById('aiActionSection').style.display = 'block';
+
+        // 获取rules数据作为输入
+        try {
+            const rulesCache = await apiRequest('/api/cache/rules');
+            const summary = rulesCache.summary || {};
+
+            document.getElementById('aiInAlerts').textContent = summary.total || summary.total_alerts || 0;
+            document.getElementById('aiInHighAlerts').textContent = summary.high || summary.critical || 0;
+        } catch (e) {
+            document.getElementById('aiInAlerts').textContent = '-';
+            document.getElementById('aiInHighAlerts').textContent = '-';
+        }
+
+        // 更新模式显示
+        try {
+            const llmStatus = await apiRequest('/api/llm/status');
+            const modeBadge = document.getElementById('aiModeBadge');
+            modeBadge.textContent = llmStatus.mock_mode ? '模拟模式' : '真实 AI 模式';
+            modeBadge.className = 'ai-mode-badge ' + (llmStatus.mock_mode ? 'mock' : 'real');
+        } catch (e) {
+            document.getElementById('aiModeBadge').textContent = '未知模式';
+        }
+
+        // 检查是否有AI分析结果
+        try {
+            const aiResult = await apiRequest('/api/llm/result');
+            if (!aiResult.error && aiResult.analyzed !== false) {
+                displayAIResults(aiResult);
+                document.getElementById('aiActionArea').style.display = 'none';
+                document.getElementById('aiResultsSection').style.display = 'block';
+            }
+        } catch (e) {
+            // 没有结果，保持显示分析按钮
+        }
+    }
+}
+
 async function loadFullAlertsStats() {
     // 获取完整的告警统计
     const alertsData = await apiRequest('/api/alerts?limit=10000');
@@ -1359,4 +1405,175 @@ async function pollStatus() {
     } catch (error) {
         console.error('状态轮询错误:', error);
     }
+}
+
+
+// ==================== AI 分析功能 ====================
+
+// AI 分析按钮事件
+document.getElementById('btnAIAnalyze')?.addEventListener('click', async () => {
+    await executeAIAnalysis();
+});
+
+// 重新分析按钮事件
+document.getElementById('btnAIReanalyze')?.addEventListener('click', async () => {
+    await executeAIAnalysis();
+});
+
+async function executeAIAnalysis() {
+    try {
+        // 显示进度区域
+        document.getElementById('aiProgressSection').style.display = 'block';
+        document.getElementById('aiResultsSection').style.display = 'none';
+        document.getElementById('aiActionArea').style.display = 'none';
+        document.getElementById('btnAIAnalyze').disabled = true;
+
+        // 初始进度
+        updateAIProgress(5, '检查 LLM 服务状态...');
+
+        // 检查 LLM 状态
+        const statusResponse = await apiRequest('/api/llm/status');
+        if (!statusResponse.available) {
+            updateAIProgress(0, 'LLM 服务不可用');
+            alert('LLM 服务不可用，请配置 OPENAI_API_KEY 环境变量');
+            document.getElementById('btnAIAnalyze').disabled = false;
+            return;
+        }
+
+        updateAIProgress(10, '开始 AI 分析...');
+
+        // 执行分析
+        const response = await apiRequest('/api/llm/analyze', { method: 'POST' });
+
+        updateAIProgress(100, '分析完成');
+
+        // 显示结果
+        displayAIResults(response.result);
+
+        // 隐藏进度，显示结果区域
+        setTimeout(() => {
+            document.getElementById('aiProgressSection').style.display = 'none';
+            document.getElementById('aiResultsSection').style.display = 'block';
+            document.getElementById('btnAIAnalyze').disabled = false;
+        }, 500);
+
+    } catch (error) {
+        document.getElementById('aiProgressSection').style.display = 'none';
+        document.getElementById('aiActionArea').style.display = 'block';
+        document.getElementById('btnAIAnalyze').disabled = false;
+        alert(`AI 分析失败: ${error.message}`);
+    }
+}
+
+function updateAIProgress(value, message) {
+    const fillDiv = document.getElementById('aiProcessFill');
+    const textDiv = document.getElementById('aiProcessText');
+    const msgDiv = document.getElementById('aiProcessMessage');
+
+    fillDiv.style.width = `${value}%`;
+    textDiv.textContent = `${value}%`;
+    msgDiv.textContent = message;
+}
+
+function displayAIResults(result) {
+    // 显示时间戳
+    document.getElementById('aiTimestamp').textContent = formatTimestamp(result.analyzed_at);
+
+    // 显示统计数据
+    document.getElementById('aiOriginalCount').textContent = result.original_alerts_count || 0;
+    document.getElementById('aiFilteredCount').textContent = result.filtered_alerts_count || 0;
+
+    // 显示威胁等级
+    const story = result.attack_story || {};
+    const threatLevel = story.threat_level || 'unknown';
+    const threatLevelDiv = document.getElementById('aiThreatLevel');
+
+    threatLevelDiv.className = 'ai-threat-level ' + threatLevel;
+    document.getElementById('aiThreatIcon').textContent = getThreatIcon(threatLevel);
+    document.getElementById('aiThreatText').textContent = getThreatLabel(threatLevel);
+
+    // 显示摘要
+    document.getElementById('aiSummary').textContent = story.summary || '';
+
+    // 显示攻击阶段统计
+    const stages = story.attack_stages || [];
+    document.getElementById('aiStagesCount').textContent = stages.length;
+
+    // 显示 IOC 统计
+    const iocs = story.ioc_list || [];
+    document.getElementById('aiIocCount').textContent = iocs.length;
+
+    // 显示攻击叙述
+    const narrative = story.attack_narrative || '';
+    document.getElementById('aiNarrative').innerHTML = narrative.replace(/\n/g, '<br>');
+
+    // 显示攻击阶段
+    const stagesDiv = document.getElementById('aiStages');
+    if (stages.length > 0) {
+        stagesDiv.innerHTML = stages.map((stage, i) => `
+            <div class="ai-stage-item">
+                <div class="ai-stage-number">${i + 1}</div>
+                <div class="ai-stage-content">
+                    <div class="ai-stage-title">${escapeHtml(stage.stage)}</div>
+                    <div class="ai-stage-desc">${escapeHtml(stage.description)}</div>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        stagesDiv.innerHTML = '<p style="color: var(--text-secondary);">暂无攻击阶段信息</p>';
+    }
+
+    // 显示关键发现
+    const findingsList = document.getElementById('aiFindings');
+    const findings = story.key_findings || [];
+    if (findings.length > 0) {
+        findingsList.innerHTML = findings.map(f => `<li>${escapeHtml(f)}</li>`).join('');
+    } else {
+        findingsList.innerHTML = '<li>无特殊发现</li>';
+    }
+
+    // 显示 IOC
+    const iocList = document.getElementById('aiIocList');
+    if (iocs.length > 0) {
+        iocList.innerHTML = iocs.map(ioc => `
+            <div class="ai-ioc-item">
+                <span class="ai-ioc-type">${escapeHtml(ioc.type)}:</span>
+                <span class="ai-ioc-value">${escapeHtml(ioc.value)}</span>
+            </div>
+        `).join('');
+    } else {
+        iocList.innerHTML = '<p style="color: var(--text-secondary);">未发现 IOC 指标</p>';
+    }
+
+    // 显示处置建议
+    const recommendationsList = document.getElementById('aiRecommendations');
+    const recommendations = result.recommendations || story.recommendations || [];
+    if (recommendations.length > 0) {
+        recommendationsList.innerHTML = recommendations.map(r => `<li>${escapeHtml(r)}</li>`).join('');
+    } else {
+        recommendationsList.innerHTML = '<li>暂无建议</li>';
+    }
+
+    // 隐藏分析按钮区域，显示结果
+    document.getElementById('aiActionArea').style.display = 'none';
+}
+
+function getThreatIcon(level) {
+    const icons = {
+        'critical': '🔴',
+        'high': '🟠',
+        'medium': '🟡',
+        'low': '🟢'
+    };
+    return icons[level] || '⚪';
+}
+
+function getThreatLabel(level) {
+    const labels = {
+        'critical': '严重威胁',
+        'high': '高危威胁',
+        'medium': '中危威胁',
+        'low': '低危威胁'
+    };
+    return labels[level] || '未知';
 }

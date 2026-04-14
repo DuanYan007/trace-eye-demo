@@ -52,6 +52,11 @@
                     <span class="nav-text">攻击链重建</span>
                     <span class="nav-status" id="navStatusChains"></span>
                 </a>
+                <a href="#page-ai" class="nav-item" data-page="ai">
+                    <span class="nav-icon">🤖</span>
+                    <span class="nav-text">AI 分析</span>
+                    <span class="nav-status" id="navStatusAi"></span>
+                </a>
             </nav>
 
             <div class="sidebar-footer">
@@ -425,6 +430,7 @@
                                 <button class="pagination-btn" id="rulesNextPage" disabled>下一页 →</button>
                             </div>
                         </div>
+
                         <div class="next-step-hint">
                             <span>✓ 规则检测完成</span>
                             <a href="#page-threat" class="next-link" onclick="navigateTo('threat')">下一步: 威胁检测 →</a>
@@ -798,6 +804,139 @@
                             <div class="completion-text">
                                 <span class="completion-title">全部分析完成！</span>
                                 <span class="completion-desc">您可以查看各页面的详细结果</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 页面8: AI 分析 -->
+                <div class="page" id="page-ai">
+                    <div class="page-header">
+                        <h2>🤖 AI 智能分析</h2>
+                        <p>基于大模型的告警降噪与攻击故事生成</p>
+                    </div>
+
+                    <!-- 输入数据 -->
+                    <div class="data-section">
+                        <h3>输入数据 - 规则检测告警</h3>
+                        <div class="data-input-empty" id="aiInputEmpty">
+                            <p>暂无数据，请先完成 <a href="#page-rules" onclick="navigateTo('rules')">规则检测</a></p>
+                        </div>
+                        <div class="data-input-filled" id="aiInputFilled" style="display:none;">
+                            <div class="data-info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">告警总数</span>
+                                    <span class="info-value" id="aiInAlerts">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">高危告警</span>
+                                    <span class="info-value" id="aiInHighAlerts">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI 分析操作 -->
+                    <div class="data-section" id="aiActionSection" style="display:none;">
+                        <div class="section-header-with-action">
+                            <h3>AI 分析</h3>
+                            <div class="ai-status-info">
+                                <span class="ai-mode-badge" id="aiModeBadge">模拟模式</span>
+                            </div>
+                        </div>
+
+                        <!-- AI 分析按钮 -->
+                        <div class="ai-action-area" id="aiActionArea">
+                            <p class="ai-desc">点击下方按钮开始 AI 智能分析，系统将自动进行告警降噪、攻击故事生成、IOC 提取等操作。</p>
+                            <button id="btnAIAnalyze" class="btn btn-primary btn-large">
+                                <span class="btn-icon">✨</span>
+                                <span class="btn-text">开始 AI 分析</span>
+                            </button>
+                        </div>
+
+                        <!-- AI 分析进度 -->
+                        <div class="process-section" id="aiProgressSection" style="display:none;">
+                            <div class="process-bar-wrapper">
+                                <div class="process-bar">
+                                    <div class="process-fill ai" id="aiProcessFill"></div>
+                                </div>
+                                <span class="process-text" id="aiProcessText">0%</span>
+                            </div>
+                            <p class="process-message" id="aiProcessMessage">正在分析...</p>
+                        </div>
+
+                        <!-- AI 分析结果 -->
+                        <div class="ai-results-full" id="aiResultsSection" style="display:none;">
+                            <div class="ai-result-header">
+                                <h4>分析报告</h4>
+                                <span class="ai-timestamp" id="aiTimestamp"></span>
+                            </div>
+
+                            <!-- 威胁概览 -->
+                            <div class="ai-threat-overview">
+                                <div class="ai-threat-level" id="aiThreatLevel">
+                                    <span class="ai-threat-icon" id="aiThreatIcon">🔴</span>
+                                    <span class="ai-threat-text" id="aiThreatText">高危威胁</span>
+                                </div>
+                                <div class="ai-summary" id="aiSummary"></div>
+                            </div>
+
+                            <!-- 分析统计 -->
+                            <div class="ai-stats-grid">
+                                <div class="ai-stat-card">
+                                    <span class="ai-stat-label">原始告警</span>
+                                    <span class="ai-stat-value" id="aiOriginalCount">-</span>
+                                </div>
+                                <div class="ai-stat-card">
+                                    <span class="ai-stat-label">降噪后</span>
+                                    <span class="ai-stat-value" id="aiFilteredCount">-</span>
+                                </div>
+                                <div class="ai-stat-card">
+                                    <span class="ai-stat-label">攻击阶段</span>
+                                    <span class="ai-stat-value" id="aiStagesCount">-</span>
+                                </div>
+                                <div class="ai-stat-card">
+                                    <span class="ai-stat-label">IOC 指标</span>
+                                    <span class="ai-stat-value" id="aiIocCount">-</span>
+                                </div>
+                            </div>
+
+                            <!-- 攻击叙述 -->
+                            <div class="ai-narrative-section">
+                                <h4>攻击故事</h4>
+                                <div class="ai-narrative" id="aiNarrative"></div>
+                            </div>
+
+                            <!-- 攻击阶段 -->
+                            <div class="ai-stages-section">
+                                <h4>攻击阶段</h4>
+                                <div class="ai-stages" id="aiStages"></div>
+                            </div>
+
+                            <!-- 关键发现 -->
+                            <div class="ai-findings-section">
+                                <h4>关键发现</h4>
+                                <ul class="ai-findings" id="aiFindings"></ul>
+                            </div>
+
+                            <!-- IOC 指标 -->
+                            <div class="ai-ioc-section">
+                                <h4>IOC 指标</h4>
+                                <div class="ai-ioc-list" id="aiIocList"></div>
+                            </div>
+
+                            <!-- 处置建议 -->
+                            <div class="ai-recommendations-section">
+                                <h4>处置建议</h4>
+                                <ul class="ai-recommendations" id="aiRecommendations"></ul>
+                            </div>
+
+                            <!-- 重新分析按钮 -->
+                            <div class="ai-reanalyze-area">
+                                <button id="btnAIReanalyze" class="btn btn-secondary">
+                                    <span class="btn-icon">🔄</span>
+                                    <span class="btn-text">重新分析</span>
+                                </button>
                             </div>
                         </div>
                     </div>
