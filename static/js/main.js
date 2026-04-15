@@ -25,7 +25,23 @@ let alertsPagination = {
     page: 1,
     pageSize: 20,
     total: 0,
-    totalPages: 1
+    totalPages: 1,
+    allAlerts: [],
+    filteredAlerts: []
+};
+
+// 规则检测状态
+let rulesState = {
+    currentView: 'dashboard', // dashboard, timeline, list
+    filter: {
+        severity: null, // high, medium, low
+        category: null  // file, process, network, sequence, temporal
+    },
+    data: {
+        alerts: [],
+        alertsByRule: {},
+        alertsByTime: {}
+    }
 };
 
 // 页面配置
@@ -416,6 +432,9 @@ async function loadRulesData(status) {
 
                 // 显示下载按钮
                 showDownloadButton('rules');
+
+                // 加载增强视图数据
+                await loadRulesViewData();
             } catch (e) {
                 console.error('Load rules cache error:', e);
             }
@@ -1951,3 +1970,842 @@ function getThreatLabel(level) {
     };
     return labels[level] || '未知';
 }
+
+// ==================== 规则检测页面增强功能 ====================
+
+// 规则定义 (25条规则)
+const RULE_DEFINITIONS = {
+    'R001': { id: 'R001', name: '敏感目录写入', category: 'file', severity: 'high', description: '检测进程是否向系统敏感目录（/etc/, /boot/, /sys/等）写入数据', mitre: 'T1012', tactics: 'Credential Access' },
+    'R002': { id: 'R002', name: '临时目录可执行文件写入', category: 'file', severity: 'high', description: '检测向临时目录(/tmp/, /var/tmp/)写入可执行文件的行为', mitre: 'T1059', tactics: 'Execution' },
+    'R003': { id: 'R003', name: '浏览器写入可执行库', category: 'file', severity: 'medium', description: '检测浏览器进程向可执行目录写入文件', mitre: 'T1190', tactics: 'Initial Access' },
+    'R004': { id: 'R004', name: '网络服务读取敏感文件', category: 'file', severity: 'high', description: '检测网络服务进程读取系统敏感文件', mitre: 'T1005', tactics: 'Discovery' },
+    'R005': { id: 'R005', name: '进程删除自身可执行文件', category: 'file', severity: 'medium', description: '检测进程删除其自身可执行文件的自删除行为', mitre: 'T1070', tactics: 'Defense Evasion' },
+    'R006': { id: 'R006', name: '未知进程写入系统目录', category: 'file', severity: 'medium', description: '检测非系统进程向系统目录写入文件', mitre: 'T1012', tactics: 'Credential Access' },
+    'R101': { id: 'R101', name: '从临时目录执行', category: 'process', severity: 'high', description: '检测从临时目录执行可执行文件的行为', mitre: 'T1059', tactics: 'Execution' },
+    'R102': { id: 'R102', name: '父子进程命名不匹配', category: 'process', severity: 'medium', description: '检测父进程与子进程名称不匹配的异常情况', mitre: 'T1059', tactics: 'Execution' },
+    'R103': { id: 'R103', name: '系统进程异常子进程', category: 'process', severity: 'high', description: '检测系统进程启动非常规子进程', mitre: 'T1059', tactics: 'Execution' },
+    'R104': { id: 'R104', name: '命令行包含编码内容', category: 'process', severity: 'high', description: '检测命令行中包含base64等编码内容', mitre: 'T1027', tactics: 'Defense Evasion' },
+    'R105': { id: 'R105', name: '无父进程异常', category: 'process', severity: 'medium', description: '检测没有父进程的异常进程启动', mitre: 'T1059', tactics: 'Execution' },
+    'R106': { id: 'R106', name: '短周期多次执行', category: 'process', severity: 'low', description: '检测同一进程在短时间内的多次执行', mitre: 'T1059', tactics: 'Execution' },
+    'R201': { id: 'R201', name: '连接非白名单境外IP', category: 'network', severity: 'high', description: '检测连接到非白名单境外IP地址', mitre: 'T1071', tactics: 'Command and Control' },
+    'R202': { id: 'R202', name: '非网络客户端建立连接', category: 'network', severity: 'medium', description: '检测非网络客户端进程建立网络连接', mitre: 'T1071', tactics: 'Command and Control' },
+    'R203': { id: 'R203', name: '系统进程连接非常用端口', category: 'network', severity: 'medium', description: '检测系统进程连接到非常用端口', mitre: 'T1071', tactics: 'Command and Control' },
+    'R204': { id: 'R204', name: '监听高位端口', category: 'network', severity: 'low', description: '检测进程监听高位端口(>1024)', mitre: 'T1059', tactics: 'Execution' },
+    'R205': { id: 'R205', name: '短时间多IP连接', category: 'network', severity: 'high', description: '检测短时间连接多个不同IP的行为', mitre: 'T1071', tactics: 'Command and Control' },
+    'R301': { id: 'R301', name: '文件下载后立即执行', category: 'sequence', severity: 'high', description: '检测文件下载后立即执行的序列行为', mitre: 'T1105', tactics: 'Execution' },
+    'R302': { id: 'R302', name: '进程启动后连接外部', category: 'sequence', severity: 'medium', description: '检测进程启动后立即连接外网的行为', mitre: 'T1071', tactics: 'Command and Control' },
+    'R303': { id: 'R303', name: '读敏感文件后联网', category: 'sequence', severity: 'high', description: '检测读取敏感文件后立即联网的行为', mitre: 'T1041', tactics: 'Exfiltration' },
+    'R304': { id: 'R304', name: '修改启动项', category: 'sequence', severity: 'high', description: '检测修改启动项以实现持久化的行为', mitre: 'T1547', tactics: 'Persistence' },
+    'R305': { id: 'R305', name: '多进程写入同一文件', category: 'sequence', severity: 'medium', description: '检测多个进程写入同一文件的异常行为', mitre: 'T1012', tactics: 'Credential Access' },
+    'R401': { id: 'R401', name: '凌晨异常活动', category: 'temporal', severity: 'medium', description: '检测凌晨时段(0:00-6:00)的系统活动', mitre: 'T1078', tactics: 'Defense Evasion' },
+    'R402': { id: 'R402', name: '周末系统操作', category: 'temporal', severity: 'low', description: '检测周末时段的系统操作活动', mitre: 'T1078', tactics: 'Defense Evasion' },
+    'R403': { id: 'R403', name: '频繁失败尝试', category: 'temporal', severity: 'medium', description: '检测短时间内频繁的失败操作尝试', mitre: 'T1110', tactics: 'Credential Access' }
+};
+
+// 规则分类配置
+const RULE_CATEGORIES = {
+    'file': { name: '文件异常', icon: 'fa-file-alt', color: '#e74c3c', rules: ['R001', 'R002', 'R003', 'R004', 'R005', 'R006'] },
+    'process': { name: '进程异常', icon: 'fa-cogs', color: '#f39c12', rules: ['R101', 'R102', 'R103', 'R104', 'R105', 'R106'] },
+    'network': { name: '网络异常', icon: 'fa-globe', color: '#3498db', rules: ['R201', 'R202', 'R203', 'R204', 'R205'] },
+    'sequence': { name: '行为序列', icon: 'fa-list-ol', color: '#9b59b6', rules: ['R301', 'R302', 'R303', 'R304', 'R305'] },
+    'temporal': { name: '时序异常', icon: 'fa-clock', color: '#1abc9c', rules: ['R401', 'R402', 'R403'] }
+};
+
+// 规则检测图表实例
+let rulesDistributionChart = null;
+let rulesTrendChart = null;
+
+/**
+ * 切换规则检测视图
+ */
+function switchRulesView(viewName) {
+    rulesState.currentView = viewName;
+
+    // 更新标签样式
+    document.querySelectorAll('.view-tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.dataset.view === viewName) {
+            tab.classList.add('active');
+        }
+    });
+
+    // 显示对应视图
+    document.querySelectorAll('.rules-view-container').forEach(view => {
+        view.style.display = 'none';
+    });
+    const targetView = document.getElementById(`view-${viewName}`);
+    if (targetView) {
+        targetView.style.display = 'block';
+    }
+
+    // 加载视图数据
+    loadRulesViewData();
+}
+
+/**
+ * 加载规则检测视图数据
+ */
+async function loadRulesViewData() {
+    try {
+        // 获取全部告警数据（使用足够大的 page_size）
+        const alerts = await apiRequest('/api/alerts?page_size=10000');
+        const allAlerts = alerts.alerts || alerts.data || [];
+
+        // 处理数据
+        rulesState.data.alerts = allAlerts;
+        rulesState.data.alertsByRule = {};
+        rulesState.data.alertsByTime = {};
+
+        // 按规则统计
+        allAlerts.forEach(alert => {
+            const ruleId = alert.rule?.rule_id || 'unknown';
+            if (!rulesState.data.alertsByRule[ruleId]) {
+                rulesState.data.alertsByRule[ruleId] = [];
+            }
+            rulesState.data.alertsByRule[ruleId].push(alert);
+
+            // 按时间统计 (按小时)
+            const hour = alert.timestamp ? alert.timestamp.substring(0, 13) : 'unknown';
+            if (!rulesState.data.alertsByTime[hour]) {
+                rulesState.data.alertsByTime[hour] = 0;
+            }
+            rulesState.data.alertsByTime[hour]++;
+        });
+
+        // 根据当前视图渲染
+        switch (rulesState.currentView) {
+            case 'dashboard':
+                renderDashboardView();
+                break;
+            case 'timeline':
+                renderTimelineView();
+                break;
+            case 'list':
+                renderRulesListView();
+                break;
+        }
+
+    } catch (error) {
+        console.error('加载规则视图数据失败:', error);
+        document.getElementById('dashboardView').innerHTML = '<p class="error-message">数据加载失败，请先完成规则检测步骤</p>';
+    }
+}
+
+/**
+ * 渲染仪表盘视图
+ */
+function renderDashboardView() {
+    // 更新统计卡片 (使用HTML中实际的ID)
+    const totalAlerts = rulesState.data.alerts.length;
+    const highAlerts = rulesState.data.alerts.filter(a => a.rule?.severity === 'high').length;
+    const mediumAlerts = rulesState.data.alerts.filter(a => a.rule?.severity === 'medium').length;
+    const lowAlerts = rulesState.data.alerts.filter(a => a.rule?.severity === 'low').length;
+
+    const highEl = document.getElementById('rulesOutHigh');
+    const mediumEl = document.getElementById('rulesOutMedium');
+    const lowEl = document.getElementById('rulesOutLow');
+
+    if (highEl) highEl.textContent = highAlerts;
+    if (mediumEl) mediumEl.textContent = mediumAlerts;
+    if (lowEl) lowEl.textContent = lowAlerts;
+
+    // 渲染规则分布图表
+    renderRulesDistributionChart();
+
+    // 渲染趋势图表
+    renderRulesTrendChart();
+
+    // 渲染规则分类卡片
+    renderRuleCategories();
+}
+
+/**
+ * 渲染规则分布图表
+ */
+function renderRulesDistributionChart() {
+    const chartDom = document.getElementById('rulesDistributionChart');
+    if (!chartDom) return;
+
+    if (rulesDistributionChart) {
+        rulesDistributionChart.dispose();
+    }
+
+    // 按严重程度统计
+    const severityData = {
+        high: rulesState.data.alerts.filter(a => a.rule?.severity === 'high').length,
+        medium: rulesState.data.alerts.filter(a => a.rule?.severity === 'medium').length,
+        low: rulesState.data.alerts.filter(a => a.rule?.severity === 'low').length
+    };
+
+    rulesDistributionChart = echarts.init(chartDom);
+    const option = {
+        title: {
+            text: '告警严重程度分布',
+            left: 'center',
+            textStyle: { color: '#bdc3c7', fontSize: 14 }
+        },
+        tooltip: {
+            trigger: 'item',
+            formatter: '{b}: {c} ({d}%)'
+        },
+        legend: {
+            orient: 'vertical',
+            left: 'left',
+            textStyle: { color: '#bdc3c7' }
+        },
+        series: [{
+            type: 'pie',
+            radius: ['40%', '70%'],
+            avoidLabelOverlap: false,
+            itemStyle: {
+                borderRadius: 10,
+                borderColor: '#1e1e1e',
+                borderWidth: 2
+            },
+            label: {
+                show: true,
+                color: '#bdc3c7'
+            },
+            data: [
+                { value: severityData.high, name: '高危', itemStyle: { color: '#e74c3c' } },
+                { value: severityData.medium, name: '中危', itemStyle: { color: '#f39c12' } },
+                { value: severityData.low, name: '低危', itemStyle: { color: '#27ae60' } }
+            ]
+        }]
+    };
+    rulesDistributionChart.setOption(option);
+}
+
+/**
+ * 渲染规则趋势图表
+ */
+function renderRulesTrendChart() {
+    const chartDom = document.getElementById('rulesTrendChart');
+    if (!chartDom) return;
+
+    if (rulesTrendChart) {
+        rulesTrendChart.dispose();
+    }
+
+    // 按时间排序
+    const sortedTimes = Object.keys(rulesState.data.alertsByTime).sort();
+    const timeData = sortedTimes.map(t => rulesState.data.alertsByTime[t]);
+
+    rulesTrendChart = echarts.init(chartDom);
+    const option = {
+        title: {
+            text: '告警时间趋势',
+            left: 'center',
+            textStyle: { color: '#bdc3c7', fontSize: 14 }
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' }
+        },
+        xAxis: {
+            type: 'category',
+            data: sortedTimes,
+            axisLabel: { color: '#bdc3c7', rotate: 45 },
+            axisLine: { lineStyle: { color: '#3d3d3d' } }
+        },
+        yAxis: {
+            type: 'value',
+            axisLabel: { color: '#bdc3c7' },
+            axisLine: { lineStyle: { color: '#3d3d3d' } },
+            splitLine: { lineStyle: { color: '#2d2d2d' } }
+        },
+        series: [{
+            data: timeData,
+            type: 'bar',
+            itemStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    { offset: 0, color: '#3498db' },
+                    { offset: 1, color: '#2980b9' }
+                ]),
+                borderRadius: [4, 4, 0, 0]
+            }
+        }]
+    };
+    rulesTrendChart.setOption(option);
+}
+
+/**
+ * 渲染规则分类卡片
+ */
+function renderRuleCategories() {
+    const container = document.getElementById('ruleCategoriesGrid');
+    if (!container) return;
+
+    let html = '';
+    for (const [key, category] of Object.entries(RULE_CATEGORIES)) {
+        // 统计该分类的告警数
+        let count = 0;
+        category.rules.forEach(ruleId => {
+            count += rulesState.data.alertsByRule[ruleId]?.length || 0;
+        });
+
+        // 触发该分类的规则数
+        const triggeredRules = category.rules.filter(ruleId =>
+            rulesState.data.alertsByRule[ruleId]?.length > 0
+        ).length;
+
+        html += `
+            <div class="rule-category-card" onclick="filterByCategory('${key}')" style="cursor: pointer;">
+                <div class="category-icon" style="background: ${category.color}20; color: ${category.color};">
+                    <i class="fas ${category.icon}"></i>
+                </div>
+                <div class="category-info">
+                    <div class="category-name">${category.name}</div>
+                    <div class="category-stats">
+                        <span class="stat-item">
+                            <strong>${count}</strong> 告警
+                        </span>
+                        <span class="stat-item">
+                            <strong>${triggeredRules}</strong> / ${category.rules.length} 规则
+                        </span>
+                    </div>
+                </div>
+                <div class="category-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+        `;
+    }
+    container.innerHTML = html;
+}
+
+/**
+ * 渲染时间线视图 - 甘特图式
+ */
+function renderTimelineView() {
+    const container = document.getElementById('alertsTimeline');
+    if (!container) return;
+
+    if (rulesState.data.alerts.length === 0) {
+        container.innerHTML = '<p class="no-data-message">暂无告警数据</p>';
+        return;
+    }
+
+    // 按时间排序
+    const sortedAlerts = [...rulesState.data.alerts].sort((a, b) =>
+        new Date(a.timestamp) - new Date(b.timestamp)
+    );
+
+    // 应用过滤器
+    let filteredAlerts = sortedAlerts;
+    if (rulesState.filter.severity) {
+        filteredAlerts = filteredAlerts.filter(a => a.rule?.severity === rulesState.filter.severity);
+    }
+    if (rulesState.filter.category) {
+        const categoryRules = RULE_CATEGORIES[rulesState.filter.category].rules;
+        filteredAlerts = filteredAlerts.filter(a =>
+            categoryRules.includes(a.rule?.rule_id)
+        );
+    }
+
+    if (filteredAlerts.length === 0) {
+        container.innerHTML = '<p class="no-data-message">没有符合条件的告警</p>';
+        return;
+    }
+
+    // 计算时间范围
+    const startTime = new Date(filteredAlerts[0].timestamp).getTime();
+    const endTime = new Date(filteredAlerts[filteredAlerts.length - 1].timestamp).getTime();
+    const timeSpan = endTime - startTime || 1; // 避免除零
+
+    // 创建甘特图式时间线容器
+    let html = `
+        <div class="gantt-timeline-wrapper">
+            <!-- 时间轴头部 -->
+            <div class="gantt-timeline-header">
+                <div class="gantt-time-axis">
+                    ${generateTimeAxis(startTime, endTime)}
+                </div>
+            </div>
+            <!-- 告警条形图区域 -->
+            <div class="gantt-chart-area">
+                <div class="gantt-track-container">
+    `;
+
+    // 渲染每个告警条形
+    filteredAlerts.forEach((alert, index) => {
+        const alertTime = new Date(alert.timestamp).getTime();
+        const offset = ((alertTime - startTime) / timeSpan) * 100;
+        const severityClass = alert.rule?.severity || 'low';
+        const ruleInfo = RULE_DEFINITIONS[alert.rule?.rule_id] || { name: '未知规则', category: 'unknown' };
+        const timeStr = alert.timestamp ? new Date(alert.timestamp).toLocaleString('zh-CN') : '未知时间';
+
+        // 根据严重程度设置颜色
+        const colorMap = {
+            high: '#e74c3c',
+            medium: '#f39c12',
+            low: '#27ae60'
+        };
+        const barColor = colorMap[severityClass] || '#95a5a6';
+
+        html += `
+            <div class="gantt-bar-wrapper" style="top: ${index * 45 + 10}px;"
+                 onclick="showAlertTrace('${alert.event_id || index}')"
+                 title="${escapeHtml(alert.message || ruleInfo.name)}">
+                <div class="gantt-bar gantt-bar-${severityClass}"
+                     style="left: ${Math.max(0, offset)}%; background-color: ${barColor};">
+                    <div class="gantt-bar-content">
+                        <span class="gantt-rule-id">${escapeHtml(alert.rule?.rule_id || '')}</span>
+                        <span class="gantt-message">${escapeHtml((alert.message || ruleInfo.name).substring(0, 30))}${(alert.message || ruleInfo.name).length > 30 ? '...' : ''}</span>
+                    </div>
+                </div>
+                <div class="gantt-time-label">${timeStr}</div>
+            </div>
+        `;
+    });
+
+    // 设置容器高度
+    const containerHeight = Math.max(300, filteredAlerts.length * 45 + 50);
+
+    html += `
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = html;
+
+    // 初始化甘特图时间轴图表（使用 ECharts）
+    initGanttChart(filteredAlerts, startTime, endTime);
+}
+
+/**
+ * 生成时间轴刻度
+ */
+function generateTimeAxis(startTime, endTime) {
+    const timeSpan = endTime - startTime;
+    let ticks = [];
+
+    // 根据时间跨度决定刻度间隔
+    let interval;
+    if (timeSpan < 3600000) { // 小于1小时，每5分钟
+        interval = 300000;
+    } else if (timeSpan < 86400000) { // 小于1天，每小时
+        interval = 3600000;
+    } else { // 大于1天，每6小时
+        interval = 21600000;
+    }
+
+    for (let t = startTime; t <= endTime; t += interval) {
+        const date = new Date(t);
+        let label;
+        if (timeSpan < 3600000) {
+            label = date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        } else if (timeSpan < 86400000) {
+            label = date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        } else {
+            label = date.toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit' });
+        }
+        const pos = ((t - startTime) / timeSpan) * 100;
+        ticks.push(`<span class="time-tick" style="left: ${pos}%">${label}</span>`);
+    }
+
+    return ticks.join('');
+}
+
+/**
+ * 初始化甘特图（使用 ECharts）
+ */
+function initGanttChart(alerts, startTime, endTime) {
+    const chartContainer = document.getElementById('ganttMainChart');
+    if (!chartContainer) return;
+
+    // 如果已存在图表实例，先销毁
+    if (window.ganttChartInstance) {
+        window.ganttChartInstance.dispose();
+    }
+
+    // 准备图表数据
+    const chartData = alerts.map((alert, index) => {
+        const alertTime = new Date(alert.timestamp).getTime();
+        const severityClass = alert.rule?.severity || 'low';
+        const ruleInfo = RULE_DEFINITIONS[alert.rule?.rule_id] || { name: '未知规则' };
+
+        return {
+            name: alert.rule?.rule_id || 'unknown',
+            value: [
+                index,
+                alertTime,
+                alertTime + 60000, // 假设每个事件持续1分钟用于显示
+                severityClass,
+                alert.message || ruleInfo.name,
+                alert.event_id || index
+            ],
+            itemStyle: {
+                color: severityClass === 'high' ? '#e74c3c' : severityClass === 'medium' ? '#f39c12' : '#27ae60'
+            }
+        };
+    });
+
+    window.ganttChartInstance = echarts.init(chartContainer);
+
+    const option = {
+        tooltip: {
+            formatter: function(params) {
+                const data = params.data;
+                const time = new Date(data.value[1]).toLocaleString('zh-CN');
+                return `
+                    <div style="padding: 8px;">
+                        <div><strong>${data.value[3]}</strong></div>
+                        <div style="color: #bdc3c7; font-size: 12px; margin-top: 4px;">${time}</div>
+                        <div style="margin-top: 4px;">${escapeHtml(data.value[4])}</div>
+                    </div>
+                `;
+            }
+        },
+        grid: {
+            top: 40,
+            left: 100,
+            right: 40,
+            bottom: 40
+        },
+        xAxis: {
+            type: 'time',
+            min: startTime,
+            max: endTime,
+            axisLabel: {
+                color: '#bdc3c7',
+                formatter: function(value) {
+                    const date = new Date(value);
+                    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                }
+            },
+            axisLine: { lineStyle: { color: '#3d3d3d' } },
+            splitLine: { lineStyle: { color: '#2d2d2d' } }
+        },
+        yAxis: {
+            type: 'category',
+            data: alerts.map((_, i) => `Alert ${i + 1}`),
+            axisLabel: { show: false },
+            axisLine: { show: false },
+            axisTick: { show: false }
+        },
+        series: [{
+            type: 'bar',
+            coordinateSystem: 'cartesian2d',
+            data: chartData,
+            barWidth: 20,
+            encode: {
+                x: [1, 2],
+                y: 0
+            }
+        }]
+    };
+
+    window.ganttChartInstance.setOption(option);
+
+    // 点击事件
+    window.ganttChartInstance.on('click', function(params) {
+        const eventId = params.data.value[5];
+        showAlertTrace(eventId);
+    });
+}
+
+/**
+ * 渲染规则列表视图
+ */
+function renderRulesListView() {
+    const tableBody = document.getElementById('rulesTableBody');
+    if (!tableBody) return;
+
+    if (rulesState.data.alerts.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="no-data-message">暂无告警数据</td></tr>';
+        return;
+    }
+
+    // 按时间排序
+    const sortedAlerts = [...rulesState.data.alerts].sort((a, b) =>
+        new Date(b.timestamp || 0) - new Date(a.timestamp || 0)
+    );
+
+    // 应用过滤器
+    let filteredAlerts = sortedAlerts;
+    if (rulesState.filter.severity) {
+        filteredAlerts = filteredAlerts.filter(a => a.rule?.severity === rulesState.filter.severity);
+    }
+    if (rulesState.filter.category) {
+        const categoryRules = RULE_CATEGORIES[rulesState.filter.category].rules;
+        filteredAlerts = filteredAlerts.filter(a =>
+            categoryRules.includes(a.rule?.rule_id)
+        );
+    }
+
+    let html = '';
+    filteredAlerts.forEach((alert, index) => {
+        const time = alert.timestamp ? new Date(alert.timestamp).toLocaleString('zh-CN') : '未知时间';
+        const severityClass = alert.rule?.severity || 'low';
+        const ruleId = alert.rule?.rule_id || 'unknown';
+        const ruleInfo = RULE_DEFINITIONS[ruleId] || { name: '未知规则', category: 'unknown' };
+
+        html += `
+            <tr class="rule-row" onclick="showAlertTrace('${alert.event_id || index}')">
+                <td>${escapeHtml(ruleId)}</td>
+                <td>
+                    <a href="#" class="rule-link" onclick="event.stopPropagation(); showRuleDetail('${ruleId}')">
+                        ${escapeHtml(ruleInfo.name)}
+                    </a>
+                </td>
+                <td>
+                    <span class="category-badge category-${ruleInfo.category}">
+                        ${RULE_CATEGORIES[ruleInfo.category]?.name || ruleInfo.category}
+                    </span>
+                </td>
+                <td><span class="severity-badge severity-${severityClass}">${severityClass.toUpperCase()}</span></td>
+                <td>${escapeHtml(alert.subject?.name || '-')}</td>
+                <td>${escapeHtml(alert.object?.name || alert.object?.path || '-')}</td>
+                <td>${time}</td>
+            </tr>
+        `;
+    });
+
+    tableBody.innerHTML = html || '<tr><td colspan="7" class="no-data-message">没有符合条件的告警</td></tr>';
+}
+
+/**
+ * 按严重程度过滤
+ */
+function filterBySeverity(severity) {
+    rulesState.filter.severity = severity === 'all' ? null : severity;
+    updateFilterStatus();
+    if (rulesState.currentView === 'timeline') {
+        renderTimelineView();
+    } else if (rulesState.currentView === 'list') {
+        renderRulesListView();
+    }
+}
+
+/**
+ * 按分类过滤
+ */
+function filterByCategory(category) {
+    rulesState.filter.category = category === 'all' ? null : category;
+    updateFilterStatus();
+    // 切换到列表视图
+    if (rulesState.currentView !== 'list') {
+        switchRulesView('list');
+    } else {
+        renderRulesListView();
+    }
+}
+
+/**
+ * 清除过滤器
+ */
+function clearFilter() {
+    rulesState.filter.severity = null;
+    rulesState.filter.category = null;
+    updateFilterStatus();
+    loadRulesViewData();
+}
+
+/**
+ * 更新过滤器状态显示
+ */
+function updateFilterStatus() {
+    const container = document.getElementById('filterStatus');
+    if (!container) return;
+
+    const severityText = rulesState.filter.severity ? rulesState.filter.severity.toUpperCase() : '全部';
+    const categoryText = rulesState.filter.category ?
+        RULE_CATEGORIES[rulesState.filter.category]?.name : '全部';
+
+    container.innerHTML = `
+        <span class="filter-label">当前筛选:</span>
+        <span class="filter-value">严重程度: ${severityText}</span>
+        <span class="filter-value">分类: ${categoryText}</span>
+        ${rulesState.filter.severity || rulesState.filter.category ?
+            `<button class="btn-clear-filter" onclick="clearFilter()">
+                <i class="fas fa-times"></i> 清除筛选
+            </button>` : ''}
+    `;
+}
+
+/**
+ * 显示规则详情
+ */
+function showRuleDetail(ruleId) {
+    const rule = RULE_DEFINITIONS[ruleId];
+    if (!rule) return;
+
+    const alerts = rulesState.data.alertsByRule[ruleId] || [];
+    const category = RULE_CATEGORIES[rule.category];
+
+    // 使用HTML中实际的元素ID
+    const titleEl = document.getElementById('ruleDetailTitle');
+    const idEl = document.getElementById('ruleDetailId');
+    const descEl = document.getElementById('ruleDetailDesc');
+    const logicEl = document.getElementById('ruleDetailLogic');
+    const triggerCountEl = document.getElementById('ruleTriggerCount');
+    const alertsEl = document.getElementById('ruleDetailAlerts');
+
+    if (titleEl) titleEl.textContent = `${ruleId}: ${rule.name}`;
+    if (idEl) idEl.textContent = ruleId;
+    if (descEl) descEl.textContent = rule.description || '-';
+    if (logicEl) logicEl.textContent = `检测条件: ${rule.mitre || '-'} | 战术: ${rule.tactics || '-'}`;
+    if (triggerCountEl) triggerCountEl.textContent = alerts.length;
+
+    // 显示触发该规则的告警列表
+    if (alertsEl && alerts.length > 0) {
+        alertsEl.innerHTML = alerts.slice(0, 10).map(alert => `
+            <div class="alert-item" style="padding: 8px; border-left: 3px solid ${alert.rule?.severity === 'high' ? '#e74c3c' : alert.rule?.severity === 'medium' ? '#f39c12' : '#27ae60'}; background: var(--card-bg); margin-bottom: 8px; border-radius: 4px;">
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">${alert.timestamp ? new Date(alert.timestamp).toLocaleString('zh-CN') : '未知时间'}</div>
+                <div style="margin-top: 4px;">${escapeHtml(alert.message || '-')}</div>
+            </div>
+        `).join('') + (alerts.length > 10 ? `<div style="text-align: center; color: var(--text-secondary); padding: 10px;">...还有 ${alerts.length - 10} 条告警</div>` : '');
+    } else if (alertsEl) {
+        alertsEl.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">暂无触发记录</p>';
+    }
+
+    document.getElementById('ruleDetailModal').style.display = 'flex';
+}
+
+/**
+ * 显示告警追踪
+ */
+function showAlertTrace(eventId) {
+    const alert = rulesState.data.alerts.find(a => a.event_id === eventId || a.event_id == eventId);
+    if (!alert) return;
+
+    const ruleId = alert.rule?.rule_id || 'unknown';
+    const rule = RULE_DEFINITIONS[ruleId];
+
+    // 使用HTML中实际的元素ID
+    const alertIdEl = document.getElementById('traceAlertId');
+    const ruleNameEl = document.getElementById('traceRuleName');
+    const timeEl = document.getElementById('traceTime');
+    const timelineEl = document.getElementById('traceTimeline');
+
+    if (alertIdEl) alertIdEl.textContent = eventId;
+    if (ruleNameEl) ruleNameEl.textContent = rule?.name || '未知规则';
+    if (timeEl) timeEl.textContent = alert.timestamp ? new Date(alert.timestamp).toLocaleString('zh-CN') : '未知时间';
+
+    // 构建时间线
+    if (timelineEl) {
+        timelineEl.innerHTML = `
+            <div class="trace-event">
+                <div class="trace-dot"></div>
+                <div class="trace-content">
+                    <div class="trace-time">${alert.timestamp ? new Date(alert.timestamp).toLocaleString('zh-CN') : '未知时间'}</div>
+                    <div class="trace-message">${escapeHtml(alert.message || '-')}</div>
+                    <div class="trace-details">
+                        <div><strong>主体:</strong> ${alert.subject?.type || '-'}:${alert.subject?.name || '-'}</div>
+                        <div><strong>客体:</strong> ${alert.object?.type || '-'}:${alert.object?.path || alert.object?.name || '-'}</div>
+                        <div><strong>动作:</strong> ${alert.action || '-'}</div>
+                        <div><strong>严重程度:</strong> <span style="color: ${alert.rule?.severity === 'high' ? '#e74c3c' : alert.rule?.severity === 'medium' ? '#f39c12' : '#27ae60'}">${(alert.rule?.severity || 'low').toUpperCase()}</span></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    document.getElementById('alertTraceModal').style.display = 'flex';
+}
+
+/**
+ * 导出报告
+ */
+async function exportReport(format) {
+    if (format === 'json') {
+        downloadJSON();
+    } else if (format === 'excel') {
+        exportToExcel();
+    }
+}
+
+/**
+ * 下载JSON
+ */
+function downloadJSON() {
+    const data = {
+        export_time: new Date().toISOString(),
+        total_alerts: rulesState.data.alerts.length,
+        alerts_by_severity: {
+            high: rulesState.data.alerts.filter(a => a.rule?.severity === 'high').length,
+            medium: rulesState.data.alerts.filter(a => a.rule?.severity === 'medium').length,
+            low: rulesState.data.alerts.filter(a => a.rule?.severity === 'low').length
+        },
+        alerts_by_rule: Object.fromEntries(
+            Object.entries(rulesState.data.alertsByRule).map(([k, v]) => [k, v.length])
+        ),
+        alerts: rulesState.data.alerts
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rules_alerts_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+/**
+ * 导出Excel
+ */
+function exportToExcel() {
+    // 简单CSV导出
+    const headers = ['时间', '规则ID', '规则名称', '严重程度', '主体', '客体', '动作', '消息'];
+    const rows = rulesState.data.alerts.map(alert => [
+        alert.timestamp || '',
+        alert.rule?.rule_id || '',
+        alert.rule?.rule_name || '',
+        alert.rule?.severity || '',
+        `${alert.subject?.type || ''}:${alert.subject?.name || ''}`,
+        `${alert.object?.type || ''}:${alert.object?.path || alert.object?.name || ''}`,
+        alert.action || '',
+        alert.message || ''
+    ]);
+
+    const csv = [headers, ...rows]
+        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rules_alerts_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// 模态框关闭事件
+document.addEventListener('DOMContentLoaded', () => {
+    // 所有模态框关闭按钮
+    document.querySelectorAll('.modal-close').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const modal = e.target.closest('.modal');
+            if (modal) modal.style.display = 'none';
+        });
+    });
+
+    // 点击模态框外部关闭
+    window.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal')) {
+            e.target.style.display = 'none';
+        }
+    });
+
+    // 规则检测页面视图切换
+    document.querySelectorAll('.view-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            switchRulesView(tab.dataset.view);
+        });
+    });
+
+    // 严重程度过滤按钮
+    document.querySelectorAll('.btn-filter-severity').forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBySeverity(btn.dataset.severity);
+        });
+    });
+});

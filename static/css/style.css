@@ -558,20 +558,27 @@ body {
     padding: 20px;
     border-radius: 10px;
     text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
 }
 
 .summary-card.high {
-    background: #ffebee;
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
     color: var(--danger-color);
 }
 
 .summary-card.medium {
-    background: #fff3e0;
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
     color: var(--warning-color);
 }
 
 .summary-card.low {
-    background: #e8f5e9;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
     color: var(--success-color);
 }
 
@@ -584,6 +591,741 @@ body {
 .summary-label {
     font-size: 0.9rem;
     opacity: 0.8;
+}
+
+/* ==================== 规则检测增强样式 ==================== */
+
+/* 视图切换标签 */
+.view-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.view-tab {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.95rem;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.view-tab:hover {
+    color: var(--primary-color);
+}
+
+.view-tab.active {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.view-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--primary-color);
+}
+
+/* 视图容器 */
+.rules-view-container {
+    display: none;
+}
+
+.rules-view-container.active {
+    display: block;
+}
+
+/* 仪表盘视图 */
+.dashboard-view {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.dashboard-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.dashboard-side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 图表容器 */
+.chart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.chart-title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.chart-box {
+    height: 300px;
+}
+
+.chart-box.large {
+    height: 400px;
+}
+
+/* 规则类别卡片 */
+.rule-category-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.rule-category-section h4 {
+    font-size: 1rem;
+    margin-bottom: 15px;
+}
+
+.rule-categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.rule-category-card {
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.rule-category-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.rule-category-card.file {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+.rule-category-card.process {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+}
+
+.rule-category-card.network {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+}
+
+.rule-category-card.sequence {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+}
+
+.rule-category-card.temporal {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.category-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.category-count {
+    padding: 3px 8px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 12px;
+    font-size: 0.85rem;
+}
+
+.category-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+
+.category-severity {
+    display: flex;
+    gap: 8px;
+}
+
+.severity-dot {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.severity-dot.high {
+    color: var(--danger-color);
+}
+
+.severity-dot.medium {
+    color: var(--warning-color);
+}
+
+.severity-dot.low {
+    color: var(--success-color);
+}
+
+/* 时间线视图 */
+.timeline-view {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* ==================== 甘特图式时间线样式 ==================== */
+.timeline-view {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.timeline-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.timeline-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.timeline-stat {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.timeline-stat strong {
+    color: var(--primary-color);
+}
+
+/* 甘特图主图表区域 */
+.gantt-main-chart-wrapper {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.gantt-main-chart {
+    width: 100%;
+    height: 350px;
+}
+
+/* 详细时间线区域 */
+.timeline-detail-section {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-detail-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.timeline-detail-header h5 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+/* 甘特图时间线包装器 */
+.gantt-timeline-wrapper {
+    background: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.gantt-timeline-header {
+    padding: 15px;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.gantt-time-axis {
+    position: relative;
+    height: 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.time-tick {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+}
+
+.gantt-chart-area {
+    position: relative;
+    background: #1a1a2e;
+}
+
+.gantt-track-container {
+    position: relative;
+    min-height: 200px;
+}
+
+.gantt-bar-wrapper {
+    position: absolute;
+    width: 100%;
+    height: 35px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.gantt-bar-wrapper:hover {
+    transform: scale(1.02);
+    z-index: 10;
+}
+
+.gantt-bar {
+    position: absolute;
+    height: 28px;
+    min-width: 8px;
+    border-radius: 4px;
+    top: 0;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+}
+
+.gantt-bar:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    filter: brightness(1.2);
+}
+
+.gantt-bar-high {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.gantt-bar-medium {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+}
+
+.gantt-bar-low {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+}
+
+.gantt-bar-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    height: 100%;
+    font-size: 0.8rem;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.gantt-rule-id {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.gantt-message {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gantt-time-label {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+}
+
+/* 原有时间线样式兼容 */
+.timeline-container {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+    position: relative;
+}
+
+.timeline-item:last-child {
+    border-bottom: none;
+}
+
+.timeline-time {
+    min-width: 120px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+.timeline-content {
+    flex: 1;
+}
+
+.timeline-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border-left: 4px solid;
+    background: var(--light-bg);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.timeline-alert:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.timeline-alert.high {
+    border-left-color: var(--danger-color);
+}
+
+.timeline-alert.medium {
+    border-left-color: var(--warning-color);
+}
+
+.timeline-alert.low {
+    border-left-color: var(--success-color);
+}
+
+.alert-rule-tag {
+    padding: 2px 6px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-family: 'Courier New', monospace;
+    color: var(--text-secondary);
+}
+
+.alert-message {
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.alert-trace-btn {
+    padding: 4px 8px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.timeline-alert:hover .alert-trace-btn {
+    opacity: 1;
+}
+
+/* 规则列表视图 */
+.rules-list-view {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.rules-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rules-table thead {
+    background: var(--light-bg);
+}
+
+.rules-table th {
+    padding: 12px;
+    text-align: left;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.rules-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.9rem;
+}
+
+.rules-table tbody tr:hover {
+    background: #fafafa;
+}
+
+.rule-id {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.rule-severity {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.rule-severity.high {
+    background: #ffebee;
+    color: var(--danger-color);
+}
+
+.rule-severity.medium {
+    background: #fff3e0;
+    color: var(--warning-color);
+}
+
+.rule-severity.low {
+    background: #e8f5e9;
+    color: var(--success-color);
+}
+
+.rule-triggered {
+    font-weight: 600;
+}
+
+/* 规则详情模态框 */
+.rule-detail-modal {
+    max-width: 700px;
+}
+
+.rule-detail-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.rule-detail-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.rule-detail-id {
+    font-family: 'Chainber New', monospace;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+}
+
+.rule-detail-body {
+    padding: 20px;
+}
+
+.rule-detail-section {
+    margin-bottom: 20px;
+}
+
+.rule-detail-section h5 {
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+
+.rule-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.rule-logic {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.alerts-in-rule {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* 告警溯源模态框 */
+.alert-trace-modal {
+    max-width: 800px;
+}
+
+.trace-timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.trace-timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border-color);
+}
+
+.trace-item {
+    position: relative;
+    padding-bottom: 20px;
+}
+
+.trace-item::before {
+    content: '';
+    position: absolute;
+    left: -25px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    border: 2px solid white;
+}
+
+.trace-item.alert::before {
+    background: var(--danger-color);
+}
+
+.trace-time {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.trace-content {
+    background: var(--light-bg);
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 3px solid var(--border-color);
+}
+
+.trace-content.alert {
+    border-left-color: var(--danger-color);
+    background: #ffebee;
+}
+
+.trace-content.normal {
+    border-left-color: var(--success-color);
+}
+
+.trace-entity {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.trace-action {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* 导出按钮区域 */
+.export-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.export-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-export {
+    padding: 10px 20px;
+    border: 1px solid var(--border-color);
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-export:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.btn-export svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* 筛选状态 */
+.filter-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    background: #e3f2fd;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+}
+
+.filter-active {
+    display: none;
+    align-items: center;
+    gap: 8px;
+}
+
+.clear-filter-btn {
+    padding: 4px 10px;
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
 }
 
 /* ==================== 告警预览 ==================== */

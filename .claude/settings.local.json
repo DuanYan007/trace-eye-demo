@@ -102,7 +102,14 @@
       "Bash(node -c O:/trace-eye-demo/static/js/main.js)",
       "Bash(curl -s http://localhost:5000/api/status)",
       "Bash(curl -s http://localhost:5000/api/relations)",
-      "Bash(pkill -f \"python app.py\")"
+      "Bash(pkill -f \"python app.py\")",
+      "Bash(node --check \"static/js/main.js\")",
+      "Bash(netstat -ano)",
+      "Bash(findstr :5000)",
+      "Bash(taskkill:*)",
+      "Bash(cmd.exe:*)",
+      "Bash(cmd:*)",
+      "Bash(findstr LISTENING)"
     ]
   }
 }
