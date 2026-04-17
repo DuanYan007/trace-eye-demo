@@ -1,0 +1,201 @@
+<!-- 威胁检测页面组件 -->
+<div class="page-component" id="page-threat">
+    <div class="page-header">
+        <h2>⚠️ 威胁检测</h2>
+        <p>使用机器学习算法进行威胁评分与节点分类</p>
+    </div>
+
+    <!-- 输入数据 -->
+    <div class="data-section">
+        <h3>输入数据 - 告警与关系图</h3>
+        <div class="data-input-empty" id="threatInputEmpty">
+            <p>暂无数据，请先完成 <a href="#page-rules" onclick="navigateTo('rules')">规则检测</a></p>
+        </div>
+        <div class="data-input-filled" id="threatInputFilled" style="display:none;">
+            <div class="data-info-grid">
+                <div class="info-item">
+                    <span class="info-label">告警数</span>
+                    <span class="info-value" id="threatInAlerts">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">图节点数</span>
+                    <span class="info-value" id="threatInNodes">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 处理控制 -->
+    <div class="action-section">
+        <button id="btnThreat" class="btn btn-primary btn-large" disabled>
+            ▶ 开始威胁检测
+        </button>
+    </div>
+
+    <!-- 处理进度 -->
+    <div class="process-section" id="threatProcessSection" style="display:none;">
+        <h3>处理进度</h3>
+        <div class="process-bar-wrapper">
+            <div class="process-bar">
+                <div class="process-fill" id="threatProcessFill"></div>
+            </div>
+            <span class="process-text" id="threatProcessText">0%</span>
+        </div>
+        <div class="process-steps">
+            <div class="process-step" data-step="1">
+                <span class="step-dot">○</span>
+                <span class="step-text">提取节点特征 (17维)</span>
+            </div>
+            <div class="process-step" data-step="2">
+                <span class="step-dot">○</span>
+                <span class="step-text">Isolation Forest 检测</span>
+            </div>
+            <div class="process-step" data-step="3">
+                <span class="step-dot">○</span>
+                <span class="step-text">K-Means 聚类</span>
+            </div>
+            <div class="process-step" data-step="4">
+                <span class="step-dot">○</span>
+                <span class="step-text">计算威胁评分</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 输出数据 -->
+    <div class="data-section" id="threatOutputSection" style="display:none;">
+        <div class="section-header-with-action">
+            <h3>输出数据 - 威胁检测结果</h3>
+            <a href="/api/download/threat" class="btn-download" id="downloadThreat" style="display:none;">
+                📥 下载
+            </a>
+        </div>
+
+        <!-- 威胁等级总览卡片 -->
+        <div class="threat-overview-cards">
+            <div class="threat-overview-card critical">
+                <span class="threat-card-icon">🔴</span>
+                <div class="threat-card-info">
+                    <span class="threat-card-value" id="threatCriticalCount">0</span>
+                    <span class="threat-card-label">严重威胁</span>
+                </div>
+            </div>
+            <div class="threat-overview-card high">
+                <span class="threat-card-icon">🟠</span>
+                <div class="threat-card-info">
+                    <span class="threat-card-value" id="threatHighCount">0</span>
+                    <span class="threat-card-label">高危</span>
+                </div>
+            </div>
+            <div class="threat-overview-card medium">
+                <span class="threat-card-icon">🟡</span>
+                <div class="threat-card-info">
+                    <span class="threat-card-value" id="threatMediumCount">0</span>
+                    <span class="threat-card-label">中危</span>
+                </div>
+            </div>
+            <div class="threat-overview-card low">
+                <span class="threat-card-icon">🟢</span>
+                <div class="threat-card-info">
+                    <span class="threat-card-value" id="threatLowCount">0</span>
+                    <span class="threat-card-label">低危</span>
+                </div>
+            </div>
+            <div class="threat-overview-card benign">
+                <span class="threat-card-icon">✓</span>
+                <div class="threat-card-info">
+                    <span class="threat-card-value" id="threatBenignCount">0</span>
+                    <span class="threat-card-label">正常</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 威胁时间线与网络图 -->
+        <div class="threat-visualization">
+            <!-- 威胁时间线 - 环形时间轮 -->
+            <div class="threat-timeline-section">
+                <div class="section-header">
+                    <h4>🕐 威胁活动时间轮</h4>
+                    <div class="timeline-stats">
+                        <span class="timeline-stat-item">
+                            高风险节点: <strong id="timelineHighRiskCount">0</strong>
+                        </span>
+                        <span class="timeline-stat-item">
+                            当前筛选: <strong id="timelineCurrentFilter">全部</strong>
+                        </span>
+                    </div>
+                </div>
+                <div class="threat-timeline-container">
+                    <div class="threat-timeline-chart" id="threatTimelineChart"></div>
+                    <!-- 中心信息面板 -->
+                    <div class="timeline-center-info" id="timelineCenterInfo">
+                        <div class="center-info-level" id="centerInfoLevel">全部</div>
+                        <div class="center-info-count" id="centerInfoCount">0</div>
+                        <div class="center-info-label">个节点</div>
+                    </div>
+                </div>
+                <!-- 时间线控制 -->
+                <div class="threat-timeline-controls">
+                    <button class="timeline-filter-btn active" data-level="all" onclick="filterTimelineByLevel('all')">
+                        全部
+                    </button>
+                    <button class="timeline-filter-btn critical" data-level="critical" onclick="filterTimelineByLevel('critical')">
+                        🔴 严重
+                    </button>
+                    <button class="timeline-filter-btn high" data-level="high" onclick="filterTimelineByLevel('high')">
+                        🟠 高危
+                    </button>
+                    <button class="timeline-filter-btn medium" data-level="medium" onclick="filterTimelineByLevel('medium')">
+                        🟡 中危
+                    </button>
+                    <button class="timeline-filter-btn low" data-level="low" onclick="filterTimelineByLevel('low')">
+                        🟢 低危
+                    </button>
+                </div>
+                <!-- 节点列表 -->
+                <div class="timeline-nodes-list" id="timelineNodesList">
+                    <!-- 动态填充 -->
+                </div>
+            </div>
+
+            <!-- 节点关系网络 -->
+            <div class="threat-network-section">
+                <div class="section-header">
+                    <h4>🕸️ 高风险节点关系网络</h4>
+                    <div class="network-controls">
+                        <button class="network-btn" onclick="resetNetworkZoom()">🔄 重置视图</button>
+                    </div>
+                </div>
+                <div class="threat-network-container">
+                    <div class="threat-network-chart" id="threatNetworkChart"></div>
+                </div>
+                <!-- 网络图图例 -->
+                <div class="threat-network-legend">
+                    <span class="legend-title">节点类型：</span>
+                    <span class="legend-item"><span class="legend-dot process"></span> 进程</span>
+                    <span class="legend-item"><span class="legend-dot file"></span> 文件</span>
+                    <span class="legend-item"><span class="legend-dot socket"></span> 网络</span>
+                    <span class="legend-divider">|</span>
+                    <span class="legend-title">威胁等级：</span>
+                    <span class="legend-item"><span class="legend-dot critical"></span> 严重</span>
+                    <span class="legend-item"><span class="legend-dot high"></span> 高危</span>
+                    <span class="legend-hint">💡 滚轮缩放，拖拽平移</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 异常分数分布 -->
+        <div class="threat-distribution-section">
+            <div class="section-header">
+                <h4>📊 异常分数分布</h4>
+            </div>
+            <div class="threat-distribution-container">
+                <div class="threat-distribution-chart" id="threatDistributionChart"></div>
+            </div>
+        </div>
+
+        <div class="next-step-hint">
+            <span>✓ 威胁检测完成</span>
+            <a href="#page-relations" class="next-link" onclick="navigateTo('relations')">下一步: 关系挖掘 →</a>
+        </div>
+    </div>
+</div>

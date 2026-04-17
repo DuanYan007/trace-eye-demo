@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trace-Eye Demo - APT 威胁检测系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>Trace-Eye</h1>
+                <p class="subtitle">APT 威胁检测</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#page-upload" class="nav-item active" data-page="upload">
+                    <span class="nav-icon">📁</span>
+                    <span class="nav-text">数据准备</span>
+                    <span class="nav-status" id="navStatusUpload"></span>
+                </a>
+                <a href="#page-extract" class="nav-item" data-page="extract">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-text">事件提取</span>
+                    <span class="nav-status" id="navStatusExtract"></span>
+                </a>
+                <a href="#page-graph" class="nav-item" data-page="graph">
+                    <span class="nav-icon">🕸️</span>
+                    <span class="nav-text">关系图构建</span>
+                    <span class="nav-status" id="navStatusGraph"></span>
+                </a>
+                <a href="#page-rules" class="nav-item" data-page="rules">
+                    <span class="nav-icon">🔍</span>
+                    <span class="nav-text">规则检测</span>
+                    <span class="nav-status" id="navStatusRules"></span>
+                </a>
+                <a href="#page-threat" class="nav-item" data-page="threat">
+                    <span class="nav-icon">⚠️</span>
+                    <span class="nav-text">威胁检测</span>
+                    <span class="nav-status" id="navStatusThreat"></span>
+                </a>
+                <a href="#page-relations" class="nav-item" data-page="relations">
+                    <span class="nav-icon">🔗</span>
+                    <span class="nav-text">关系挖掘</span>
+                    <span class="nav-status" id="navStatusRelations"></span>
+                </a>
+                <a href="#page-chains" class="nav-item" data-page="chains">
+                    <span class="nav-icon">⛓️</span>
+                    <span class="nav-text">攻击链重建</span>
+                    <span class="nav-status" id="navStatusChains"></span>
+                </a>
+                <a href="#page-ai" class="nav-item" data-page="ai">
+                    <span class="nav-icon">🤖</span>
+                    <span class="nav-text">AI 分析</span>
+                    <span class="nav-status" id="navStatusAi"></span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="btnReset" class="btn-reset">🔄 重置系统</button>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 顶部状态栏 -->
+            <header class="top-bar">
+                <div class="top-bar-info">
+                    <span id="currentStepName">数据准备</span>
+                    <span class="top-bar-divider">|</span>
+                    <span id="systemStatus">系统状态: 就绪</span>
+                </div>
+                <div class="top-bar-stats">
+                    <span class="stat-badge">事件: <b id="statTotalEvents">-</b></span>
+                    <span class="stat-badge">告警: <b id="statAlerts">-</b></span>
+                    <span class="stat-badge">威胁: <b id="statThreatLevel">-</b></span>
+                </div>
+            </header>
+
+            <!-- 页面内容容器 -->
+            <div class="page-container">
+
+                <!-- 页面1: 数据准备 -->
+                <div class="page active" id="page-upload">
+                    <div class="page-header">
+                        <h2>📁 数据准备</h2>
+                        <p>上传多源日志文件（进程/文件/网络）</p>
+                    </div>
+
+                    <!-- 上传区域 -->
+                    <div class="upload-section" id="uploadArea">
+                        <div class="upload-zone" id="uploadEmpty">
+                            <div class="upload-icon">📁</div>
+                            <p>拖拽文件到此处，或点击选择文件</p>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary);">支持 .log, .json, .txt 格式</p>
+                            <label class="btn btn-primary" style="margin-top: 15px;">
+                                选择日志文件
+                                <input type="file" id="fileUpload" multiple accept=".log,.json,.txt" style="display:none">
+                            </label>
+                        </div>
+                        <div class="upload-files-preview" id="uploadFileList" style="display:none;">
+                            <h4>已选择的文件</h4>
+                            <div id="selectedFiles" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                                <button id="btnUploadSelected" class="btn btn-primary">开始上传</button>
+                                <button id="btnClearFiles" class="btn btn-secondary">清空</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 处理状态 -->
+                    <div class="process-section" id="uploadProcessSection" style="display:none;">
+                        <div class="process-bar-wrapper">
+                            <div class="process-bar">
+                                <div class="process-fill" id="uploadProcessFill"></div>
+                            </div>
+                            <span class="process-text" id="uploadProcessText">0%</span>
+                        </div>
+                        <p class="process-message" id="uploadProcessMessage">正在处理...</p>
+                    </div>
+
+                    <!-- 已上传文件列表 -->
+                    <div class="data-section" id="uploadResultSection" style="display:none;">
+                        <div class="section-header-with-action">
+                            <h3>已上传的日志文件</h3>
+                            <a href="/api/download/logs" class="btn-download" id="downloadLogs" style="display:none;">📥 下载</a>
+                        </div>
+                        <div class="data-preview">
+                            <div id="uploadedFilesList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                        </div>
+                        <div class="next-step-hint">
+                            <span>✓ 已上传 <span id="uploadedFileCount">0</span> 个文件</span>
+                            <a href="#page-extract" class="next-link" onclick="navigateTo('extract')">下一步: 事件提取 →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 页面2: 事件提取 -->
+                <div class="page" id="page-extract">
+                    <div class="page-header">
+                        <h2>📋 事件提取</h2>
+                        <p>将多源日志解析为统一事件格式</p>
+                    </div>
+
+                    <!-- 输入数据：原始日志文件 -->
+                    <div class="data-section">
+                        <h3>输入：原始日志文件</h3>
+                        <div class="data-input-empty" id="extractInputEmpty">
+                            <p>暂无数据，请先完成 <a href="#page-upload" onclick="navigateTo('upload')">数据准备</a></p>
+                        </div>
+                        <div class="data-input-filled" id="extractInputFilled" style="display:none;">
+                            <div id="extractInputFileList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- 处理控制 -->
+                    <div class="action-section">
+                        <button id="btnExtract" class="btn btn-primary btn-large" disabled>
+                            ▶ 开始事件提取
+                        </button>
+                    </div>
+
+                    <!-- 处理进度 -->
+                    <div class="process-section" id="extractProcessSection" style="display:none;">
+                        <div class="process-bar-wrapper">
+                            <div class="process-bar">
+                                <div class="process-fill" id="extractProcessFill"></div>
+                            </div>
+                            <span class="process-text" id="extractProcessText">0%</span>
+                        </div>
+                        <p class="process-message" id="extractProcessMessage">正在处理...</p>
+                    </div>
+
+                    <!-- 输出数据：提取结果 -->
+                    <div class="data-section" id="extractOutputSection" style="display:none;">
+                        <div class="section-header-with-action">
+                            <h3>输出：事件提取结果</h3>
+                            <a href="/api/download/events" class="btn-download" id="downloadEvents" style="display:none;">📥 下载</a>
+                        </div>
+                        <div class="data-preview">
+                            <div class="preview-stats">
+                                <div class="preview-stat-card">
+                                    <span class="preview-icon">📋</span>
+                                    <div class="preview-info">
+                                        <span class="preview-value" id="extractOutTotal">-</span>
+                                        <span class="preview-label">总事件数</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="event-type-breakdown">
+                                <h4>事件类型分布</h4>
+                                <div class="type-bars" id="extractTypeBars"></div>
+                            </div>
+                        </div>
+                        <div class="next-step-hint">
+                            <span>✓ 已提取 <span id="extractEventCount">0</span> 个事件</span>
+                            <a href="#page-graph" class="next-link" onclick="navigateTo('graph')">下一步: 关系图构建 →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 页面3: 关系图构建 -->
+                <div class="page" id="page-graph">
+                    <div class="page-header">
+                        <h2>🕸️ 关系图构建</h2>
+                        <p>构建系统调用溯源图并去噪</p>
+                    </div>
+
+                    <!-- 输入数据 -->
+                    <div class="data-section">
+                        <h3>输入数据 - 事件列表</h3>
+                        <div class="data-input-empty" id="graphInputEmpty">
+                            <p>暂无数据，请先完成 <a href="#page-extract" onclick="navigateTo('extract')">事件提取</a></p>
+                        </div>
+                        <div class="data-input-filled" id="graphInputFilled" style="display:none;">
+                            <div class="data-info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">事件总数</span>
+                                    <span class="info-value" id="graphInEvents">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 处理控制 -->
+                    <div class="action-section">
+                        <button id="btnGraph" class="btn btn-primary btn-large" disabled>
+                            ▶ 开始构建关系图
+                        </button>
+                    </div>
+
+                    <!-- 处理进度 -->
+                    <div class="process-section" id="graphProcessSection" style="display:none;">
+                        <h3>处理进度</h3>
+                        <div class="process-bar-wrapper">
+                            <div class="process-bar">
+                                <div class="process-fill" id="graphProcessFill"></div>
+                            </div>
+                            <span class="process-text" id="graphProcessText">0%</span>
+                        </div>
+                        <div class="process-steps">
+                            <div class="process-step" data-step="1">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">提取节点和边</span>
+                            </div>
+                            <div class="process-step" data-step="2">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">过滤系统服务</span>
+                            </div>
+                            <div class="process-step" data-step="3">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">移除高频边</span>
+                            </div>
+                            <div class="process-step" data-step="4">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">删除孤立节点</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 输出数据 -->
+                    <div class="data-section" id="graphOutputSection" style="display:none;">
+                        <div class="section-header-with-action">
+                            <h3>输出数据 - 关系图</h3>
+                            <a href="/api/download/graph" class="btn-download" id="downloadGraph" style="display:none;">
+                                📥 下载图数据
+                            </a>
+                        </div>
+                        <div class="graph-result-container">
+                            <!-- 图统计卡片 -->
+                            <div class="graph-stats-row">
+                                <div class="preview-stat-card">
+                                    <span class="preview-icon">🔵</span>
+                                    <div class="preview-info">
+                                        <span class="preview-value" id="graphOutNodes">-</span>
+                                        <span class="preview-label">节点数</span>
+                                    </div>
+                                </div>
+                                <div class="preview-stat-card">
+                                    <span class="preview-icon">➡️</span>
+                                    <div class="preview-info">
+                                        <span class="preview-value" id="graphOutEdges">-</span>
+                                        <span class="preview-label">边数</span>
+                                    </div>
+                                </div>
+                                <div class="preview-stat-card">
+                                    <span class="preview-icon">📊</span>
+                                    <div class="preview-info">
+                                        <span class="preview-value" id="graphOutDensity">-</span>
+                                        <span class="preview-label">密度</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 节点类型统计 -->
+                            <div class="node-types-stats" id="nodeTypesStats" style="display:none;">
+                                <div class="node-type-item process">
+                                    <span class="type-dot"></span>
+                                    <span class="type-name">进程</span>
+                                    <span class="type-count" id="processCount">0</span>
+                                </div>
+                                <div class="node-type-item file">
+                                    <span class="type-dot"></span>
+                                    <span class="type-name">文件</span>
+                                    <span class="type-count" id="fileCount">0</span>
+                                </div>
+                                <div class="node-type-item socket">
+                                    <span class="type-dot"></span>
+                                    <span class="type-name">网络</span>
+                                    <span class="type-count" id="socketCount">0</span>
+                                </div>
+                                <div class="node-type-item unknown">
+                                    <span class="type-dot"></span>
+                                    <span class="type-name">其他</span>
+                                    <span class="type-count" id="unknownCount">0</span>
+                                </div>
+                            </div>
+
+                            <!-- 图例 -->
+                            <div class="graph-legend">
+                                <span class="legend-title">图例说明：</span>
+                                <span class="legend-item">节点大小 ∝ 连接数</span>
+                                <span class="legend-item渲染容量">最多显示 150 节点 / 300 边</span>
+                            </div>
+
+                            <div class="graph-visualization-mini" id="graphMiniContainer"></div>
+                        </div>
+                        <div class="next-step-hint">
+                            <span>✓ 关系图构建完成</span>
+                            <a href="#page-rules" class="next-link" onclick="navigateTo('rules')">下一步: 规则检测 →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 页面4: 规则检测 -->
+                <div class="page" id="page-rules">
+                    <div class="page-header">
+                        <h2>🔍 规则检测</h2>
+                        <p>基于 25 条预定义规则检测异常</p>
+                    </div>
+
+                    <!-- 输入数据 -->
+                    <div class="data-section">
+                        <h3>输入数据 - 关系图</h3>
+                        <div class="data-input-empty" id="rulesInputEmpty">
+                            <p>暂无数据，请先完成 <a href="#page-graph" onclick="navigateTo('graph')">关系图构建</a></p>
+                        </div>
+                        <div class="data-input-filled" id="rulesInputFilled" style="display:none;">
+                            <div class="data-info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">节点数</span>
+                                    <span class="info-value" id="rulesInNodes">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">边数</span>
+                                    <span class="info-value" id="rulesInEdges">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 处理控制 -->
+                    <div class="action-section">
+                        <button id="btnRules" class="btn btn-primary btn-large" disabled>
+                            ▶ 开始规则检测
+                        </button>
+                    </div>
+
+                    <!-- 处理进度 -->
+                    <div class="process-section" id="rulesProcessSection" style="display:none;">
+                        <h3>处理进度</h3>
+                        <div class="process-bar-wrapper">
+                            <div class="process-bar">
+                                <div class="process-fill" id="rulesProcessFill"></div>
+                            </div>
+                            <span class="process-text" id="rulesProcessText">0%</span>
+                        </div>
+                        <div class="process-steps">
+                            <div class="process-step" data-step="1">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">加载规则库 (25条)</span>
+                            </div>
+                            <div class="process-step" data-step="2">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">遍历事件</span>
+                            </div>
+                            <div class="process-step" data-step="3">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">规则匹配</span>
+                            </div>
+                            <div class="process-step" data-step="4">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">生成告警</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 输出数据 -->
+                    <div class="data-section" id="rulesOutputSection" style="display:none;">
+                        <div class="section-header-with-action">
+                            <h3>输出数据 - 检测告警</h3>
+                            <a href="/api/download/alerts" class="btn-download" id="downloadAlerts" style="display:none;">
+                                📥 下载告警数据
+                            </a>
+                        </div>
+
+                        <!-- 告警总览卡片 -->
+                        <div class="rules-summary">
+                            <div class="summary-card high" onclick="filterBySeverity('high')">
+                                <span class="summary-value" id="rulesOutHigh">-</span>
+                                <span class="summary-label">高危告警</span>
+                            </div>
+                            <div class="summary-card medium" onclick="filterBySeverity('medium')">
+                                <span class="summary-value" id="rulesOutMedium">-</span>
+                                <span class="summary-label">中危告警</span>
+                            </div>
+                            <div class="summary-card low" onclick="filterBySeverity('low')">
+                                <span class="summary-value" id="rulesOutLow">-</span>
+                                <span class="summary-label">低危告警</span>
+                            </div>
+                        </div>
+
+                        <!-- 筛选状态 -->
+                        <div class="filter-status" id="filterStatus" style="display:none;">
+                            <span class="filter-active">
+                                <span>🔍 当前筛选:</span>
+                                <span id="currentFilterText">全部</span>
+                                <button class="clear-filter-btn" onclick="clearFilter()">✕ 清除</button>
+                            </span>
+                        </div>
+
+                        <!-- 视图切换标签 -->
+                        <div class="view-tabs">
+                            <button class="view-tab active" data-view="dashboard" onclick="switchRulesView('dashboard')">
+                                📊 仪表盘
+                            </button>
+                            <button class="view-tab" data-view="timeline" onclick="switchRulesView('timeline')">
+                                📅 时间线
+                            </button>
+                            <button class="view-tab" data-view="list" onclick="switchRulesView('list')">
+                                📋 规则列表
+                            </button>
+                        </div>
+
+                        <!-- 仪表盘视图 -->
+                        <div class="rules-view-container active" id="view-dashboard">
+                            <div class="dashboard-view">
+                                <div class="dashboard-main">
+                                    <!-- 告警分布图 -->
+                                    <div class="chart-container">
+                                        <div class="chart-title">📊 告警分布</div>
+                                        <div class="chart-box" id="rulesDistributionChart"></div>
+                                    </div>
+                                    <!-- 告警趋势图 -->
+                                    <div class="chart-container">
+                                        <div class="chart-title">📈 告警时间趋势</div>
+                                        <div class="chart-box" id="rulesTrendChart"></div>
+                                    </div>
+                                </div>
+                                <div class="dashboard-side">
+                                    <!-- 规则类别分组 -->
+                                    <div class="rule-category-section">
+                                        <h4>📁 按类别分组</h4>
+                                        <div class="rule-categories-grid" id="ruleCategoriesGrid">
+                                            <!-- 动态生成 -->
+                                        </div>
+                                    </div>
+                                    <!-- 导出功能 -->
+                                    <div class="export-section">
+                                        <h4>📤 导出报告</h4>
+                                        <div class="export-buttons">
+                                            <button class="btn-export" onclick="exportReport('pdf')">
+                                                📄 导出PDF
+                                            </button>
+                                            <button class="btn-export" onclick="exportReport('excel')">
+                                                📊 导出Excel
+                                            </button>
+                                            <button class="btn-export" onclick="exportReport('json')">
+                                                📋 导出JSON
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 时间线视图 -->
+                        <div class="rules-view-container" id="view-timeline">
+                            <div class="timeline-view">
+                                <div class="timeline-header">
+                                    <div class="timeline-title">📅 告警时间线</div>
+                                    <div class="timeline-stats">
+                                        <span class="timeline-stat">
+                                            <strong id="timelineTotalAlerts">0</strong> 告警
+                                        </span>
+                                        <span class="timeline-stat">
+                                            时间跨度: <strong id="timelineTimeSpan">-</strong>
+                                        </span>
+                                    </div>
+                                </div>
+                                <!-- 甘特图主图表 -->
+                                <div class="gantt-main-chart-wrapper">
+                                    <div id="ganttMainChart" class="gantt-main-chart"></div>
+                                </div>
+                                <!-- 详细时间线列表 -->
+                                <div class="timeline-detail-section">
+                                    <div class="timeline-detail-header">
+                                        <h5>📋 告警详情</h5>
+                                    </div>
+                                    <div class="timeline-container" id="alertsTimeline">
+                                        <!-- 动态生成 -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 规则列表视图 -->
+                        <div class="rules-view-container" id="view-list">
+                            <div class="rules-list-view">
+                                <div class="rules-list-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <h4>📋 规则列表</h4>
+                                    <input type="text" id="ruleSearchInput" placeholder="搜索规则..."
+                                           style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85rem;">
+                                </div>
+                                <table class="rules-table">
+                                    <thead>
+                                        <tr>
+                                            <th>规则ID</th>
+                                            <th>规则名称</th>
+                                            <th>类别</th>
+                                            <th>严重程度</th>
+                                            <th>触发次数</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rulesTableBody">
+                                        <!-- 动态生成 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="next-step-hint">
+                            <span>✓ 规则检测完成</span>
+                            <a href="#page-threat" class="next-link" onclick="navigateTo('threat')">下一步: 威胁检测 →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 页面5: 威胁检测 -->
+                <div class="page" id="page-threat">
+                    <div class="page-header">
+                        <h2>⚠️ 威胁检测</h2>
+                        <p>使用机器学习算法进行威胁评分</p>
+                    </div>
+
+                    <!-- 输入数据 -->
+                    <div class="data-section">
+                        <h3>输入数据 - 告警与图</h3>
+                        <div class="data-input-empty" id="threatInputEmpty">
+                            <p>暂无数据，请先完成 <a href="#page-rules" onclick="navigateTo('rules')">规则检测</a></p>
+                        </div>
+                        <div class="data-input-filled" id="threatInputFilled" style="display:none;">
+                            <div class="data-info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">告警数</span>
+                                    <span class="info-value" id="threatInAlerts">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">节点数</span>
+                                    <span class="info-value" id="threatInNodes">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 处理控制 -->
+                    <div class="action-section">
+                        <button id="btnThreat" class="btn btn-primary btn-large" disabled>
+                            ▶ 开始威胁检测
+                        </button>
+                    </div>
+
+                    <!-- 处理进度 -->
+                    <div class="process-section" id="threatProcessSection" style="display:none;">
+                        <h3>处理进度</h3>
+                        <div class="process-bar-wrapper">
+                            <div class="process-bar">
+                                <div class="process-fill" id="threatProcessFill"></div>
+                            </div>
+                            <span class="process-text" id="threatProcessText">0%</span>
+                        </div>
+                        <div class="process-steps">
+                            <div class="process-step" data-step="1">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">提取节点特征 (17维)</span>
+                            </div>
+                            <div class="process-step" data-step="2">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">Isolation Forest 检测</span>
+                            </div>
+                            <div class="process-step" data-step="3">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">K-Means 聚类</span>
+                            </div>
+                            <div class="process-step" data-step="4">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">计算威胁评分</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 输出数据 -->
+                    <div class="data-section" id="threatOutputSection" style="display:none;">
+                        <div class="section-header-with-action">
+                            <h3>输出数据 - 威胁检测</h3>
+                            <a href="/api/download/threat" class="btn-download" id="downloadThreat" style="display:none;">
+                                📥 下载
+                            </a>
+                        </div>
+
+                        <!-- 威胁等级总览 -->
+                        <div class="threat-overview">
+                            <div class="threat-summary-cards">
+                                <div class="summary-card total">
+                                    <span class="summary-icon">📊</span>
+                                    <div class="summary-info">
+                                        <span class="summary-value" id="threatTotalNodes">0</span>
+                                        <span class="summary-label">总节点数</span>
+                                    </div>
+                                </div>
+                                <div class="summary-card anomalies">
+                                    <span class="summary-icon">⚠️</span>
+                                    <div class="summary-info">
+                                        <span class="summary-value" id="threatAnomalies">0</span>
+                                        <span class="summary-label">异常节点</span>
+                                    </div>
+                                </div>
+                                <div class="summary-card malicious">
+                                    <span class="summary-icon">🎯</span>
+                                    <div class="summary-info">
+                                        <span class="summary-value" id="threatMaliciousEvents">0</span>
+                                        <span class="summary-label">恶意事件</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 威胁等级卡片 -->
+                            <div class="threat-level-card" id="threatLevelCard">
+                                <div class="threat-level-header">
+                                    <span class="threat-icon" id="threatIcon">⚠️</span>
+                                    <div>
+                                        <span class="threat-level-title">威胁等级</span>
+                                        <span class="threat-level-text" id="threatLevelText">中等威胁</span>
+                                    </div>
+                                </div>
+                                <div class="threat-level-description" id="threatLevelDesc">
+                                    系统检测到可疑活动，建议进一步调查
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 节点分类统计 -->
+                        <div class="threat-classification">
+                            <h4>节点威胁分类</h4>
+                            <div class="classification-bars">
+                                <div class="classification-item critical">
+                                    <span class="class-label">严重 (Critical)</span>
+                                    <div class="class-bar-track">
+                                        <div class="class-bar-fill critical" id="threatCriticalBar" style="width:0%"></div>
+                                    </div>
+                                    <span class="class-value" id="threatCritical">0</span>
+                                </div>
+                                <div class="classification-item high">
+                                    <span class="class-label">高危 (High)</span>
+                                    <div class="class-bar-track">
+                                        <div class="class-bar-fill high" id="threatHighBar" style="width:0%"></div>
+                                    </div>
+                                    <span class="class-value" id="threatHigh">0</span>
+                                </div>
+                                <div class="classification-item medium">
+                                    <span class="class-label">中危 (Medium)</span>
+                                    <div class="class-bar-track">
+                                        <div class="class-bar-fill medium" id="threatMediumBar" style="width:0%"></div>
+                                    </div>
+                                    <span class="class-value" id="threatMedium">0</span>
+                                </div>
+                                <div class="classification-item low">
+                                    <span class="class-label">低危 (Low)</span>
+                                    <div class="class-bar-track">
+                                        <div class="class-bar-fill low" id="threatLowBar" style="width:0%"></div>
+                                    </div>
+                                    <span class="class-value" id="threatLow">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 高风险节点列表 -->
+                        <div class="threat-nodes-list">
+                            <h4>高风险节点 Top 20</h4>
+                            <div class="nodes-table-container">
+                                <table class="nodes-table">
+                                    <thead>
+                                        <tr>
+                                            <th>节点</th>
+                                            <th>类型</th>
+                                            <th>异常分数</th>
+                                            <th>威胁等级</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="threatNodesTable">
+                                        <!-- 动态填充 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="next-step-hint">
+                            <span>✓ 威胁检测完成</span>
+                            <a href="#page-relations" class="next-link" onclick="navigateTo('relations')">下一步: 关系挖掘 →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 页面6: 关系挖掘 -->
+                <div class="page" id="page-relations">
+                    <div class="page-header">
+                        <h2>🔗 关系挖掘</h2>
+                        <p>挖掘异常点周围的可疑关系</p>
+                    </div>
+
+                    <!-- 输入数据 -->
+                    <div class="data-section">
+                        <h3>输入数据 - 异常节点</h3>
+                        <div class="data-input-empty" id="relationsInputEmpty">
+                            <p>暂无数据，请先完成 <a href="#page-threat" onclick="navigateTo('threat')">威胁检测</a></p>
+                        </div>
+                        <div class="data-input-filled" id="relationsInputFilled" style="display:none;">
+                            <div class="data-info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">异常节点数</span>
+                                    <span class="info-value" id="relationsInAnomalies">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">图节点总数</span>
+                                    <span class="info-value" id="relationsInNodes">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 处理控制 -->
+                    <div class="action-section">
+                        <button id="btnRelations" class="btn btn-primary btn-large" disabled>
+                            ▶ 开始关系挖掘
+                        </button>
+                    </div>
+
+                    <!-- 处理进度 -->
+                    <div class="process-section" id="relationsProcessSection" style="display:none;">
+                        <h3>处理进度</h3>
+                        <div class="process-bar-wrapper">
+                            <div class="process-bar">
+                                <div class="process-fill" id="relationsProcessFill"></div>
+                            </div>
+                            <span class="process-text" id="relationsProcessText">0%</span>
+                        </div>
+                        <div class="process-steps">
+                            <div class="process-step" data-step="1">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">获取异常节点</span>
+                            </div>
+                            <div class="process-step" data-step="2">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">扩展 k-hop 邻居</span>
+                            </div>
+                            <div class="process-step" data-step="3">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">计算关联度</span>
+                            </div>
+                            <div class="process-step" data-step="4">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">构建可疑子图</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 输出数据 -->
+                    <div class="data-section" id="relationsOutputSection" style="display:none;">
+                        <div class="section-header-with-action">
+                            <h3>输出数据 - 可疑关系</h3>
+                            <a href="/api/download/relations" class="btn-download" id="downloadRelations" style="display:none;">
+                                📥 下载关系数据
+                            </a>
+                        </div>
+
+                        <!-- 增强统计卡片 -->
+                        <div class="relations-stats-full">
+                            <div class="relation-stat-card">
+                                <span class="relation-stat-value" id="relationsOutTotal">0</span>
+                                <span class="relation-stat-label">可疑关系数</span>
+                            </div>
+                            <div class="relation-stat-card orange">
+                                <span class="relation-stat-value" id="relationsOutHighRisk">0</span>
+                                <span class="relation-stat-label">高风险关系</span>
+                            </div>
+                            <div class="relation-stat-card green">
+                                <span class="relation-stat-value" id="relationsOutSubgraphs">0</span>
+                                <span class="relation-stat-label">可疑子图</span>
+                            </div>
+                            <div class="relation-stat-card purple">
+                                <span class="relation-stat-value" id="relationsOutCorrelation">0.00</span>
+                                <span class="relation-stat-label">平均关联度</span>
+                            </div>
+                        </div>
+
+                        <!-- 关系图可视化 -->
+                        <div class="relations-graph-section">
+                            <div class="relations-graph-header">
+                                <h4>🕸️ 可疑关系网络图</h4>
+                                <div class="relations-graph-controls">
+                                    <button id="btnResetGraphView">🔄 重置视图</button>
+                                    <button id="btnToggleLabels">🏷️ 显示/隐藏标签</button>
+                                </div>
+                            </div>
+                            <div class="relations-graph-container" id="relationsGraphContainer"></div>
+                            <div class="relations-graph-legend">
+                                <span class="legend-item"><span class="legend-dot anomaly"></span> 异常节点</span>
+                                <span class="legend-item"><span class="legend-dot suspicious"></span> 可疑节点</span>
+                                <span class="legend-item"><span class="legend-dot normal"></span> 普通节点</span>
+                                <span class="legend-item">线条粗细 = 关联强度</span>
+                            </div>
+                        </div>
+
+                        <!-- 可疑关系列表 -->
+                        <div class="suspicious-relations-section">
+                            <h4>🔍 可疑关系详情 <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal;">(Top 20)</span></h4>
+                            <div class="relations-list" id="suspiciousRelationsList">
+                                <p style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无可疑关系</p>
+                            </div>
+                            <div class="relations-pagination" id="relationsPagination" style="display:none;">
+                                <button id="relationsPrevPage" disabled>← 上一页</button>
+                                <span id="relationsPageInfo">第 1 / 1 页</span>
+                                <button id="relationsNextPage" disabled>下一页 →</button>
+                            </div>
+                        </div>
+
+                        <!-- 可疑子图 -->
+                        <div class="suspicious-subgraphs-section">
+                            <h4>📊 可疑子图 <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal;">(按威胁评分排序)</span></h4>
+                            <div class="subgraphs-grid" id="suspiciousSubgraphsList">
+                                <p style="text-align: center; color: var(--text-secondary); padding: 20px; grid-column: 1 / -1;">暂无可疑子图</p>
+                            </div>
+                        </div>
+
+                        <div class="next-step-hint">
+                            <span>✓ 关系挖掘完成</span>
+                            <a href="#page-chains" class="next-link" onclick="navigateTo('chains')">下一步: 攻击链重建 →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 页面7: 攻击链重建 -->
+                <div class="page" id="page-chains">
+                    <div class="page-header">
+                        <h2>⛓️ 攻击链重建</h2>
+                        <p>聚类分析并重建完整攻击链</p>
+                    </div>
+
+                    <!-- 输入数据 -->
+                    <div class="data-section">
+                        <h3>输入数据 - 所有中间结果</h3>
+                        <div class="data-input-empty" id="chainsInputEmpty">
+                            <p>暂无数据，请先完成 <a href="#page-relations" onclick="navigateTo('relations')">关系挖掘</a></p>
+                        </div>
+                        <div class="data-input-filled" id="chainsInputFilled" style="display:none;">
+                            <div class="data-info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">可疑关系</span>
+                                    <span class="info-value" id="chainsInRelations">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">告警数</span>
+                                    <span class="info-value" id="chainsInAlerts">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 处理控制 -->
+                    <div class="action-section">
+                        <button id="btnChains" class="btn btn-primary btn-large" disabled>
+                            ▶ 开始重建攻击链
+                        </button>
+                    </div>
+
+                    <!-- 处理进度 -->
+                    <div class="process-section" id="chainsProcessSection" style="display:none;">
+                        <h3>处理进度</h3>
+                        <div class="process-bar-wrapper">
+                            <div class="process-bar">
+                                <div class="process-fill" id="chainsProcessFill"></div>
+                            </div>
+                            <span class="process-text" id="chainsProcessText">0%</span>
+                        </div>
+                        <div class="process-steps">
+                            <div class="process-step" data-step="1">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">识别告警节点</span>
+                            </div>
+                            <div class="process-step" data-step="2">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">提取节点特征</span>
+                            </div>
+                            <div class="process-step" data-step="3">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">DBSCAN 聚类</span>
+                            </div>
+                            <div class="process-step" data-step="4">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">映射 ATT&CK</span>
+                            </div>
+                            <div class="process-step" data-step="5">
+                                <span class="step-dot">○</span>
+                                <span class="step-text">生成攻击报告</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 输出数据 -->
+                    <div class="data-section" id="chainsOutputSection" style="display:none;">
+                        <div class="section-header-with-action">
+                            <h3>输出数据 - 攻击链</h3>
+                            <a href="/api/download/chains" class="btn-download" id="downloadChains" style="display:none;">
+                                📥 下载攻击链数据
+                            </a>
+                        </div>
+                        <div class="chains-result">
+                            <div class="preview-stat-card">
+                                <span class="preview-icon">⛓️</span>
+                                <div class="preview-info">
+                                    <span class="preview-value" id="chainsOutTotal">-</span>
+                                    <span class="preview-label">攻击链数</span>
+                                </div>
+                            </div>
+                            <div class="chains-list-mini" id="chainsListPreview"></div>
+                        </div>
+                        <div class="completion-banner">
+                            <span class="completion-icon">🎉</span>
+                            <div class="completion-text">
+                                <span class="completion-title">全部分析完成！</span>
+                                <span class="completion-desc">您可以查看各页面的详细结果</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 页面8: AI 分析 -->
+                <div class="page" id="page-ai">
+                    <div class="page-header">
+                        <h2>🤖 AI 智能分析</h2>
+                        <p>基于大模型的告警降噪与攻击故事生成</p>
+                    </div>
+
+                    <!-- 输入数据 -->
+                    <div class="data-section">
+                        <h3>输入数据 - 规则检测告警</h3>
+                        <div class="data-input-empty" id="aiInputEmpty">
+                            <p>暂无数据，请先完成 <a href="#page-rules" onclick="navigateTo('rules')">规则检测</a></p>
+                        </div>
+                        <div class="data-input-filled" id="aiInputFilled" style="display:none;">
+                            <div class="data-info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">告警总数</span>
+                                    <span class="info-value" id="aiInAlerts">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">高危告警</span>
+                                    <span class="info-value" id="aiInHighAlerts">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI 分析操作 -->
+                    <div class="data-section" id="aiActionSection" style="display:none;">
+                        <div class="section-header-with-action">
+                            <h3>AI 分析</h3>
+                            <div class="ai-status-info">
+                                <span class="ai-mode-badge" id="aiModeBadge">模拟模式</span>
+                            </div>
+                        </div>
+
+                        <!-- AI 分析按钮 -->
+                        <div class="ai-action-area" id="aiActionArea">
+                            <p class="ai-desc">点击下方按钮开始 AI 智能分析，系统将自动进行告警降噪、攻击故事生成、IOC 提取等操作。</p>
+                            <button id="btnAIAnalyze" class="btn btn-primary btn-large">
+                                <span class="btn-icon">✨</span>
+                                <span class="btn-text">开始 AI 分析</span>
+                            </button>
+                        </div>
+
+                        <!-- AI 分析进度 -->
+                        <div class="process-section" id="aiProgressSection" style="display:none;">
+                            <div class="process-bar-wrapper">
+                                <div class="process-bar">
+                                    <div class="process-fill ai" id="aiProcessFill"></div>
+                                </div>
+                                <span class="process-text" id="aiProcessText">0%</span>
+                            </div>
+                            <p class="process-message" id="aiProcessMessage">正在分析...</p>
+                        </div>
+
+                        <!-- AI 分析结果 -->
+                        <div class="ai-results-full" id="aiResultsSection" style="display:none;">
+                            <div class="ai-result-header">
+                                <h4>分析报告</h4>
+                                <span class="ai-timestamp" id="aiTimestamp"></span>
+                            </div>
+
+                            <!-- 威胁概览 -->
+                            <div class="ai-threat-overview">
+                                <div class="ai-threat-level" id="aiThreatLevel">
+                                    <span class="ai-threat-icon" id="aiThreatIcon">🔴</span>
+                                    <span class="ai-threat-text" id="aiThreatText">高危威胁</span>
+                                </div>
+                                <div class="ai-summary" id="aiSummary"></div>
+                            </div>
+
+                            <!-- 分析统计 -->
+                            <div class="ai-stats-grid">
+                                <div class="ai-stat-card">
+                                    <span class="ai-stat-label">原始告警</span>
+                                    <span class="ai-stat-value" id="aiOriginalCount">-</span>
+                                </div>
+                                <div class="ai-stat-card">
+                                    <span class="ai-stat-label">降噪后</span>
+                                    <span class="ai-stat-value" id="aiFilteredCount">-</span>
+                                </div>
+                                <div class="ai-stat-card">
+                                    <span class="ai-stat-label">攻击阶段</span>
+                                    <span class="ai-stat-value" id="aiStagesCount">-</span>
+                                </div>
+                                <div class="ai-stat-card">
+                                    <span class="ai-stat-label">IOC 指标</span>
+                                    <span class="ai-stat-value" id="aiIocCount">-</span>
+                                </div>
+                            </div>
+
+                            <!-- 攻击叙述 -->
+                            <div class="ai-narrative-section">
+                                <h4>攻击故事</h4>
+                                <div class="ai-narrative" id="aiNarrative"></div>
+                            </div>
+
+                            <!-- 攻击阶段 -->
+                            <div class="ai-stages-section">
+                                <h4>攻击阶段</h4>
+                                <div class="ai-stages" id="aiStages"></div>
+                            </div>
+
+                            <!-- 关键发现 -->
+                            <div class="ai-findings-section">
+                                <h4>关键发现</h4>
+                                <ul class="ai-findings" id="aiFindings"></ul>
+                            </div>
+
+                            <!-- IOC 指标 -->
+                            <div class="ai-ioc-section">
+                                <h4>IOC 指标</h4>
+                                <div class="ai-ioc-list" id="aiIocList"></div>
+                            </div>
+
+                            <!-- 处置建议 -->
+                            <div class="ai-recommendations-section">
+                                <h4>处置建议</h4>
+                                <ul class="ai-recommendations" id="aiRecommendations"></ul>
+                            </div>
+
+                            <!-- 重新分析按钮 -->
+                            <div class="ai-reanalyze-area">
+                                <button id="btnAIReanalyze" class="btn btn-secondary">
+                                    <span class="btn-icon">🔄</span>
+                                    <span class="btn-text">重新分析</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- 弹窗：节点详情 -->
+    <div id="nodeDetailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>节点详情</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div id="nodeDetailBody" class="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- 弹窗：规则详情 -->
+    <div id="ruleDetailModal" class="modal">
+        <div class="modal-content rule-detail-modal">
+            <div class="modal-header rule-detail-header">
+                <div>
+                    <div class="rule-detail-title" id="ruleDetailTitle">规则名称</div>
+                    <div class="rule-detail-id" id="ruleDetailId">R001</div>
+                </div>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="rule-detail-body">
+                <div class="rule-detail-section">
+                    <h5>📝 规则描述</h5>
+                    <p class="rule-description" id="ruleDetailDesc">规则描述内容</p>
+                </div>
+                <div class="rule-detail-section">
+                    <h5>🔧 检测逻辑</h5>
+                    <div class="rule-logic" id="ruleDetailLogic">检测逻辑代码</div>
+                </div>
+                <div class="rule-detail-section">
+                    <h5>📊 触发统计</h5>
+                    <div class="rule-stats" id="ruleDetailStats">
+                        <div>触发次数: <span id="ruleTriggerCount">0</span></div>
+                        <div>高危: <span id="ruleHighCount">0</span></div>
+                        <div>中危: <span id="ruleMediumCount">0</span></div>
+                        <div>低危: <span id="ruleLowCount">0</span></div>
+                    </div>
+                </div>
+                <div class="rule-detail-section">
+                    <h5>🚨 相关告警</h5>
+                    <div class="alerts-in-rule" id="ruleDetailAlerts">
+                        <!-- 动态填充 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：告警溯源 -->
+    <div id="alertTraceModal" class="modal">
+        <div class="modal-content alert-trace-modal">
+            <div class="modal-header">
+                <h3>🔍 告警溯源</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="trace-info" style="margin-bottom: 15px;">
+                    <strong>告警ID:</strong> <span id="traceAlertId">-</span><br>
+                    <strong>规则:</strong> <span id="traceRuleName">-</span><br>
+                    <strong>时间:</strong> <span id="traceTime">-</span>
+                </div>
+                <div class="trace-timeline" id="traceTimeline">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 脚本 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

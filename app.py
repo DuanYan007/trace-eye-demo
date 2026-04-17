@@ -227,11 +227,52 @@ system_state = {
     "mode": MODE.upper()  # 添加模式信息: DEBUG 或 DEMO
 }
 
-# Demo 模式下预置所有步骤为已完成
+# ==================== Demo 数据内存缓存 ====================
+# 在启动时预加载 demo 数据到内存，避免每次请求都读取大文件
+
+DEMO_DATA_CACHE = {}
+
+def preload_demo_data():
+    """预加载所有 demo 数据到内存"""
+    global DEMO_DATA_CACHE
+    if not IS_DEMO_MODE:
+        return
+
+    print("[Demo] 预加载数据到内存...")
+    start_time = time.time()
+
+    demo_files = {
+        "data_events.json": "events",
+        "data_graph.json": "graph",
+        "data_alerts.json": "alerts",
+        "data_threat.json": "threat",
+        "data_relations.json": "relations",
+        "data_chains.json": "chains",
+        "data_analysis.json": "analysis"
+    }
+
+    for filename, key in demo_files.items():
+        filepath = get_demo_file(filename)
+        try:
+            data = load_json(filepath)
+            if data:
+                DEMO_DATA_CACHE[key] = data
+                print(f"[Demo] 加载 {filename}: {len(str(data))} 字符")
+        except Exception as e:
+            print(f"[Demo] 加载 {filename} 失败: {e}")
+
+    elapsed = time.time() - start_time
+    print(f"[Demo] 数据预加载完成，耗时: {elapsed:.2f}秒")
+
+def get_cached_demo_data(key):
+    """获取缓存的 demo 数据"""
+    return DEMO_DATA_CACHE.get(key)
+
+# Demo 模式下确保数据存在，但不预置步骤为已完成
 if IS_DEMO_MODE:
     ensure_demo_data_exists()
-    system_state["steps_completed"] = ["upload", "extract", "graph", "rules", "threat", "relations", "chains"]
-    system_state["last_generated"] = "2025-03-20T10:00:00Z"
+    # Demo 模式下步骤需要用户点击"开始演示"后才标记完成
+    system_state["demo_mode_ready"] = True
 
 # 步骤定义
 STEPS = [
@@ -479,6 +520,30 @@ def detect_log_type(filename: str, filepath: str = None) -> str:
     return "json"
 
 
+@app.route("/api/demo/start", methods=["POST"])
+def start_demo_mode():
+    """Demo 模式：启动演示（准备数据，标记 upload 完成）"""
+    if not IS_DEMO_MODE:
+        return jsonify({"error": "当前不是 Demo 模式"}), 400
+
+    try:
+        # 清空之前的步骤状态，只标记 upload 为已完成
+        system_state["steps_completed"] = ["upload"]
+        system_state["demo_started"] = True
+        system_state["demo_mode_ready"] = True
+
+        # 确保 demo 数据文件存在
+        ensure_demo_data_exists()
+
+        return jsonify({
+            "success": True,
+            "message": "演示模式已启动，请点击「开始提取」按钮",
+            "next_step": "extract"
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/generate", methods=["POST"])
 def generate_logs():
     """生成多格式测试数据"""
@@ -593,15 +658,16 @@ def step_extract():
     if "upload" not in system_state["steps_completed"]:
         return jsonify({"error": "请先上传或生成数据"}), 400
 
-    # Demo 模式：直接返回成功
+    # Demo 模式：标记完成并返回
     if IS_DEMO_MODE:
+        if "extract" not in system_state["steps_completed"]:
+            system_state["steps_completed"].append("extract")
         return jsonify({
             "success": True,
-            "message": "事件提取完成 (演示模式)",
-            "statistics": {
-                "total_events": 40000,
-                "by_type": {"process": 13333, "file": 13333, "network": 13334}
-            }
+            "completed": True,
+            "message": "事件提取完成",
+            "next_step": "graph",
+            "next_step_name": "关系图构建"
         })
 
     try:
@@ -665,17 +731,16 @@ def step_graph():
     if "extract" not in system_state["steps_completed"]:
         return jsonify({"error": "请先完成事件提取"}), 400
 
-    # Demo 模式：直接返回成功
+    # Demo 模式：标记完成并返回
     if IS_DEMO_MODE:
+        if "graph" not in system_state["steps_completed"]:
+            system_state["steps_completed"].append("graph")
         return jsonify({
             "success": True,
-            "message": "关系图构建完成 (演示模式)",
-            "statistics": {
-                "node_count": 250,
-                "edge_count": 750,
-                "avg_degree": 6.0,
-                "density": 0.024
-            }
+            "completed": True,
+            "message": "关系图构建完成",
+            "next_step": "rules",
+            "next_step_name": "规则检测"
         })
 
     try:
@@ -742,16 +807,16 @@ def step_rules():
     if "graph" not in system_state["steps_completed"]:
         return jsonify({"error": "请先完成关系图构建"}), 400
 
-    # Demo 模式：直接返回成功
+    # Demo 模式：标记完成并返回
     if IS_DEMO_MODE:
+        if "rules" not in system_state["steps_completed"]:
+            system_state["steps_completed"].append("rules")
         return jsonify({
             "success": True,
-            "message": "规则检测完成 (演示模式)",
-            "statistics": {
-                "total_alerts": 156,
-                "by_severity": {"high": 45, "medium": 68, "low": 43},
-                "by_category": {"file": 42, "process": 58, "network": 56}
-            }
+            "completed": True,
+            "message": "规则检测完成",
+            "next_step": "threat",
+            "next_step_name": "威胁检测"
         })
 
     try:
@@ -818,19 +883,16 @@ def step_threat():
     if "rules" not in system_state["steps_completed"]:
         return jsonify({"error": "请先完成规则检测"}), 400
 
-    # Demo 模式：直接返回成功
+    # Demo 模式：标记完成并返回
     if IS_DEMO_MODE:
+        if "threat" not in system_state["steps_completed"]:
+            system_state["steps_completed"].append("threat")
         return jsonify({
             "success": True,
-            "message": "威胁检测完成 (演示模式)",
-            "summary": {
-                "total_nodes": 250,
-                "by_level": {"critical": 5, "high": 18, "medium": 35, "low": 42, "benign": 150},
-                "critical_count": 5,
-                "high_count": 18,
-                "medium_count": 35,
-                "overall_threat_level": "high"
-            }
+            "completed": True,
+            "message": "威胁检测完成",
+            "next_step": "relations",
+            "next_step_name": "关系挖掘"
         })
 
     try:
@@ -907,16 +969,16 @@ def step_relations():
     if "threat" not in system_state["steps_completed"]:
         return jsonify({"error": "请先完成威胁检测"}), 400
 
-    # Demo 模式：直接返回成功
+    # Demo 模式：标记完成并返回
     if IS_DEMO_MODE:
+        if "relations" not in system_state["steps_completed"]:
+            system_state["steps_completed"].append("relations")
         return jsonify({
             "success": True,
-            "message": "关系挖掘完成 (演示模式)",
-            "statistics": {
-                "total_relations": 45,
-                "total_subgraphs": 8,
-                "avg_correlation": 0.72
-            }
+            "completed": True,
+            "message": "关系挖掘完成",
+            "next_step": "chains",
+            "next_step_name": "攻击链重建"
         })
 
     try:
@@ -984,22 +1046,16 @@ def step_chains():
     if "relations" not in system_state["steps_completed"]:
         return jsonify({"error": "请先完成关系挖掘"}), 400
 
-    # Demo 模式：直接返回成功
+    # Demo 模式：标记完成并返回
     if IS_DEMO_MODE:
+        if "chains" not in system_state["steps_completed"]:
+            system_state["steps_completed"].append("chains")
         return jsonify({
             "success": True,
-            "message": "攻击链重建完成 (演示模式)",
-            "statistics": {
-                "total_chains": 8,
-                "by_attack_type": {
-                    "后门通信": 2,
-                    "数据窃取": 2,
-                    "权限提升": 1,
-                    "持久化": 1,
-                    "进程注入": 1,
-                    "网络通信": 1
-                }
-            }
+            "completed": True,
+            "message": "攻击链重建完成",
+            "next_step": "ai",
+            "next_step_name": "AI 智能分析"
         })
 
     try:
@@ -1102,7 +1158,7 @@ def get_events():
     """获取事件列表"""
     # Demo 模式：使用预生成数据
     if IS_DEMO_MODE:
-        events_data = load_json(get_demo_file("data_events.json"))
+        events_data = get_cached_demo_data("events")
     else:
         events_data = load_json(EVENTS_FILE)
 
@@ -1129,7 +1185,7 @@ def get_graph():
     """获取关系图数据"""
     # Demo 模式：使用预生成数据
     if IS_DEMO_MODE:
-        graph_data = load_json(get_demo_file("data_graph.json"))
+        graph_data = get_cached_demo_data("graph")
     else:
         graph_data = load_json(GRAPH_FILE)
 
@@ -1144,7 +1200,7 @@ def get_alerts():
     """获取告警列表（支持分页）"""
     # Demo 模式：使用预生成数据
     if IS_DEMO_MODE:
-        alerts_data = load_json(get_demo_file("data_alerts.json"))
+        alerts_data = get_cached_demo_data("alerts")
     else:
         alerts_data = load_json(ALERTS_FILE)
 
@@ -1179,7 +1235,7 @@ def get_threat():
     """获取威胁检测结果"""
     # Demo 模式：使用预生成数据
     if IS_DEMO_MODE:
-        threat_data = load_json(get_demo_file("data_threat.json"))
+        threat_data = get_cached_demo_data("threat")
     else:
         threat_data = load_json(THREAT_FILE)
 
@@ -1194,7 +1250,7 @@ def get_relations():
     """获取关系挖掘结果"""
     # Demo 模式：使用预生成数据
     if IS_DEMO_MODE:
-        relations_data = load_json(get_demo_file("data_relations.json"))
+        relations_data = get_cached_demo_data("relations")
     else:
         relations_data = load_json(RELATIONS_FILE)
 
@@ -1209,7 +1265,7 @@ def get_chains():
     """获取攻击链结果"""
     # Demo 模式：使用预生成数据
     if IS_DEMO_MODE:
-        chains_data = load_json(get_demo_file("data_chains.json"))
+        chains_data = get_cached_demo_data("chains")
     else:
         chains_data = load_json(CHAINS_FILE)
 
@@ -1224,7 +1280,7 @@ def get_analysis():
     """获取完整分析结果"""
     # Demo 模式：使用预生成数据
     if IS_DEMO_MODE:
-        analysis_data = load_json(get_demo_file("data_analysis.json"))
+        analysis_data = get_cached_demo_data("analysis")
     else:
         analysis_data = load_json(ANALYSIS_FILE)
 
@@ -1334,6 +1390,20 @@ def get_scenarios():
 @app.route("/api/logs/info")
 def get_logs_info():
     """获取已上传/生成的日志文件信息"""
+    # Demo 模式：返回预生成的演示文件信息
+    if IS_DEMO_MODE and system_state.get("demo_started"):
+        events_data = get_cached_demo_data("events")
+        stats = events_data.get("statistics", {}) if events_data else {}
+        return jsonify({
+            "files": [
+                {"name": "syslog.log", "type": "process", "lines": stats.get("by_type", {}).get("process", 13333)},
+                {"name": "file_audit.log", "type": "file", "lines": stats.get("by_type", {}).get("file", 13333)},
+                {"name": "netflow.log", "type": "network", "lines": stats.get("by_type", {}).get("network", 13334)}
+            ],
+            "total_lines": stats.get("total_events", 40000),
+            "demo_mode": True
+        })
+
     log_data = load_json(LOGS_FILE)
     if not log_data:
         return jsonify({"files": []})
@@ -1391,6 +1461,68 @@ def get_step_cache(step):
     """获取指定步骤的缓存数据（用于显示输入/输出）"""
     if step not in ["upload", "extract", "graph", "rules", "threat", "relations", "chains"]:
         return jsonify({"error": "无效的步骤名称"}), 400
+
+    # Demo 模式：从内存缓存读取（预加载）
+    if IS_DEMO_MODE:
+        demo_key_map = {
+            "upload": "events",
+            "extract": "events",
+            "graph": "graph",
+            "rules": "alerts",
+            "threat": "threat",
+            "relations": "relations",
+            "chains": "chains"
+        }
+
+        if step in demo_key_map:
+            demo_data = get_cached_demo_data(demo_key_map[step])
+            if demo_data:
+                # 根据不同步骤返回适当的数据格式
+                if step == "rules":
+                    summary = {
+                        "step": step,
+                        "total_alerts": demo_data.get("statistics", {}).get("total_alerts", len(demo_data.get("alerts", []))),
+                        "by_severity": demo_data.get("statistics", {}).get("by_severity", {})
+                    }
+                    return jsonify({
+                        "data": demo_data,
+                        "summary": summary
+                    })
+                elif step == "extract":
+                    summary = {
+                        "step": step,
+                        "total_events": demo_data.get("statistics", {}).get("total_events", 0),
+                        "by_type": demo_data.get("statistics", {}).get("by_type", {}),
+                        "by_action": demo_data.get("statistics", {}).get("by_action", {}),
+                        "by_label": demo_data.get("statistics", {}).get("by_label", {})
+                    }
+                    return jsonify({
+                        "data": demo_data,
+                        "summary": summary
+                    })
+                elif step == "graph":
+                    summary = {
+                        "step": step,
+                        "nodes": len(demo_data.get("nodes", [])),
+                        "edges": len(demo_data.get("edges", [])),
+                        "node_count": len(demo_data.get("nodes", [])),
+                        "edge_count": len(demo_data.get("edges", []))
+                    }
+                    return jsonify({
+                        "data": demo_data,
+                        "summary": summary
+                    })
+                elif step == "threat":
+                    summary = demo_data.get("summary", {})
+                    return jsonify({
+                        "data": demo_data,
+                        "summary": summary
+                    })
+                else:
+                    return jsonify({
+                        "data": demo_data,
+                        "summary": {"step": step}
+                    })
 
     cache_mgr = get_cache_manager()
     step_data = cache_mgr.get_step_data(step)
@@ -1464,9 +1596,9 @@ def llm_analyze():
 
         # 获取数据
         if IS_DEMO_MODE:
-            alerts_data = load_json(get_demo_file("data_alerts.json"))
-            graph_data = load_json(get_demo_file("data_graph.json"))
-            events_data = load_json(get_demo_file("data_events.json"))
+            alerts_data = get_cached_demo_data("alerts")
+            graph_data = get_cached_demo_data("graph")
+            events_data = get_cached_demo_data("events")
         else:
             alerts_data = load_json(ALERTS_FILE)
             graph_data = load_json(GRAPH_FILE)
@@ -1641,9 +1773,10 @@ if __name__ == "__main__":
     ╚══════════════════════════════════════════════════════════════╝
     """)
 
-    # Demo 模式下确保数据目录存在
+    # Demo 模式下确保数据目录存在，并预加载数据到内存
     if IS_DEMO_MODE:
         ensure_demo_data_exists()
-        print("[OK] Demo data loaded")
+        preload_demo_data()  # 预加载数据到内存
+        print("[OK] Demo data ready")
 
     app.run(host="0.0.0.0", port=5000, debug=True)

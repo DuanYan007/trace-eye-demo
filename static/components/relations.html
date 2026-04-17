@@ -1,0 +1,174 @@
+<!-- 关系挖掘页面组件 -->
+<div class="page-component" id="page-relations">
+    <div class="page-header">
+        <h2>🔗 关系挖掘</h2>
+        <p>挖掘威胁节点及其辐射的可疑关系</p>
+    </div>
+
+    <!-- 输入数据 -->
+    <div class="data-section">
+        <h3>输入数据 - 异常节点</h3>
+        <div class="data-input-empty" id="relationsInputEmpty">
+            <p>暂无数据，请先完成 <a href="#page-threat" onclick="navigateTo('threat')">威胁检测</a></p>
+        </div>
+        <div class="data-input-filled" id="relationsInputFilled" style="display:none;">
+            <div class="data-info-grid">
+                <div class="info-item">
+                    <span class="info-label">异常节点数</span>
+                    <span class="info-value" id="relationsInAnomalies">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">图节点总数</span>
+                    <span class="info-value" id="relationsInNodes">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 处理控制 -->
+    <div class="action-section">
+        <button id="btnRelations" class="btn btn-primary btn-large" disabled>
+            ▶ 开始关系挖掘
+        </button>
+    </div>
+
+    <!-- 处理进度 -->
+    <div class="process-section" id="relationsProcessSection" style="display:none;">
+        <h3>处理进度</h3>
+        <div class="process-bar-wrapper">
+            <div class="process-bar">
+                <div class="process-fill" id="relationsProcessFill"></div>
+            </div>
+            <span class="process-text" id="relationsProcessText">0%</span>
+        </div>
+        <div class="process-steps">
+            <div class="process-step" data-step="1">
+                <span class="step-dot">○</span>
+                <span class="step-text">获取异常节点</span>
+            </div>
+            <div class="process-step" data-step="2">
+                <span class="step-dot">○</span>
+                <span class="step-text">扩展 k-hop 邻居</span>
+            </div>
+            <div class="process-step" data-step="3">
+                <span class="step-dot">○</span>
+                <span class="step-text">计算关联度</span>
+            </div>
+            <div class="process-step" data-step="4">
+                <span class="step-dot">○</span>
+                <span class="step-text">构建可疑子图</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 输出数据 -->
+    <div class="data-section" id="relationsOutputSection" style="display:none;">
+        <div class="section-header-with-action">
+            <h3>输出数据 - 可疑关系</h3>
+            <a href="/api/download/relations" class="btn-download" id="downloadRelations" style="display:none;">
+                📥 下载关系数据
+            </a>
+        </div>
+
+        <!-- 关系挖掘统计 -->
+        <div class="relations-stats-bar">
+            <div class="stat-item">
+                <span class="stat-label">可疑关系</span>
+                <span class="stat-value" id="relationsOutTotal">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">威胁节点</span>
+                <span class="stat-value" id="relationsOutThreatNodes">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">平均关联度</span>
+                <span class="stat-value" id="relationsOutCorrelation">0.00</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">可疑子图</span>
+                <span class="stat-value" id="relationsOutSubgraphs">0</span>
+            </div>
+        </div>
+
+        <!-- 关系挖掘主区域：左右布局 -->
+        <div class="relations-main-layout">
+            <!-- 左侧：威胁节点列表 -->
+            <div class="threat-nodes-panel">
+                <div class="panel-header">
+                    <h4>🎯 威胁节点列表</h4>
+                    <span class="panel-subtitle">按威胁评分排序</span>
+                </div>
+                <div class="threat-nodes-list" id="threatNodesList">
+                    <!-- 动态填充 -->
+                </div>
+            </div>
+
+            <!-- 右侧：辐射关系网络 -->
+            <div class="radiation-network-panel">
+                <div class="panel-header">
+                    <h4 id="networkTitle">🕸️ 节点辐射关系</h4>
+                    <div class="network-controls">
+                        <button class="control-btn" onclick="resetRelationsZoom()">🔄 重置</button>
+                        <button class="control-btn" onclick="toggleLabels()">🏷️ 标签</button>
+                    </div>
+                </div>
+                <div class="network-placeholder" id="networkPlaceholder">
+                    <div class="placeholder-icon">👈</div>
+                    <p>请从左侧选择一个威胁节点</p>
+                    <p style="font-size: 0.85rem; color: #999;">查看其辐射的可疑关系网络</p>
+                </div>
+                <div class="radiation-network-chart" id="radiationNetworkChart" style="display:none;"></div>
+                <!-- 选中节点信息 -->
+                <div class="selected-node-info" id="selectedNodeInfo" style="display:none;">
+                    <div class="node-info-header">
+                        <span class="node-info-name" id="selectedNodeName">-</span>
+                        <span class="node-info-level" id="selectedNodeLevel">-</span>
+                    </div>
+                    <div class="node-info-stats">
+                        <span class="info-stat">辐射关系: <strong id="selectedNodeRelations">0</strong></span>
+                        <span class="info-stat">关联度: <strong id="selectedNodeCorrelation">0.00</strong></span>
+                    </div>
+                </div>
+                <!-- 关系图例 -->
+                <div class="network-legend">
+                    <span class="legend-item"><span class="legend-dot threat"></span> 威胁节点</span>
+                    <span class="legend-item"><span class="legend-dot suspicious"></span> 可疑节点</span>
+                    <span class="legend-item"><span class="legend-dot normal"></span> 普通节点</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 关系列表详情 -->
+        <div class="relations-detail-section">
+            <div class="panel-header">
+                <h4>📋 可疑关系详情</h4>
+                <span class="panel-subtitle" id="relationsSubtitle">选中节点的所有可疑关系</span>
+            </div>
+            <div class="relations-table-container">
+                <table class="relations-table">
+                    <thead>
+                        <tr>
+                            <th>源节点</th>
+                            <th>目标节点</th>
+                            <th>交互动作</th>
+                            <th>事件数</th>
+                            <th>关联度</th>
+                        </tr>
+                    </thead>
+                    <tbody id="relationsTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align:center; color:#999; padding:30px;">
+                                请选择威胁节点查看关系详情
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="next-step-hint">
+            <span>✓ 关系挖掘完成</span>
+            <a href="#page-chains" class="next-link" onclick="navigateTo('chains')">下一步: 攻击链重建 →</a>
+        </div>
+    </div>
+</div>

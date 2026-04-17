@@ -1,0 +1,238 @@
+<!-- 规则检测页面组件 -->
+<div class="page-component" id="page-rules">
+    <div class="page-header">
+        <h2>🔍 规则检测</h2>
+        <p>基于 25 条预定义规则检测异常</p>
+    </div>
+
+    <!-- 输入数据 -->
+    <div class="data-section">
+        <h3>输入数据 - 关系图</h3>
+        <div class="data-input-empty" id="rulesInputEmpty">
+            <p>暂无数据，请先完成 <a href="#page-graph" onclick="navigateTo('graph')">关系图构建</a></p>
+        </div>
+        <div class="data-input-filled" id="rulesInputFilled" style="display:none;">
+            <div class="data-info-grid">
+                <div class="info-item">
+                    <span class="info-label">节点数</span>
+                    <span class="info-value" id="rulesInNodes">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">边数</span>
+                    <span class="info-value" id="rulesInEdges">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 处理控制 -->
+    <div class="action-section">
+        <button id="btnRules" class="btn btn-primary btn-large" disabled>
+            ▶ 开始规则检测
+        </button>
+    </div>
+
+    <!-- 处理进度 -->
+    <div class="process-section" id="rulesProcessSection" style="display:none;">
+        <h3>处理进度</h3>
+        <div class="process-bar-wrapper">
+            <div class="process-bar">
+                <div class="process-fill" id="rulesProcessFill"></div>
+            </div>
+            <span class="process-text" id="rulesProcessText">0%</span>
+        </div>
+        <div class="process-steps">
+            <div class="process-step" data-step="1">
+                <span class="step-dot">○</span>
+                <span class="step-text">加载规则库 (25条)</span>
+            </div>
+            <div class="process-step" data-step="2">
+                <span class="step-dot">○</span>
+                <span class="step-text">遍历事件</span>
+            </div>
+            <div class="process-step" data-step="3">
+                <span class="step-dot">○</span>
+                <span class="step-text">规则匹配</span>
+            </div>
+            <div class="process-step" data-step="4">
+                <span class="step-dot">○</span>
+                <span class="step-text">生成告警</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 输出数据 -->
+    <div class="data-section" id="rulesOutputSection" style="display:none;">
+        <div class="section-header-with-action">
+            <h3>输出数据 - 检测告警</h3>
+            <a href="/api/download/alerts" class="btn-download" id="downloadAlerts" style="display:none;">
+                📥 下载告警数据
+            </a>
+        </div>
+
+        <!-- 告警总览卡片 -->
+        <div class="rules-summary">
+            <div class="summary-card high" onclick="filterBySeverity('high')">
+                <span class="summary-value" id="rulesOutHigh">-</span>
+                <span class="summary-label">高危告警</span>
+            </div>
+            <div class="summary-card medium" onclick="filterBySeverity('medium')">
+                <span class="summary-value" id="rulesOutMedium">-</span>
+                <span class="summary-label">中危告警</span>
+            </div>
+            <div class="summary-card low" onclick="filterBySeverity('low')">
+                <span class="summary-value" id="rulesOutLow">-</span>
+                <span class="summary-label">低危告警</span>
+            </div>
+        </div>
+
+        <!-- 筛选状态 -->
+        <div class="filter-status" id="filterStatus" style="display:none;">
+            <span class="filter-active">
+                <span>🔍 当前筛选:</span>
+                <span id="currentFilterText">全部</span>
+                <button class="clear-filter-btn" onclick="clearFilter()">✕ 清除</button>
+            </span>
+        </div>
+
+        <!-- 视图切换标签 -->
+        <div class="view-tabs">
+            <button class="view-tab active" data-view="dashboard" onclick="switchRulesView('dashboard')">
+                📊 仪表盘
+            </button>
+            <button class="view-tab" data-view="timeline" onclick="switchRulesView('timeline')">
+                📅 时间线
+            </button>
+            <button class="view-tab" data-view="list" onclick="switchRulesView('list')">
+                📋 规则列表
+            </button>
+        </div>
+
+        <!-- 仪表盘视图 -->
+        <div class="rules-view-container active" id="view-dashboard">
+            <div class="dashboard-view">
+                <div class="dashboard-main">
+                    <!-- 告警分布图 -->
+                    <div class="chart-container">
+                        <div class="chart-title">📊 告警分布</div>
+                        <div class="chart-box" id="rulesDistributionChart"></div>
+                    </div>
+                    <!-- 告警趋势图 -->
+                    <div class="chart-container">
+                        <div class="chart-title">📈 告警时间趋势</div>
+                        <div class="chart-box" id="rulesTrendChart"></div>
+                    </div>
+                </div>
+                <div class="dashboard-side">
+                    <!-- 规则类别分组 -->
+                    <div class="rule-category-section">
+                        <h4>📁 按类别分组</h4>
+                        <div class="rule-categories-grid" id="ruleCategoriesGrid">
+                            <!-- 动态生成 -->
+                        </div>
+                    </div>
+                    <!-- 导出功能 -->
+                    <div class="export-section">
+                        <h4>📤 导出报告</h4>
+                        <div class="export-buttons">
+                            <button class="btn-export" onclick="exportReport('pdf')">
+                                📄 导出PDF
+                            </button>
+                            <button class="btn-export" onclick="exportReport('excel')">
+                                📊 导出Excel
+                            </button>
+                            <button class="btn-export" onclick="exportReport('json')">
+                                📋 导出JSON
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 时间线视图 -->
+        <div class="rules-view-container" id="view-timeline">
+            <div class="timeline-view scatter-matrix">
+                <div class="timeline-header">
+                    <div class="timeline-title">📅 告警时间矩阵</div>
+                    <div class="timeline-stats">
+                        <span class="timeline-stat">
+                            <strong id="timelineTotalAlerts">0</strong> 告警
+                        </span>
+                        <span class="timeline-stat">
+                            时间跨度: <strong id="timelineTimeSpan">-</strong>
+                        </span>
+                    </div>
+                </div>
+                <!-- 散点时间矩阵 -->
+                <div class="scatter-matrix-container">
+                    <div class="matrix-y-axis">
+                        <div class="y-axis-title">规则类别</div>
+                        <div class="y-axis-labels" id="matrixYAxisLabels">
+                            <!-- 动态生成 -->
+                        </div>
+                    </div>
+                    <div class="matrix-chart-area">
+                        <div class="scatter-matrix-chart" id="scatterMatrixChart">
+                            <!-- ECharts 渲染 -->
+                        </div>
+                        <div class="matrix-x-axis">
+                            <div class="x-axis-labels" id="matrixXAxisLabels">
+                                <!-- 动态生成 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 选中点详情 -->
+                <div class="scatter-detail-panel" id="scatterDetailPanel" style="display:none;">
+                    <div class="detail-panel-header">
+                        <h4>告警详情</h4>
+                        <button class="close-panel-btn" onclick="closeScatterDetailPanel()">✕</button>
+                    </div>
+                    <div class="detail-panel-content" id="scatterDetailContent">
+                        <!-- 动态填充 -->
+                    </div>
+                </div>
+                <!-- 图例 -->
+                <div class="scatter-legend">
+                    <span class="legend-title">严重程度：</span>
+                    <span class="legend-item"><span class="legend-dot high"></span> 高危</span>
+                    <span class="legend-item"><span class="legend-dot medium"></span> 中危</span>
+                    <span class="legend-item"><span class="legend-dot low"></span> 低危</span>
+                    <span class="legend-hint">💡 点击散点查看详情</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 规则列表视图 -->
+        <div class="rules-view-container" id="view-list">
+            <div class="rules-list-view">
+                <div class="rules-list-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h4>📋 规则列表</h4>
+                    <input type="text" id="ruleSearchInput" placeholder="搜索规则..."
+                           style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85rem;">
+                </div>
+                <table class="rules-table">
+                    <thead>
+                        <tr>
+                            <th>规则ID</th>
+                            <th>规则名称</th>
+                            <th>类别</th>
+                            <th>严重程度</th>
+                            <th>触发次数</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rulesTableBody">
+                        <!-- 动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="next-step-hint">
+            <span>✓ 规则检测完成</span>
+            <a href="#page-threat" class="next-link" onclick="navigateTo('threat')">下一步: 威胁检测 →</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,71 @@
+<!-- 数据准备页面组件 -->
+<div class="page-component" id="page-upload">
+    <div class="page-header">
+        <h2>📁 数据准备</h2>
+        <p>上传多源日志文件（进程/文件/网络）或使用演示模式</p>
+    </div>
+
+    <!-- 模式选择 -->
+    <div class="mode-selector" id="modeSelector">
+        <div class="mode-card" id="modeUpload">
+            <div class="mode-icon">📤</div>
+            <h3>上传日志文件</h3>
+            <p>上传您自己的多源日志文件进行分析</p>
+            <button class="btn btn-primary" onclick="selectUploadMode()">开始上传</button>
+        </div>
+        <div class="mode-card" id="modeDemo">
+            <div class="mode-icon">🎬</div>
+            <h3>演示模式</h3>
+            <p>使用预生成的测试数据快速体验系统功能</p>
+            <button class="btn btn-secondary" onclick="startDemoMode()">开始演示</button>
+        </div>
+    </div>
+
+    <!-- 上传区域 (默认隐藏) -->
+    <div class="upload-section" id="uploadArea" style="display:none;">
+        <button class="btn-back" onclick="showModeSelector()">← 返回模式选择</button>
+        <div class="upload-zone" id="uploadEmpty">
+            <div class="upload-icon">📁</div>
+            <p>拖拽文件到此处，或点击选择文件</p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">支持 .log, .json, .txt 格式</p>
+            <label class="btn btn-primary" style="margin-top: 15px;">
+                选择日志文件
+                <input type="file" id="fileUpload" multiple accept=".log,.json,.txt" style="display:none">
+            </label>
+        </div>
+        <div class="upload-files-preview" id="uploadFileList" style="display:none;">
+            <h4>已选择的文件</h4>
+            <div id="selectedFiles" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <button id="btnUploadSelected" class="btn btn-primary">开始上传</button>
+                <button id="btnClearFiles" class="btn btn-secondary">清空</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 处理状态 -->
+    <div class="process-section" id="uploadProcessSection" style="display:none;">
+        <div class="process-bar-wrapper">
+            <div class="process-bar">
+                <div class="process-fill" id="uploadProcessFill"></div>
+            </div>
+            <span class="process-text" id="uploadProcessText">0%</span>
+        </div>
+        <p class="process-message" id="uploadProcessMessage">正在处理...</p>
+    </div>
+
+    <!-- 已上传文件列表 -->
+    <div class="data-section" id="uploadResultSection" style="display:none;">
+        <div class="section-header-with-action">
+            <h3>已上传的日志文件</h3>
+            <a href="/api/download/logs" class="btn-download" id="downloadLogs" style="display:none;">📥 下载</a>
+        </div>
+        <div class="data-preview">
+            <div id="uploadedFilesList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+        <div class="next-step-hint">
+            <span>✓ 已上传 <span id="uploadedFileCount">0</span> 个文件</span>
+            <a href="#page-extract" class="next-link" onclick="navigateTo('extract')">下一步: 事件提取 →</a>
+        </div>
+    </div>
+</div>

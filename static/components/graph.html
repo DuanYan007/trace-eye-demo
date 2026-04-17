@@ -1,0 +1,132 @@
+<!-- 关系图构建页面组件 -->
+<div class="page-component" id="page-graph">
+    <div class="page-header">
+        <h2>🕸️ 关系图构建</h2>
+        <p>构建系统调用溯源图并去噪</p>
+    </div>
+
+    <!-- 输入数据 -->
+    <div class="data-section">
+        <h3>输入数据 - 事件列表</h3>
+        <div class="data-input-empty" id="graphInputEmpty">
+            <p>暂无数据，请先完成 <a href="#page-extract" onclick="navigateTo('extract')">事件提取</a></p>
+        </div>
+        <div class="data-input-filled" id="graphInputFilled" style="display:none;">
+            <div class="data-info-grid">
+                <div class="info-item">
+                    <span class="info-label">事件总数</span>
+                    <span class="info-value" id="graphInEvents">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 处理控制 -->
+    <div class="action-section">
+        <button id="btnGraph" class="btn btn-primary btn-large" disabled>
+            ▶ 开始构建关系图
+        </button>
+    </div>
+
+    <!-- 处理进度 -->
+    <div class="process-section" id="graphProcessSection" style="display:none;">
+        <h3>处理进度</h3>
+        <div class="process-bar-wrapper">
+            <div class="process-bar">
+                <div class="process-fill" id="graphProcessFill"></div>
+            </div>
+            <span class="process-text" id="graphProcessText">0%</span>
+        </div>
+        <div class="process-steps">
+            <div class="process-step" data-step="1">
+                <span class="step-dot">○</span>
+                <span class="step-text">提取节点和边</span>
+            </div>
+            <div class="process-step" data-step="2">
+                <span class="step-dot">○</span>
+                <span class="step-text">过滤系统服务</span>
+            </div>
+            <div class="process-step" data-step="3">
+                <span class="step-dot">○</span>
+                <span class="step-text">移除高频边</span>
+            </div>
+            <div class="process-step" data-step="4">
+                <span class="step-dot">○</span>
+                <span class="step-text">删除孤立节点</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 输出数据 -->
+    <div class="data-section" id="graphOutputSection" style="display:none;">
+        <div class="section-header-with-action">
+            <h3>输出数据 - 关系图</h3>
+            <a href="/api/download/graph" class="btn-download" id="downloadGraph" style="display:none;">
+                📥 下载图数据
+            </a>
+        </div>
+        <div class="graph-result-container">
+            <!-- 图统计卡片 -->
+            <div class="graph-stats-row">
+                <div class="preview-stat-card">
+                    <span class="preview-icon">🔵</span>
+                    <div class="preview-info">
+                        <span class="preview-value" id="graphOutNodes">-</span>
+                        <span class="preview-label">节点数</span>
+                    </div>
+                </div>
+                <div class="preview-stat-card">
+                    <span class="preview-icon">➡️</span>
+                    <div class="preview-info">
+                        <span class="preview-value" id="graphOutEdges">-</span>
+                        <span class="preview-label">边数</span>
+                    </div>
+                </div>
+                <div class="preview-stat-card">
+                    <span class="preview-icon">📊</span>
+                    <div class="preview-info">
+                        <span class="preview-value" id="graphOutDensity">-</span>
+                        <span class="preview-label">密度</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 节点类型统计 -->
+            <div class="node-types-stats" id="nodeTypesStats" style="display:none;">
+                <div class="node-type-item process">
+                    <span class="type-dot"></span>
+                    <span class="type-name">进程</span>
+                    <span class="type-count" id="processCount">0</span>
+                </div>
+                <div class="node-type-item file">
+                    <span class="type-dot"></span>
+                    <span class="type-name">文件</span>
+                    <span class="type-count" id="fileCount">0</span>
+                </div>
+                <div class="node-type-item socket">
+                    <span class="type-dot"></span>
+                    <span class="type-name">网络</span>
+                    <span class="type-count" id="socketCount">0</span>
+                </div>
+                <div class="node-type-item unknown">
+                    <span class="type-dot"></span>
+                    <span class="type-name">其他</span>
+                    <span class="type-count" id="unknownCount">0</span>
+                </div>
+            </div>
+
+            <!-- 图例 -->
+            <div class="graph-legend">
+                <span class="legend-title">图例说明：</span>
+                <span class="legend-item">节点大小 ∝ 连接数</span>
+                <span class="legend-item">最多显示 150 节点 / 300 边</span>
+            </div>
+
+            <div class="graph-visualization-mini" id="graphMiniContainer"></div>
+        </div>
+        <div class="next-step-hint">
+            <span>✓ 关系图构建完成</span>
+            <a href="#page-rules" class="next-link" onclick="navigateTo('rules')">下一步: 规则检测 →</a>
+        </div>
+    </div>
+</div>

@@ -109,7 +109,28 @@
       "Bash(taskkill:*)",
       "Bash(cmd.exe:*)",
       "Bash(cmd:*)",
-      "Bash(findstr LISTENING)"
+      "Bash(findstr LISTENING)",
+      "Bash(node --check \"static/js/utils/component-loader.js\")",
+      "Bash(node:*)",
+      "Bash(python3 -c ':*)",
+      "Bash(grep:*)",
+      "Bash(curl -s http://localhost:5000/api/cache/extract)",
+      "Bash(curl -s http://localhost:5000/api/cache/graph)",
+      "Bash(curl -s http://localhost:5000/relations)",
+      "Bash(curl -s http://localhost:5000/api/threat)",
+      "Bash(curl -s http://localhost:5000/api/graph)",
+      "Bash(curl -s -X POST http://localhost:5000/api/reset)",
+      "Bash(curl -s -X POST http://localhost:5000/api/demo/start)",
+      "Bash(curl -s http://localhost:5000/api/chains)",
+      "Bash(tasklist)",
+      "Bash(findstr python:*)",
+      "Bash(findstr \"10396\\\\|31036\\\\|17988\")",
+      "Bash(curl -s -X POST http://localhost:5000/api/step/extract)",
+      "Bash(curl -s -X POST http://localhost:5000/api/step/graph)",
+      "Bash(curl -s -X POST http://localhost:5000/api/step/__TRACKED_VAR__ done curl -s http://localhost:5000/api/status)",
+      "Bash(curl -s http://localhost:5000/api/alerts)",
+      "Bash(curl -s -X POST http://localhost:5000/step/extract)",
+      "Bash(curl -s http://localhost:5000/api/cache/threat)"
     ]
   }
 }

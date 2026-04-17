@@ -1,0 +1,63 @@
+<!-- 事件提取页面组件 -->
+<div class="page-component" id="page-extract">
+    <div class="page-header">
+        <h2>📋 事件提取</h2>
+        <p>将多源日志解析为统一事件格式</p>
+    </div>
+
+    <!-- 输入数据：原始日志文件 -->
+    <div class="data-section">
+        <h3>输入：原始日志文件</h3>
+        <div class="data-input-empty" id="extractInputEmpty">
+            <p>暂无数据，请先完成 <a href="#page-upload" onclick="navigateTo('upload')">数据准备</a></p>
+        </div>
+        <div class="data-input-filled" id="extractInputFilled" style="display:none;">
+            <div id="extractInputFileList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+    </div>
+
+    <!-- 处理控制 -->
+    <div class="action-section">
+        <button id="btnExtract" class="btn btn-primary btn-large" disabled>
+            ▶ 开始事件提取
+        </button>
+    </div>
+
+    <!-- 处理进度 -->
+    <div class="process-section" id="extractProcessSection" style="display:none;">
+        <div class="process-bar-wrapper">
+            <div class="process-bar">
+                <div class="process-fill" id="extractProcessFill"></div>
+            </div>
+            <span class="process-text" id="extractProcessText">0%</span>
+        </div>
+        <p class="process-message" id="extractProcessMessage">正在处理...</p>
+    </div>
+
+    <!-- 输出数据：提取结果 -->
+    <div class="data-section" id="extractOutputSection" style="display:none;">
+        <div class="section-header-with-action">
+            <h3>输出：事件提取结果</h3>
+            <a href="/api/download/events" class="btn-download" id="downloadEvents" style="display:none;">📥 下载</a>
+        </div>
+        <div class="data-preview">
+            <div class="preview-stats">
+                <div class="preview-stat-card">
+                    <span class="preview-icon">📋</span>
+                    <div class="preview-info">
+                        <span class="preview-value" id="extractOutTotal">-</span>
+                        <span class="preview-label">总事件数</span>
+                    </div>
+                </div>
+            </div>
+            <div class="event-type-breakdown">
+                <h4>事件类型分布</h4>
+                <div class="type-bars" id="extractTypeBars"></div>
+            </div>
+        </div>
+        <div class="next-step-hint">
+            <span>✓ 已提取 <span id="extractEventCount">0</span> 个事件</span>
+            <a href="#page-graph" class="next-link" onclick="navigateTo('graph')">下一步: 关系图构建 →</a>
+        </div>
+    </div>
+</div>

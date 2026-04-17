@@ -18,42 +18,42 @@
             </div>
 
             <nav class="sidebar-nav">
-                <a href="#page-upload" class="nav-item active" data-page="upload" data-component="upload">
+                <a href="#page-upload" class="nav-item active" data-page="upload">
                     <span class="nav-icon">📁</span>
                     <span class="nav-text">数据准备</span>
                     <span class="nav-status" id="navStatusUpload"></span>
                 </a>
-                <a href="#page-extract" class="nav-item" data-page="extract" data-component="extract">
+                <a href="#page-extract" class="nav-item" data-page="extract">
                     <span class="nav-icon">📋</span>
                     <span class="nav-text">事件提取</span>
                     <span class="nav-status" id="navStatusExtract"></span>
                 </a>
-                <a href="#page-graph" class="nav-item" data-page="graph" data-component="graph">
+                <a href="#page-graph" class="nav-item" data-page="graph">
                     <span class="nav-icon">🕸️</span>
                     <span class="nav-text">关系图构建</span>
                     <span class="nav-status" id="navStatusGraph"></span>
                 </a>
-                <a href="#page-rules" class="nav-item" data-page="rules" data-component="rules">
+                <a href="#page-rules" class="nav-item" data-page="rules">
                     <span class="nav-icon">🔍</span>
                     <span class="nav-text">规则检测</span>
                     <span class="nav-status" id="navStatusRules"></span>
                 </a>
-                <a href="#page-threat" class="nav-item" data-page="threat" data-component="threat">
+                <a href="#page-threat" class="nav-item" data-page="threat">
                     <span class="nav-icon">⚠️</span>
                     <span class="nav-text">威胁检测</span>
                     <span class="nav-status" id="navStatusThreat"></span>
                 </a>
-                <a href="#page-relations" class="nav-item" data-page="relations" data-component="relations">
+                <a href="#page-relations" class="nav-item" data-page="relations">
                     <span class="nav-icon">🔗</span>
                     <span class="nav-text">关系挖掘</span>
                     <span class="nav-status" id="navStatusRelations"></span>
                 </a>
-                <a href="#page-chains" class="nav-item" data-page="chains" data-component="chains">
+                <a href="#page-chains" class="nav-item" data-page="chains">
                     <span class="nav-icon">⛓️</span>
                     <span class="nav-text">攻击链重建</span>
                     <span class="nav-status" id="navStatusChains"></span>
                 </a>
-                <a href="#page-ai" class="nav-item" data-page="ai" data-component="ai">
+                <a href="#page-ai" class="nav-item" data-page="ai">
                     <span class="nav-icon">🤖</span>
                     <span class="nav-text">AI 分析</span>
                     <span class="nav-status" id="navStatusAi"></span>
@@ -81,29 +81,21 @@
                 </div>
             </header>
 
-            <!-- 页面内容容器 - 动态加载组件 -->
-            <div class="page-container" id="pageContainer">
-                <!-- 组件将动态加载到这里 -->
+            <!-- 页面内容容器 -->
+            <div class="page-container">
+                {% block content %}{% endblock %}
             </div>
         </main>
     </div>
 
     <!-- 全局模态框 -->
-    <div id="nodeDetailModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>节点详情</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div id="nodeDetailBody" class="modal-body"></div>
-        </div>
-    </div>
+    {% include 'components/modals.html' %}
 
     <!-- 脚本 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
     <script src="/static/js/utils/common.js"></script>
     <script src="/static/js/utils/api.js"></script>
-    <script src="/static/js/utils/data-cache.js"></script>
     <script src="/static/js/main.js"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,2141 @@
+/* ==================== 组件样式 ==================== */
+
+/* 页面组件基础样式 */
+.page-component {
+    width: 100%;
+    height: 100%;
+}
+
+/* 模式选择器 */
+.mode-selector {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    padding: 40px 20px;
+    flex-wrap: wrap;
+}
+
+.mode-card {
+    flex: 1;
+    min-width: 280px;
+    max-width: 400px;
+    padding: 40px 30px;
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 2px solid #e8eaed;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.mode-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    border-color: var(--primary-color, #3498db);
+}
+
+.mode-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.mode-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.4rem;
+    color: #333;
+}
+
+.mode-card p {
+    margin: 0 0 25px 0;
+    color: #666;
+    line-height: 1.5;
+}
+
+.mode-card .btn {
+    padding: 12px 30px;
+    font-size: 1rem;
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    color: var(--text-secondary, #666);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 8px 0;
+    margin-bottom: 15px;
+    display: inline-block;
+}
+
+.btn-back:hover {
+    color: var(--primary-color, #3498db);
+}
+
+/* 模态框样式 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--card-bg, #fff);
+    border-radius: 8px;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary, #666);
+}
+
+.modal-close:hover {
+    color: var(--text-primary, #333);
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+/* 规则详情模态框样式 */
+.rule-detail-modal {
+    max-width: 700px;
+}
+
+.rule-detail-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.rule-detail-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.rule-detail-id {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    font-family: 'Courier New', monospace;
+}
+
+.rule-detail-body {
+    padding: 20px;
+}
+
+.rule-detail-section {
+    margin-bottom: 20px;
+}
+
+.rule-detail-section h5 {
+    margin-bottom: 10px;
+    color: var(--text-primary, #333);
+    font-size: 1rem;
+}
+
+.rule-description {
+    padding: 10px;
+    background: var(--light-bg, #f5f5f5);
+    border-radius: 4px;
+    line-height: 1.6;
+}
+
+.rule-logic {
+    padding: 15px;
+    background: #2d2d2d;
+    color: #f8f8f2;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    overflow-x: auto;
+}
+
+.rule-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.rule-stats > div {
+    padding: 8px 12px;
+    background: var(--light-bg, #f5f5f5);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.alerts-in-rule {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.alert-item {
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    background: var(--light-bg, #f5f5f5);
+    border-left: 3px solid;
+}
+
+.alert-item.high {
+    border-left-color: #e74c3c;
+}
+
+.alert-item.medium {
+    border-left-color: #f39c12;
+}
+
+.alert-item.low {
+    border-left-color: #27ae60;
+}
+
+/* 告警追踪模态框样式 */
+.alert-trace-modal {
+    max-width: 800px;
+}
+
+.trace-info {
+    padding: 15px;
+    background: var(--light-bg, #f5f5f5);
+    border-radius: 4px;
+    line-height: 1.8;
+}
+
+.trace-timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.trace-event {
+    position: relative;
+    padding-bottom: 20px;
+}
+
+.trace-dot {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary-color, #3498db);
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px var(--primary-color, #3498db);
+}
+
+.trace-content {
+    background: var(--light-bg, #f5f5f5);
+    border-radius: 8px;
+    padding: 12px 15px;
+}
+
+.trace-time {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #666);
+    margin-bottom: 5px;
+}
+
+.trace-message {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+}
+
+.trace-details {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #666);
+    line-height: 1.6;
+}
+
+.trace-rule-info {
+    display: flex;
+    margin-bottom: 5px;
+}
+
+.trace-rule-label {
+    min-width: 100px;
+    font-weight: 500;
+}
+
+/* 加载状态样式 */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-color, #e0e0e0);
+    border-top-color: var(--primary-color, #3498db);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 空状态样式 */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary, #666);
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.empty-state-title {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.empty-state-desc {
+    font-size: 0.9rem;
+}
+
+/* ==================== 流式瀑布图样式 ==================== */
+.timeline-view.waterfall {
+    position: relative;
+}
+
+.waterfall-container {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.waterfall-timeline {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.waterfall-timeline::-webkit-scrollbar {
+    height: 6px;
+}
+
+.waterfall-timeline::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.waterfall-timeline::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.waterfall-timeline::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* 时间轴背景线 */
+.waterfall-timeline::before {
+    content: '';
+    position: absolute;
+    left: 60px;
+    top: 50%;
+    width: calc(100% - 120px);
+    height: 4px;
+    background: linear-gradient(90deg,
+        rgba(231, 76, 60, 0.3) 0%,
+        rgba(52, 152, 219, 0.5) 50%,
+        rgba(39, 174, 96, 0.3) 100%
+    );
+    transform: translateY(-50%);
+    border-radius: 2px;
+    z-index: 1;
+}
+
+/* 流动光波效果 */
+.waterfall-timeline::after {
+    content: '';
+    position: absolute;
+    left: 60px;
+    top: 50%;
+    width: calc(100% - 120px);
+    height: 4px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(52, 152, 219, 0.8) 50%,
+        transparent 100%
+    );
+    transform: translateY(-50%);
+    border-radius: 2px;
+    z-index: 2;
+    animation: waveFlow 2s linear infinite;
+}
+
+@keyframes waveFlow {
+    0% {
+        background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(52, 152, 219, 0.8) 10%,
+            transparent 20%
+        );
+    }
+    100% {
+        background: linear-gradient(90deg,
+            transparent 80%,
+            rgba(52, 152, 219, 0.8) 90%,
+            transparent 100%
+        );
+    }
+}
+
+/* 瀑布节点 */
+.waterfall-node {
+    position: absolute;
+    width: 120px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+    animation: nodeSlideIn 0.6s ease-out forwards, nodeFloat 3s ease-in-out infinite;
+    opacity: 0;
+}
+
+@keyframes nodeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100px) scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes nodeFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.waterfall-node:hover {
+    transform: translateY(-15px) scale(1.08);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    animation-play-state: paused;
+}
+
+.waterfall-node.severity-high {
+    border-left: 4px solid #e74c3c;
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.15) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.waterfall-node.severity-medium {
+    border-left: 4px solid #f39c12;
+    background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.waterfall-node.severity-low {
+    border-left: 4px solid #27ae60;
+    background: linear-gradient(135deg, rgba(39, 174, 96, 0.15) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.waterfall-node-time {
+    font-size: 0.75rem;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.waterfall-node-rule {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.waterfall-node-category {
+    font-size: 0.7rem;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.category-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 500;
+}
+
+.category-badge.file { background: #fee; color: #c00; }
+.category-badge.process { background: #fe9; color: #960; }
+.category-badge.network { background: #e9f; color: #90c; }
+.category-badge.sequence { background: #f9e; color: #c9f; }
+.category-badge.temporal { background: #efe; color: #3c9; }
+
+/* 节点连接线 */
+.waterfall-connection {
+    position: absolute;
+    height: 2px;
+    background: linear-gradient(90deg,
+        rgba(52, 152, 219, 0.8) 0%,
+        rgba(52, 152, 219, 0.2) 100%
+    );
+    transform-origin: left center;
+    z-index: 5;
+    animation: connectionGrow 0.3s ease-out forwards;
+}
+
+@keyframes connectionGrow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+/* 告警详情面板 */
+.alert-detail-panel {
+    position: fixed;
+    right: -400px;
+    top: 0;
+    width: 380px;
+    height: 100vh;
+    background: #fff;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+    transition: right 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.alert-detail-panel.show {
+    right: 0;
+}
+
+.detail-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+}
+
+.detail-panel-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.close-panel-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background 0.2s;
+}
+
+.close-panel-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.detail-panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.detail-section {
+    margin-bottom: 20px;
+}
+
+.detail-section-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-item {
+    display: flex;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-item-label {
+    min-width: 100px;
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.detail-item-value {
+    flex: 1;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.detail-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.detail-badge.high {
+    background: #fee;
+    color: #c00;
+}
+
+.detail-badge.medium {
+    background: #fe9;
+    color: #960;
+}
+
+.detail-badge.low {
+    background: #efe;
+    color: #3c9;
+}
+
+/* 时间刻度标记 */
+.waterfall-time-marker {
+    position: absolute;
+    bottom: 10px;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.6);
+    z-index: 2;
+}
+
+/* 流动动画效果 - 增强版 */
+.waterfall-flow-indicator {
+    position: absolute;
+    left: 60px;
+    top: 50%;
+    width: 40px;
+    height: 40px;
+    background: radial-gradient(circle, rgba(52, 152, 219, 1) 0%, rgba(52, 152, 219, 0.3) 50%, transparent 70%);
+    border-radius: 50%;
+    transform: translateY(-50%);
+    animation: flowMove 4s ease-in-out infinite;
+    z-index: 3;
+    filter: blur(2px);
+}
+
+@keyframes flowMove {
+    0% {
+        left: 60px;
+        opacity: 0;
+        transform: translateY(-50%) scale(0.5);
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+    90% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+    100% {
+        left: calc(100% - 100px);
+        opacity: 0;
+        transform: translateY(-50%) scale(0.5);
+    }
+}
+
+/* 添加粒子效果 */
+.waterfall-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: rgba(52, 152, 219, 0.8);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particleFloat 3s ease-in-out infinite;
+}
+
+@keyframes particleFloat {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translateY(-20px) scale(1.2);
+        opacity: 1;
+    }
+}
+
+/* ==================== 散点时间矩阵样式 ==================== */
+.timeline-view.scatter-matrix {
+    width: 100%;
+}
+
+.scatter-matrix-container {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.matrix-y-axis {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-right: 10px;
+}
+
+.y-axis-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #444;
+    margin-bottom: 20px;
+    text-align: center;
+    padding: 8px 12px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.y-axis-labels {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 450px;
+}
+
+.y-axis-label {
+    font-size: 0.85rem;
+    color: #333;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    border-radius: 10px;
+    text-align: center;
+    min-width: 90px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 500;
+    border: 1px solid #e8eaed;
+    transition: all 0.2s ease;
+}
+
+.y-axis-label:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+}
+
+.y-axis-label .category-icon {
+    font-size: 1.2rem;
+}
+
+.matrix-chart-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.scatter-matrix-chart {
+    width: 100%;
+    height: 450px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.06);
+    position: relative;
+    overflow: hidden;
+}
+
+/* 背景网格装饰 */
+.scatter-matrix-chart::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        linear-gradient(rgba(52, 152, 219, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(52, 152, 219, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+}
+
+.matrix-x-axis {
+    margin-top: 15px;
+    padding: 0 10px;
+}
+
+.x-axis-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.x-axis-label {
+    font-size: 0.8rem;
+    color: #666;
+    text-align: center;
+    padding: 8px 16px;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    font-weight: 500;
+    min-width: 80px;
+}
+
+.scatter-detail-panel {
+    position: fixed;
+    right: -400px;
+    top: 0;
+    width: 400px;
+    height: 100vh;
+    background: #fff;
+    box-shadow: -4px 0 30px rgba(0, 0, 0, 0.2);
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.scatter-detail-panel.show {
+    right: 0;
+}
+
+.scatter-legend {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 15px 25px;
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    border-radius: 10px;
+    margin-top: 15px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    border: 1px solid #e8eaed;
+}
+
+.legend-title {
+    font-weight: 700;
+    color: #333;
+    margin-right: 10px;
+    font-size: 0.9rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #555;
+    font-weight: 500;
+}
+
+.legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    position: relative;
+}
+
+.legend-dot.high {
+    background: radial-gradient(circle, #e74c3c 0%, #c0392b 100%);
+    box-shadow: 0 0 12px rgba(231, 76, 60, 0.6);
+}
+
+.legend-dot.medium {
+    background: radial-gradient(circle, #f39c12 0%, #d68910 100%);
+    box-shadow: 0 0 12px rgba(243, 156, 18, 0.6);
+}
+
+.legend-dot.low {
+    background: radial-gradient(circle, #27ae60 0%, #1e8449 100%);
+    box-shadow: 0 0 12px rgba(39, 174, 96, 0.6);
+}
+
+.legend-hint {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: #999;
+    font-style: italic;
+    background: #f0f0f0;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+/* ==================== 威胁检测页面样式 ==================== */
+
+/* 威胁等级总览卡片 */
+.threat-overview-cards {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.threat-overview-card {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px 22px;
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    border: 1px solid #e8eaed;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.threat-overview-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.threat-overview-card.critical {
+    background: linear-gradient(135deg, #fee 0%, #fdd 100%);
+    border-color: #f5c6cb;
+}
+
+.threat-overview-card.high {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border-color: #ffcc80;
+}
+
+.threat-overview-card.medium {
+    background: linear-gradient(135deg, #fffde7 0%, #fff9c4 100%);
+    border-color: #fff59d;
+}
+
+.threat-overview-card.low {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-color: #a5d6a7;
+}
+
+.threat-overview-card.benign {
+    background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+    border-color: #bdbdbd;
+}
+
+.threat-card-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.threat-card-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.threat-card-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    line-height: 1.2;
+}
+
+.threat-card-label {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* 威胁可视化区域 */
+.threat-visualization {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin-bottom: 25px;
+}
+
+/* 威胁时间线区域 */
+.threat-timeline-section,
+.threat-network-section,
+.threat-distribution-section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.section-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.timeline-stats,
+.network-controls {
+    display: flex;
+    gap: 20px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.timeline-stat-item strong {
+    color: #333;
+    font-weight: 600;
+}
+
+.network-btn {
+    padding: 6px 14px;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #555;
+    transition: background 0.2s;
+}
+
+.network-btn:hover {
+    background: #e8e8e8;
+}
+
+/* 时间线图表容器 - 环形时间轮 */
+.threat-timeline-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #fafbfc 0%, #f5f6f7 100%);
+    border-radius: 12px;
+}
+
+.threat-timeline-chart {
+    width: 100%;
+    height: 350px;
+}
+
+/* 中心信息面板 */
+.timeline-center-info {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+
+.center-info-level {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.center-info-count {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color, #3498db);
+    line-height: 1;
+}
+
+.center-info-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+}
+
+/* 时间线控制按钮 */
+.threat-timeline-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.timeline-filter-btn {
+    padding: 10px 20px;
+    border: 2px solid transparent;
+    border-radius: 25px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.timeline-filter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.timeline-filter-btn.active {
+    border-color: var(--primary-color, #3498db);
+    background: var(--primary-color, #3498db);
+    color: #fff;
+}
+
+.timeline-filter-btn.critical.active {
+    background: #e74c3c;
+    border-color: #e74c3c;
+}
+
+.timeline-filter-btn.high.active {
+    background: #f39c12;
+    border-color: #f39c12;
+}
+
+.timeline-filter-btn.medium.active {
+    background: #f1c40f;
+    border-color: #f1c40f;
+}
+
+.timeline-filter-btn.low.active {
+    background: #27ae60;
+    border-color: #27ae60;
+}
+
+/* 节点列表 */
+.timeline-nodes-list {
+    margin-top: 20px;
+    max-height: 250px;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.timeline-node-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.timeline-node-item:last-child {
+    border-bottom: none;
+}
+
+.timeline-node-item:hover {
+    background: #f8f9fa;
+}
+
+.node-item-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.node-item-dot.critical { background: #e74c3c; }
+.node-item-dot.high { background: #f39c12; }
+.node-item-dot.medium { background: #f1c40f; }
+.node-item-dot.low { background: #27ae60; }
+.node-item-dot.benign { background: #95a5a6; }
+
+.node-item-name {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.node-item-score {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.node-item-level {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.node-item-level.critical { background: #fee; color: #e74c3c; }
+.node-item-level.high { background: #fff3e0; color: #f39c12; }
+.node-item-level.medium { background: #fffde7; color: #f39c12; }
+.node-item-level.low { background: #e8f5e9; color: #27ae60; }
+.node-item-level.benign { background: #f5f5f5; color: #666; }
+
+/* 时间线详情面板 */
+.timeline-detail-panel {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 280px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    border: 1px solid #e0e0e0;
+    z-index: 100;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.detail-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 18px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #f8f9fa;
+    border-radius: 10px 10px 0 0;
+}
+
+.detail-panel-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+}
+
+.close-panel-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.close-panel-btn:hover {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.detail-panel-content {
+    padding: 18px;
+}
+
+.detail-section {
+    margin-bottom: 15px;
+}
+
+.detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.detail-section-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-item-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.detail-item-value {
+    font-size: 0.9rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.detail-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.detail-badge.critical {
+    background: #fee;
+    color: #c0392b;
+}
+
+.detail-badge.high {
+    background: #fff3e0;
+    color: #e67e22;
+}
+
+.detail-badge.medium {
+    background: #fffde7;
+    color: #f39c12;
+}
+
+.detail-badge.low {
+    background: #e8f5e9;
+    color: #27ae60;
+}
+
+/* 时间线图例 */
+.threat-timeline-legend {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+    padding: 12px 18px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.legend-dot.critical {
+    background: radial-gradient(circle, #e74c3c 0%, #c0392b 100%);
+    box-shadow: 0 0 12px rgba(231, 76, 60, 0.6);
+}
+
+.legend-dot.high {
+    background: radial-gradient(circle, #f39c12 0%, #d68910 100%);
+    box-shadow: 0 0 12px rgba(243, 156, 18, 0.6);
+}
+
+.legend-dot.medium {
+    background: radial-gradient(circle, #f1c40f 0%, #d4ac0d 100%);
+    box-shadow: 0 0 12px rgba(241, 196, 15, 0.6);
+}
+
+.legend-dot.low {
+    background: radial-gradient(circle, #27ae60 0%, #1e8449 100%);
+    box-shadow: 0 0 12px rgba(39, 174, 96, 0.6);
+}
+
+.legend-dot.process {
+    background: #2196F3;
+}
+
+.legend-dot.file {
+    background: #FF9800;
+}
+
+.legend-dot.socket {
+    background: #9C27B0;
+}
+
+.legend-divider {
+    color: #ddd;
+    margin: 0 5px;
+}
+
+/* 网络图区域 */
+.threat-network-container {
+    margin-top: 15px;
+}
+
+.threat-network-chart {
+    width: 100%;
+    height: 450px;
+    background: linear-gradient(180deg, #fafbfc 0%, #f5f6f7 100%);
+    border-radius: 8px;
+    border: 1px solid #e8eaed;
+}
+
+.threat-network-legend {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 15px;
+    padding: 12px 18px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+/* 异常分数分布区域 */
+.threat-distribution-container {
+    margin-top: 15px;
+}
+
+.threat-distribution-chart {
+    width: 100%;
+    height: 280px;
+    background: linear-gradient(180deg, #fafbfc 0%, #f5f6f7 100%);
+    border-radius: 8px;
+    border: 1px solid #e8eaed;
+}
+
+/* ==================== 关系挖掘页面样式 ==================== */
+
+/* 关系统计条 */
+.relations-stats-bar {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
+    border-radius: 12px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    flex: 1;
+    min-width: 140px;
+    text-align: center;
+    padding: 15px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-color, #3498db);
+}
+
+/* 关系挖掘主布局 - 左右分栏 */
+.relations-main-layout {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 25px;
+    margin-bottom: 25px;
+    min-height: 600px;
+}
+
+@media (max-width: 1200px) {
+    .relations-main-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 左侧威胁节点面板 */
+.threat-nodes-panel {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e8eaed;
+    display: flex;
+    flex-direction: column;
+    max-height: 650px;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    border-bottom: 1px solid #e8eaed;
+    background: linear-gradient(180deg, #fafbfc 0%, #f5f6f7 100%);
+    border-radius: 12px 12px 0 0;
+}
+
+.panel-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.panel-subtitle {
+    font-size: 0.8rem;
+    color: #868e96;
+}
+
+/* 威胁节点列表 */
+.threat-nodes-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.threat-nodes-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.threat-nodes-list::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 3px;
+}
+
+.threat-nodes-list::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
+}
+
+/* 威胁节点卡片 */
+.threat-node-card {
+    padding: 15px;
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    border: 2px solid #e8eaed;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.threat-node-card:hover {
+    border-color: var(--primary-color, #3498db);
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
+}
+
+.threat-node-card.selected {
+    border-color: var(--primary-color, #3498db);
+    background: linear-gradient(135deg, #e3f2fd 0%, #f0f7ff 100%);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.node-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.node-card-rank {
+    font-weight: 700;
+    color: #adb5bd;
+    font-size: 0.85rem;
+}
+
+.node-card-level {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.node-card-level.critical {
+    background: #fee;
+    color: #e74c3c;
+}
+
+.node-card-level.high {
+    background: #fef3e7;
+    color: #f39c12;
+}
+
+.node-card-level.medium {
+    background: #fef9e7;
+    color: #f1c40f;
+}
+
+.node-card-level.low {
+    background: #e8f8f5;
+    color: #27ae60;
+}
+
+.node-card-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.node-card-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 8px;
+}
+
+.node-stat {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.node-card-type {
+    font-size: 0.75rem;
+    color: #868e96;
+    padding: 2px 8px;
+    background: #f1f3f5;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* 右侧辐射关系网络面板 */
+.radiation-network-panel {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e8eaed;
+    display: flex;
+    flex-direction: column;
+}
+
+.network-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.control-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.control-btn:hover {
+    background: var(--primary-color, #3498db);
+    color: white;
+    border-color: var(--primary-color, #3498db);
+}
+
+/* 网络占位符 */
+.network-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 350px;
+    color: #868e96;
+}
+
+.placeholder-icon {
+    font-size: 4rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.network-placeholder p {
+    margin: 5px 0;
+    font-size: 0.95rem;
+}
+
+/* 辐射关系图表 */
+.radiation-network-chart {
+    width: 100%;
+    height: 400px;
+    background: linear-gradient(180deg, #fafbfc 0%, #f5f6f7 100%);
+    border-radius: 0 0 12px 12px;
+}
+
+/* 选中节点信息 */
+.selected-node-info {
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
+    border-top: 1px solid #e8eaed;
+}
+
+.node-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.node-info-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.node-info-level {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.node-info-level.critical {
+    background: #fee;
+    color: #e74c3c;
+}
+
+.node-info-level.high {
+    background: #fef3e7;
+    color: #f39c12;
+}
+
+.node-info-level.medium {
+    background: #fef9e7;
+    color: #f1c40f;
+}
+
+.node-info-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.info-stat {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+/* 网络图例 */
+.network-legend {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e8eaed;
+    border-radius: 0 0 12px 12px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.legend-dot.threat {
+    background: #e74c3c;
+}
+
+.legend-dot.suspicious {
+    background: #3498db;
+}
+
+.legend-dot.normal {
+    background: #95a5a6;
+}
+
+/* 关系详情区域 */
+.relations-detail-section {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e8eaed;
+    margin-bottom: 25px;
+}
+
+.relations-detail-section .panel-header {
+    border-radius: 12px 12px 0 0;
+}
+
+.relations-table-container {
+    overflow-x: auto;
+}
+
+.relations-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.relations-table thead {
+    background: linear-gradient(180deg, #fafbfc 0%, #f5f6f7 100%);
+}
+
+.relations-table th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #e8eaed;
+    white-space: nowrap;
+}
+
+.relations-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e8eaed;
+    color: #495057;
+}
+
+.relations-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* 关联度徽章 */
+.correlation-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.correlation-badge.high {
+    background: #fee;
+    color: #e74c3c;
+}
+
+.correlation-badge.medium {
+    background: #fef9e7;
+    color: #f1c40f;
+}
+
+.correlation-badge.low {
+    background: #e8f8f5;
+    color: #27ae60;
+}
+
+/* ==================== 攻击链重建页面样式 ==================== */
+
+/* 攻击链统计条 */
+.chains-stats-bar {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
+    border-radius: 12px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+/* 攻击链森林布局 - 左右分栏 */
+.chains-forest-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 25px;
+    margin-bottom: 25px;
+    min-height: 600px;
+}
+
+@media (max-width: 1200px) {
+    .chains-forest-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 左侧攻击链树列表面板 */
+.chain-trees-panel {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e8eaed;
+    display: flex;
+    flex-direction: column;
+    max-height: 700px;
+}
+
+/* 攻击链树列表 */
+.chain-trees-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chain-trees-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chain-trees-list::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 3px;
+}
+
+.chain-trees-list::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
+}
+
+/* 攻击链树卡片 */
+.chain-tree-card {
+    padding: 15px;
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    border: 2px solid #e8eaed;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.chain-tree-card:hover {
+    border-color: var(--primary-color, #3498db);
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
+}
+
+.chain-tree-card.selected {
+    border-color: var(--primary-color, #3498db);
+    background: linear-gradient(135deg, #e3f2fd 0%, #f0f7ff 100%);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.chain-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.chain-card-index {
+    font-weight: 700;
+    color: #adb5bd;
+    font-size: 0.85rem;
+}
+
+.chain-card-type {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.chain-card-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chain-card-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.chain-stat {
+    font-size: 0.75rem;
+    color: #666;
+    padding: 3px 8px;
+    background: #f1f3f5;
+    border-radius: 4px;
+}
+
+.chain-card-tactic {
+    font-size: 0.75rem;
+    color: #868e96;
+    padding: 4px 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* 右侧攻击链详情面板 */
+.chain-detail-panel {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e8eaed;
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-controls {
+    display: flex;
+    gap: 8px;
+}
+
+/* 攻击链详情占位符 */
+.chain-detail-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    color: #868e96;
+}
+
+/* 攻击链详情内容 */
+.chain-detail-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 攻击链信息卡片 */
+.chain-info-card {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
+    border-bottom: 1px solid #e8eaed;
+}
+
+.chain-info-row {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+}
+
+.chain-info-label {
+    font-size: 0.75rem;
+    color: #868e96;
+    margin-bottom: 4px;
+}
+
+.chain-info-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+/* 攻击链森林图 */
+.chain-forest-chart {
+    width: 100%;
+    height: 400px;
+    background: linear-gradient(180deg, #fafbfc 0%, #f5f6f7 100%);
+    border-bottom: 1px solid #e8eaed;
+}
+
+/* ATT&CK 技术区域 */
+.attack-techniques-section {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e8eaed;
+}
+
+.attack-techniques-section h5 {
+    margin: 0 0 12px 0;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.techniques-tags {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tactic-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.tactic-label {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    white-space: nowrap;
+}
+
+.technique-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.technique-tag {
+    padding: 4px 10px;
+    background: #f1f3f5;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #495057;
+    font-family: monospace;
+    cursor: help;
+    transition: background 0.2s;
+}
+
+.technique-tag:hover {
+    background: #e9ecef;
+}
+
+/* 关联节点区域 */
+.chain-nodes-section {
+    padding: 15px 20px;
+    flex: 1;
+}
+
+.chain-nodes-section h5 {
+    margin: 0 0 12px 0;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.chain-nodes-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chain-node-tag {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #333;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+.chain-node-tag.process {
+    background: #e3f2fd;
+    border-color: #bbdefb;
+    color: #1976d2;
+}
+
+.chain-node-tag.file {
+    background: #f3e5f5;
+    border-color: #e1bee7;
+    color: #7b1fa2;
+}
+
+.chain-node-tag.socket {
+    background: #e8f5e9;
+    border-color: #c8e6c9;
+    color: #388e3c;
+}

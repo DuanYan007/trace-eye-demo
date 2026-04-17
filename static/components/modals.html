@@ -1,0 +1,57 @@
+<!-- 弹窗：规则详情 -->
+<div id="ruleDetailModal" class="modal">
+    <div class="modal-content rule-detail-modal">
+        <div class="modal-header rule-detail-header">
+            <div>
+                <div class="rule-detail-title" id="ruleDetailTitle">规则名称</div>
+                <div class="rule-detail-id" id="ruleDetailId">R001</div>
+            </div>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="rule-detail-body">
+            <div class="rule-detail-section">
+                <h5>📝 规则描述</h5>
+                <p class="rule-description" id="ruleDetailDesc">规则描述内容</p>
+            </div>
+            <div class="rule-detail-section">
+                <h5>🔧 检测逻辑</h5>
+                <div class="rule-logic" id="ruleDetailLogic">检测逻辑代码</div>
+            </div>
+            <div class="rule-detail-section">
+                <h5>📊 触发统计</h5>
+                <div class="rule-stats" id="ruleDetailStats">
+                    <div>触发次数: <span id="ruleTriggerCount">0</span></div>
+                    <div>高危: <span id="ruleHighCount">0</span></div>
+                    <div>中危: <span id="ruleMediumCount">0</span></div>
+                    <div>低危: <span id="ruleLowCount">0</span></div>
+                </div>
+            </div>
+            <div class="rule-detail-section">
+                <h5>🚨 相关告警</h5>
+                <div class="alerts-in-rule" id="ruleDetailAlerts">
+                    <!-- 动态填充 -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 弹窗：告警溯源 -->
+<div id="alertTraceModal" class="modal">
+    <div class="modal-content alert-trace-modal">
+        <div class="modal-header">
+            <h3>🔍 告警溯源</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="trace-info" style="margin-bottom: 15px;">
+                <strong>告警ID:</strong> <span id="traceAlertId">-</span><br>
+                <strong>规则:</strong> <span id="traceRuleName">-</span><br>
+                <strong>时间:</strong> <span id="traceTime">-</span>
+            </div>
+            <div class="trace-timeline" id="traceTimeline">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+    </div>
+</div>

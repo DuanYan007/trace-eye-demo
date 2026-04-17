@@ -1,0 +1,176 @@
+<!-- 攻击链重建页面组件 -->
+<div class="page-component" id="page-chains">
+    <div class="page-header">
+        <h2>⛓️ 攻击链重建</h2>
+        <p>聚类分析并重建完整攻击链，映射 ATT&CK 技术框架</p>
+    </div>
+
+    <!-- 输入数据 -->
+    <div class="data-section">
+        <h3>输入数据 - 关系挖掘结果</h3>
+        <div class="data-input-empty" id="chainsInputEmpty">
+            <p>暂无数据，请先完成 <a href="#page-relations" onclick="navigateTo('relations')">关系挖掘</a></p>
+        </div>
+        <div class="data-input-filled" id="chainsInputFilled" style="display:none;">
+            <div class="data-info-grid">
+                <div class="info-item">
+                    <span class="info-label">可疑关系</span>
+                    <span class="info-value" id="chainsInRelations">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">告警数</span>
+                    <span class="info-value" id="chainsInAlerts">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 处理控制 -->
+    <div class="action-section">
+        <button id="btnChains" class="btn btn-primary btn-large" disabled>
+            ▶ 开始重建攻击链
+        </button>
+    </div>
+
+    <!-- 处理进度 -->
+    <div class="process-section" id="chainsProcessSection" style="display:none;">
+        <h3>处理进度</h3>
+        <div class="process-bar-wrapper">
+            <div class="process-bar">
+                <div class="process-fill" id="chainsProcessFill"></div>
+            </div>
+            <span class="process-text" id="chainsProcessText">0%</span>
+        </div>
+        <div class="process-steps">
+            <div class="process-step" data-step="1">
+                <span class="step-dot">○</span>
+                <span class="step-text">识别告警节点</span>
+            </div>
+            <div class="process-step" data-step="2">
+                <span class="step-dot">○</span>
+                <span class="step-text">提取节点特征</span>
+            </div>
+            <div class="process-step" data-step="3">
+                <span class="step-dot">○</span>
+                <span class="step-text">DBSCAN 聚类</span>
+            </div>
+            <div class="process-step" data-step="4">
+                <span class="step-dot">○</span>
+                <span class="step-text">映射 ATT&CK</span>
+            </div>
+            <div class="process-step" data-step="5">
+                <span class="step-dot">○</span>
+                <span class="step-text">生成攻击报告</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 输出数据 -->
+    <div class="data-section" id="chainsOutputSection" style="display:none;">
+        <div class="section-header-with-action">
+            <h3>输出数据 - 攻击链森林</h3>
+            <a href="/api/download/chains" class="btn-download" id="downloadChains" style="display:none;">
+                📥 下载攻击链数据
+            </a>
+        </div>
+
+        <!-- 攻击链统计 -->
+        <div class="chains-stats-bar">
+            <div class="stat-item">
+                <span class="stat-label">攻击链数</span>
+                <span class="stat-value" id="chainsOutTotal">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">涉及节点</span>
+                <span class="stat-value" id="chainsOutNodes">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">关联告警</span>
+                <span class="stat-value" id="chainsOutAlerts">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">ATT&CK 技术</span>
+                <span class="stat-value" id="chainsOutTechniques">0</span>
+            </div>
+        </div>
+
+        <!-- 攻击链森林图 -->
+        <div class="chains-forest-layout">
+            <!-- 左侧：攻击链列表 -->
+            <div class="chain-trees-panel">
+                <div class="panel-header">
+                    <h4>🌲 攻击链森林</h4>
+                    <span class="panel-subtitle">检测到的 <strong id="forestChainCount">0</strong> 条攻击链</span>
+                </div>
+                <div class="chain-trees-list" id="chainTreesList">
+                    <!-- 动态填充攻击链树 -->
+                </div>
+            </div>
+
+            <!-- 右侧：选中攻击链详情 -->
+            <div class="chain-detail-panel">
+                <div class="panel-header">
+                    <h4 id="chainDetailTitle">📋 攻击链详情</h4>
+                    <div class="detail-controls">
+                        <button class="control-btn" onclick="resetChainZoom()">🔄 重置</button>
+                        <button class="control-btn" onclick="toggleChainLabels()">🏷️ 标签</button>
+                    </div>
+                </div>
+
+                <!-- 攻击链详情占位符 -->
+                <div class="chain-detail-placeholder" id="chainDetailPlaceholder">
+                    <div class="placeholder-icon">👈</div>
+                    <p>请从左侧选择一条攻击链</p>
+                    <p style="font-size: 0.85rem; color: #999;">查看其攻击阶段和技术详情</p>
+                </div>
+
+                <!-- 攻击链详情内容 -->
+                <div class="chain-detail-content" id="chainDetailContent" style="display:none;">
+                    <!-- 攻击链信息卡片 -->
+                    <div class="chain-info-card">
+                        <div class="chain-info-row">
+                            <span class="chain-info-label">攻击类型</span>
+                            <span class="chain-info-value" id="detailAttackType">-</span>
+                        </div>
+                        <div class="chain-info-row">
+                            <span class="chain-info-label">涉及节点</span>
+                            <span class="chain-info-value" id="detailNodeCount">0</span>
+                        </div>
+                        <div class="chain-info-row">
+                            <span class="chain-info-label">关联告警</span>
+                            <span class="chain-info-value" id="detailAlertCount">0</span>
+                        </div>
+                        <div class="chain-info-row">
+                            <span class="chain-info-label">使用技术</span>
+                            <span class="chain-info-value" id="detailTechCount">0</span>
+                        </div>
+                    </div>
+
+                    <!-- 攻击链森林图 -->
+                    <div class="chain-forest-chart" id="chainForestChart"></div>
+
+                    <!-- ATT&CK 技术标签 -->
+                    <div class="attack-techniques-section">
+                        <h5>🎯 涉及的 ATT&CK 技术</h5>
+                        <div class="techniques-tags" id="techniquesTags">
+                            <!-- 动态填充技术标签 -->
+                        </div>
+                    </div>
+
+                    <!-- 关联节点列表 -->
+                    <div class="chain-nodes-section">
+                        <h5>🔗 关联节点</h5>
+                        <div class="chain-nodes-list" id="chainNodesList">
+                            <!-- 动态填充节点列表 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="next-step-hint">
+            <span>✓ 攻击链重建完成</span>
+            <a href="#page-ai" class="next-link" onclick="navigateTo('ai')">下一步: AI 智能分析 →</a>
+        </div>
+    </div>
+</div>
