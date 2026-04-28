@@ -2,7 +2,22 @@
 <div class="page-component" id="page-threat">
     <div class="page-header">
         <h2>⚠️ 威胁检测</h2>
-        <p>使用机器学习算法进行威胁评分与节点分类</p>
+        <div class="page-description">
+            <p class="main-desc">运用机器学习算法对节点进行多维度特征提取，实现异常检测和行为聚类分析</p>
+            <div class="module-flow">
+                <span class="flow-label">流程位置:</span>
+                <span class="flow-item">规则检测</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item active">威胁检测</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item">关系挖掘</span>
+            </div>
+            <div class="module-details">
+                <p><strong>核心功能:</strong> 提取17维节点特征(结构/语义/时序)，使用Isolation Forest进行异常检测，结合K-Means行为聚类，计算威胁评分并划分为5个等级(Critical/High/Medium/Low/Benign)。</p>
+                <p><strong>上游依赖:</strong> 依赖"规则检测"模块的告警数据和"关系图构建"的图结构数据。</p>
+                <p><strong>输出产物:</strong> 节点威胁评分结果，包含每个节点的分类、异常分数、聚类标签，作为关系挖掘的目标节点源。</p>
+            </div>
+        </div>
     </div>
 
     <!-- 输入数据 -->

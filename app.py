@@ -1275,6 +1275,268 @@ def get_chains():
     return jsonify(chains_data)
 
 
+@app.route("/api/overview")
+def get_overview():
+    """获取总览页数据（汇总所有模块的统计数据）"""
+    # Demo 模式：返回预生成的总览数据
+    if IS_DEMO_MODE:
+        return get_demo_overview_data()
+    else:
+        return get_real_overview_data()
+
+
+def get_demo_overview_data():
+    """获取Demo模式的总览数据"""
+    # 从预生成数据中汇总
+    analysis = load_json(get_demo_file("data_analysis.json"))
+    alerts = load_json(get_demo_file("data_alerts.json"))
+    threat = load_json(get_demo_file("data_threat.json"))
+    chains = load_json(get_demo_file("data_chains.json"))
+
+    return jsonify({
+        "threat_level": analysis.get("overall_assessment", {}).get("threat_level", "unknown"),
+        "summary": {
+            "critical": analysis.get("threat_detection", {}).get("summary", {}).get("by_level", {}).get("critical", 0),
+            "high": analysis.get("threat_detection", {}).get("summary", {}).get("by_level", {}).get("high", 0),
+            "medium": analysis.get("threat_detection", {}).get("summary", {}).get("by_level", {}).get("medium", 0),
+            "alerts": analysis.get("rule_detection", {}).get("total_alerts", 0)
+        },
+        "events": {
+            "total": analysis.get("events_statistics", {}).get("total_events", 0),
+            "by_type": analysis.get("events_statistics", {}).get("by_type", {}),
+            "timeline": generate_demo_timeline_data()
+        },
+        "graph": {
+            "nodes": analysis.get("graph_statistics", {}).get("node_count", 0),
+            "edges": analysis.get("graph_statistics", {}).get("edge_count", 0),
+            "avg_degree": analysis.get("graph_statistics", {}).get("avg_degree", 0),
+            "density": analysis.get("graph_statistics", {}).get("density", 0),
+            "node_types": analysis.get("graph_statistics", {}).get("node_types", {})
+        },
+        "rules": {
+            "by_category": count_alerts_by_category(alerts.get("alerts", [])),
+            "by_severity": analysis.get("rule_detection", {}).get("by_severity", {})
+        },
+        "threat": {
+            "by_level": analysis.get("threat_detection", {}).get("summary", {}).get("by_level", {}),
+            "top_nodes": get_top_threat_nodes(threat, limit=10)
+        },
+        "chains": {
+            "total": analysis.get("attack_chains", {}).get("total_chains", 0),
+            "by_type": analysis.get("attack_chains", {}).get("by_attack_type", {})
+        },
+        "recent_alerts": get_recent_alerts(alerts.get("alerts", []), limit=10),
+        "attack_matrix": get_attack_matrix_coverage(alerts.get("alerts", [])),
+        "progress": get_demo_progress_data()
+    })
+
+
+def get_real_overview_data():
+    """获取真实模式的总览数据"""
+    analysis = load_json(ANALYSIS_FILE)
+    alerts = load_json(ALERTS_FILE)
+    threat = load_json(THREAT_FILE)
+    chains = load_json(CHAINS_FILE)
+
+    if not analysis:
+        # 如果分析结果不存在，返回部分数据
+        return jsonify({
+            "threat_level": "unknown",
+            "summary": {"critical": 0, "high": 0, "medium": 0, "alerts": 0},
+            "events": {"total": 0, "by_type": {}, "timeline": []},
+            "graph": {"nodes": 0, "edges": 0, "avg_degree": 0, "density": 0, "node_types": {}},
+            "rules": {"by_category": {}, "by_severity": {}},
+            "threat": {"by_level": {}, "top_nodes": []},
+            "chains": {"total": 0, "by_type": {}},
+            "recent_alerts": [],
+            "attack_matrix": {},
+            "progress": get_current_progress()
+        })
+
+    return jsonify({
+        "threat_level": analysis.get("overall_assessment", {}).get("threat_level", "unknown"),
+        "summary": {
+            "critical": analysis.get("threat_detection", {}).get("summary", {}).get("by_level", {}).get("critical", 0),
+            "high": analysis.get("threat_detection", {}).get("summary", {}).get("by_level", {}).get("high", 0),
+            "medium": analysis.get("threat_detection", {}).get("summary", {}).get("by_level", {}).get("medium", 0),
+            "alerts": analysis.get("rule_detection", {}).get("total_alerts", 0)
+        },
+        "events": {
+            "total": analysis.get("events_statistics", {}).get("total_events", 0),
+            "by_type": analysis.get("events_statistics", {}).get("by_type", {}),
+            "timeline": generate_timeline_from_events(analysis.get("events_statistics", {}))
+        },
+        "graph": {
+            "nodes": analysis.get("graph_statistics", {}).get("node_count", 0),
+            "edges": analysis.get("graph_statistics", {}).get("edge_count", 0),
+            "avg_degree": analysis.get("graph_statistics", {}).get("avg_degree", 0),
+            "density": analysis.get("graph_statistics", {}).get("density", 0),
+            "node_types": analysis.get("graph_statistics", {}).get("node_types", {})
+        },
+        "rules": {
+            "by_category": count_alerts_by_category(alerts.get("alerts", []) if alerts else []),
+            "by_severity": analysis.get("rule_detection", {}).get("by_severity", {})
+        },
+        "threat": {
+            "by_level": analysis.get("threat_detection", {}).get("summary", {}).get("by_level", {}),
+            "top_nodes": get_top_threat_nodes(threat, limit=10)
+        },
+        "chains": {
+            "total": analysis.get("attack_chains", {}).get("total_chains", 0),
+            "by_type": analysis.get("attack_chains", {}).get("by_attack_type", {})
+        },
+        "recent_alerts": get_recent_alerts(alerts.get("alerts", []) if alerts else [], limit=10),
+        "attack_matrix": get_attack_matrix_coverage(alerts.get("alerts", []) if alerts else []),
+        "progress": get_current_progress()
+    })
+
+
+def count_alerts_by_category(alerts):
+    """按类别统计告警数量"""
+    categories = {"file": 0, "process": 0, "network": 0, "sequence": 0, "temporal": 0}
+    for alert in alerts:
+        category = alert.get("rule", {}).get("category", "")
+        if category in categories:
+            categories[category] += 1
+    return categories
+
+
+def get_top_threat_nodes(threat_data, limit=10):
+    """获取高风险节点列表"""
+    if not threat_data:
+        return []
+
+    classifications = threat_data.get("node_classifications", {})
+    nodes_list = []
+
+    for node_id, data in classifications.items():
+        if data.get("classification") in ["critical", "high"]:
+            nodes_list.append({
+                "node_id": node_id,
+                "classification": data.get("classification"),
+                "threat_score": data.get("threat_score", 0),
+                "cluster": data.get("cluster", -1)
+            })
+
+    nodes_list.sort(key=lambda x: x["threat_score"], reverse=True)
+    return nodes_list[:limit]
+
+
+def get_recent_alerts(alerts, limit=10):
+    """获取最近的告警"""
+    if not alerts:
+        return []
+
+    # 按时间戳排序
+    sorted_alerts = sorted(alerts, key=lambda x: x.get("timestamp", ""), reverse=True)
+    return sorted_alerts[:limit]
+
+
+def get_attack_matrix_coverage(alerts):
+    """获取ATT&CK战术覆盖情况"""
+    # MITRE ATT&CK 战术映射
+    tactic_mapping = {
+        "T1012": "credential-access",
+        "T1059": "execution",
+        "T1070": "defense-evasion",
+        "T1071": "command-control",
+        "T1105": "execution",
+        "T1005": "discovery",
+        "T1041": "exfiltration",
+        "T1547": "persistence",
+        "T1190": "initial-access",
+        "T1068": "privilege-escalation",
+        "T1505": "persistence",
+        "T1018": "lateral-movement",
+        "T1595": "discovery",
+        "T1056": "credential-access",
+        "T1003": "credential-access",
+        "T1053": "persistence",
+        "T1014": "defense-evasion",
+        "T1557": "defense-evasion",
+        "T1559": "execution",
+        "T1611": "privilege-escalation",
+        "T1496": "execution",
+        "T1027": "defense-evasion",
+        "T1110": "credential-access"
+    }
+
+    tactic_counts = {}
+    for alert in alerts:
+        technique = alert.get("rule", {}).get("technique", "")
+        if technique in tactic_mapping:
+            tactic = tactic_mapping[technique]
+            tactic_counts[tactic] = tactic_counts.get(tactic, 0) + 1
+
+    return tactic_counts
+
+
+def generate_demo_timeline_data():
+    """生成演示用的时间线数据"""
+    hours = []
+    counts = []
+
+    # 模拟24小时数据分布
+    base_count = 1000
+    for i in range(24):
+        hours.append(f"{i:02d}:00")
+        # 模拟正常工作时间高，夜间低
+        if 8 <= i <= 18:
+            variance = 0.3 + (i - 8) * 0.05
+        else:
+            variance = 0.1 + (i % 4) * 0.05
+        counts.append(int(base_count * variance))
+
+    return {"hours": hours, "counts": counts}
+
+
+def generate_timeline_from_events(events_stats):
+    """从事件统计生成时间线数据"""
+    return generate_demo_timeline_data()
+
+
+def get_demo_progress_data():
+    """获取Demo模式的进度数据（所有步骤已完成）"""
+    return {
+        "total_steps": 8,
+        "completed_steps": 8,
+        "percentage": 100,
+        "steps": {
+            "upload": {"completed": True, "running": False},
+            "extract": {"completed": True, "running": False},
+            "graph": {"completed": True, "running": False},
+            "rules": {"completed": True, "running": False},
+            "threat": {"completed": True, "running": False},
+            "relations": {"completed": True, "running": False},
+            "chains": {"completed": True, "running": False},
+            "ai": {"completed": True, "running": False}
+        }
+    }
+
+
+def get_current_progress():
+    """获取当前实际进度"""
+    cache_mgr = get_cache_manager()
+    steps = ["upload", "extract", "graph", "rules", "threat", "relations", "chains", "ai"]
+
+    progress_data = {}
+    completed_count = 0
+
+    for step in steps:
+        step_cache = cache_mgr.get(step)
+        is_completed = step_cache is not None
+        progress_data[step] = {"completed": is_completed, "running": False}
+        if is_completed:
+            completed_count += 1
+
+    return {
+        "total_steps": len(steps),
+        "completed_steps": completed_count,
+        "percentage": int(completed_count / len(steps) * 100),
+        "steps": progress_data
+    }
+
+
 @app.route("/api/analysis")
 def get_analysis():
     """获取完整分析结果"""

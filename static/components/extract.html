@@ -2,7 +2,22 @@
 <div class="page-component" id="page-extract">
     <div class="page-header">
         <h2>📋 事件提取</h2>
-        <p>将多源日志解析为统一事件格式</p>
+        <div class="page-description">
+            <p class="main-desc">将异构的多源日志解析为统一的事件格式，为后续分析建立标准数据基础</p>
+            <div class="module-flow">
+                <span class="flow-label">流程位置:</span>
+                <span class="flow-item">数据准备</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item active">事件提取</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item">关系图构建</span>
+            </div>
+            <div class="module-details">
+                <p><strong>核心功能:</strong> 解析进程、文件、网络三种日志源，提取主体(subject)、客体(object)、动作(action)、时间戳等关键字段，统一事件格式支持溯源分析。</p>
+                <p><strong>上游依赖:</strong> 依赖"数据准备"模块提供的原始日志文件。</p>
+                <p><strong>输出产物:</strong> 标准化事件集合，包含进程事件、文件事件、网络事件，作为关系图构建的输入。</p>
+            </div>
+        </div>
     </div>
 
     <!-- 输入数据：原始日志文件 -->

@@ -2,7 +2,22 @@
 <div class="page-component" id="page-chains">
     <div class="page-header">
         <h2>⛓️ 攻击链重建</h2>
-        <p>聚类分析并重建完整攻击链，映射 ATT&CK 技术框架</p>
+        <div class="page-description">
+            <p class="main-desc">将分散的异常行为聚类关联，重建完整的攻击活动序列，映射到ATT&CK框架</p>
+            <div class="module-flow">
+                <span class="flow-label">流程位置:</span>
+                <span class="flow-item">关系挖掘</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item active">攻击链重建</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item">AI分析</span>
+            </div>
+            <div class="module-details">
+                <p><strong>核心功能:</strong> 使用DBSCAN聚类算法将告警节点分组，按时间序列重建攻击链路。将每个攻击步骤映射到MITRE ATT&CK战术与技术矩阵，识别攻击阶段和手法。</p>
+                <p><strong>上游依赖:</strong> 依赖"关系挖掘"模块输出的可疑关系和子图数据。</p>
+                <p><strong>输出产物:</strong> 攻击链列表，每个链条包含阶段序列、关联节点、ATT&CK映射标签，作为AI分析的攻击活动输入。</p>
+            </div>
+        </div>
     </div>
 
     <!-- 输入数据 -->

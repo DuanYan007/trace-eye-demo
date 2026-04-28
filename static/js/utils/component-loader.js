@@ -5,6 +5,10 @@
 
 // 组件配置
 const COMPONENTS = {
+    overview: {
+        template: '/static/components/overview.html',
+        script: '/static/js/components/overview.js'
+    },
     upload: {
         template: '/static/components/upload.html',
         script: '/static/js/components/upload.js'

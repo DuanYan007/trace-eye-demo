@@ -203,14 +203,86 @@ body {
 
 .page-header h2 {
     font-size: 1.8rem;
-    margin-bottom: 5px;
+    margin-bottom: 15px;
     display: flex;
     align-items: center;
     gap: 10px;
+    color: var(--text-primary);
 }
 
 .page-header p {
     color: var(--text-secondary);
+}
+
+/* 页面描述区域 */
+.page-description {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    padding: 20px 25px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.page-description .main-desc {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin: 0 0 15px 0;
+    font-weight: 500;
+}
+
+/* 流程位置指示器 */
+.module-flow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.flow-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.flow-item {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    background: white;
+    color: var(--text-secondary);
+    border: 1px solid #dee2e6;
+    font-weight: 500;
+}
+
+.flow-item.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.flow-arrow {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* 模块详情 */
+.module-details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.module-details p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.module-details strong {
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 /* ==================== 数据区域 ==================== */

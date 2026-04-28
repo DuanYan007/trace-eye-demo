@@ -2,7 +2,22 @@
 <div class="page-component" id="page-graph">
     <div class="page-header">
         <h2>🕸️ 关系图构建</h2>
-        <p>构建系统调用溯源图并去噪</p>
+        <div class="page-description">
+            <p class="main-desc">从事件序列中构建系统调用溯源图，通过图去噪技术突出异常行为路径</p>
+            <div class="module-flow">
+                <span class="flow-label">流程位置:</span>
+                <span class="flow-item">事件提取</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item active">关系图构建</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item">规则检测</span>
+            </div>
+            <div class="module-details">
+                <p><strong>核心功能:</strong> 将事件转换为节点(进程/文件/网络套接字)和边(调用关系)，构建溯源图。实施三级去噪：过滤系统服务进程、移除高频正常边、删除孤立节点，聚焦可疑行为。</p>
+                <p><strong>上游依赖:</strong> 依赖"事件提取"模块输出的标准化事件集合。</p>
+                <p><strong>输出产物:</strong> 去噪后的溯源图数据，包含节点列表、边列表和图统计指标，作为规则检测和威胁分析的基础。</p>
+            </div>
+        </div>
     </div>
 
     <!-- 输入数据 -->

@@ -2,7 +2,22 @@
 <div class="page-component" id="page-relations">
     <div class="page-header">
         <h2>🔗 关系挖掘</h2>
-        <p>挖掘威胁节点及其辐射的可疑关系</p>
+        <div class="page-description">
+            <p class="main-desc">围绕高风险节点扩展其k-hop邻域，挖掘隐藏的可疑关联和异常子图结构</p>
+            <div class="module-flow">
+                <span class="flow-label">流程位置:</span>
+                <span class="flow-item">威胁检测</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item active">关系挖掘</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item">攻击链重建</span>
+            </div>
+            <div class="module-details">
+                <p><strong>核心功能:</strong> 以异常节点为种子，扩展其关联节点，计算节点间关联度权重，识别可疑关系路径。构建可疑子图，揭示横向移动、数据窃取等攻击活动链路。</p>
+                <p><strong>上游依赖:</strong> 依赖"威胁检测"模块输出的高风险节点列表和原始关系图数据。</p>
+                <p><strong>输出产物:</strong> 可疑关系集合和可疑子图列表，包含关联节点、关系路径、关联度评分，作为攻击链重建的关联网络基础。</p>
+            </div>
+        </div>
     </div>
 
     <!-- 输入数据 -->

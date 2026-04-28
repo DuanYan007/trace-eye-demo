@@ -6,10 +6,10 @@
 // ==================== 全局状态 ====================
 
 // 当前页面
-let currentPage = 'upload';
+let currentPage = 'overview';
 
 // 页面配置
-const PAGES = ['upload', 'extract', 'graph', 'rules', 'threat', 'relations', 'chains', 'ai'];
+const PAGES = ['overview', 'upload', 'extract', 'graph', 'rules', 'threat', 'relations', 'chains', 'ai'];
 
 // 页面依赖关系
 const PAGE_DEPENDENCIES = {
@@ -96,6 +96,7 @@ const RULE_CATEGORIES = {
 // ==================== 页面名称 ====================
 
 const PAGE_NAMES = {
+    'overview': '系统总览',
     'upload': '数据准备',
     'extract': '事件提取',
     'graph': '关系图构建',
@@ -233,6 +234,9 @@ async function loadPageData(pageId) {
 
         // 根据页面加载不同数据
         switch (pageId) {
+            case 'overview':
+                await loadOverviewData(status, pageDataCache);
+                break;
             case 'upload':
                 await loadUploadData(status, pageDataCache);
                 break;
@@ -414,6 +418,10 @@ function showDownloadButton(section) {
 
 // 这些函数将由各个页面组件的具体实现覆盖
 // 这里只提供占位符
+
+async function loadOverviewData(status) {
+    // 由 overview.js 实现
+}
 
 async function loadUploadData(status) {
     // 由 upload.js 实现

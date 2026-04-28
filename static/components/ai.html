@@ -2,7 +2,22 @@
 <div class="page-component" id="page-ai">
     <div class="page-header">
         <h2>🤖 AI 智能分析</h2>
-        <p>基于大模型的告警降噪与攻击故事生成</p>
+        <div class="page-description">
+            <p class="main-desc">利用大语言模型对检测结果进行智能分析，生成可读性强的攻击报告和处置建议</p>
+            <div class="module-flow">
+                <span class="flow-label">流程位置:</span>
+                <span class="flow-item">攻击链重建</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item active">AI分析</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item">分析报告</span>
+            </div>
+            <div class="module-details">
+                <p><strong>核心功能:</strong> 对告警进行去重降噪，将分散的检测结果整合为连贯的攻击叙述。生成攻击故事、提取IOC指标、提供处置建议，输出面向安全分析师的可读报告。</p>
+                <p><strong>上游依赖:</strong> 依赖"规则检测"的告警数据和"攻击链重建"的攻击活动序列。</p>
+                <p><strong>输出产物:</strong> 最终分析报告，包含威胁摘要、攻击阶段描述、IOC列表、处置建议，作为系统分析的最终交付物。</p>
+            </div>
+        </div>
     </div>
 
     <!-- 输入数据 -->

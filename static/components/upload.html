@@ -2,7 +2,21 @@
 <div class="page-component" id="page-upload">
     <div class="page-header">
         <h2>📁 数据准备</h2>
-        <p>上传多源日志文件（进程/文件/网络）或使用演示模式</p>
+        <div class="page-description">
+            <p class="main-desc">系统分析流程的起点，负责收集和准备多源安全日志数据</p>
+            <div class="module-flow">
+                <span class="flow-label">流程位置:</span>
+                <span class="flow-item">起始</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item active">数据准备</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item">事件提取</span>
+            </div>
+            <div class="module-details">
+                <p><strong>核心功能:</strong> 支持上传真实日志文件或使用内置演示数据。系统接收三种类型的日志：进程日志(syslog)、文件审计日志和网络流量日志(NetFlow)。</p>
+                <p><strong>输出产物:</strong> 结构化的原始日志数据文件，作为后续事件提取模块的输入源。</p>
+            </div>
+        </div>
     </div>
 
     <!-- 模式选择 -->

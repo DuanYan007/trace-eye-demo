@@ -1,0 +1,478 @@
+<!-- 总览页面 - Trace-Eye APT威胁检测系统 -->
+<div class="overview-page">
+    <!-- 顶部威胁态势卡片 -->
+    <section class="overview-hero">
+        <div class="threat-gauge-container">
+            <div class="threat-gauge-wrapper">
+                <div class="threat-gauge-chart" id="threatGaugeChart">
+                    <svg viewBox="0 0 200 120" class="gauge-svg">
+                        <defs>
+                            <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#4CAF50"/>
+                                <stop offset="30%" stop-color="#FFC107"/>
+                                <stop offset="60%" stop-color="#FF9800"/>
+                                <stop offset="100%" stop-color="#f44336"/>
+                            </linearGradient>
+                        </defs>
+                        <path class="gauge-bg" d="M20,100 A80,80 0 0,1 180,100" fill="none" stroke="#e0e0e0" stroke-width="20" stroke-linecap="round"/>
+                        <path class="gauge-fill" id="gaugeFill" d="M20,100 A80,80 0 0,1 180,100" fill="none" stroke="url(#gaugeGradient)" stroke-width="20" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+                        <g class="gauge-needle" id="gaugeNeedle" transform="translate(100, 100)">
+                            <polygon points="0,-60 -4,0 4,0" fill="#333"/>
+                            <circle cx="0" cy="0" r="8" fill="#333"/>
+                        </g>
+                    </svg>
+                </div>
+                <div class="threat-gauge-center">
+                    <div class="threat-gauge-value" id="overviewThreatLevel">--</div>
+                    <div class="threat-gauge-label">威胁等级</div>
+                </div>
+            </div>
+        </div>
+        <div class="threat-summary-cards">
+            <div class="threat-summary-card critical">
+                <div class="card-icon">⚠️</div>
+                <div class="card-content">
+                    <div class="card-value" id="overviewCriticalCount">--</div>
+                    <div class="card-label">严重威胁</div>
+                </div>
+                <div class="card-trend">
+                    <canvas id="criticalTrendCanvas" width="60" height="30"></canvas>
+                </div>
+            </div>
+            <div class="threat-summary-card high">
+                <div class="card-icon">🔴</div>
+                <div class="card-content">
+                    <div class="card-value" id="overviewHighCount">--</div>
+                    <div class="card-label">高危节点</div>
+                </div>
+                <div class="card-trend">
+                    <canvas id="highTrendCanvas" width="60" height="30"></canvas>
+                </div>
+            </div>
+            <div class="threat-summary-card medium">
+                <div class="card-icon">🟠</div>
+                <div class="card-content">
+                    <div class="card-value" id="overviewMediumCount">--</div>
+                    <div class="card-label">中危异常</div>
+                </div>
+                <div class="card-trend">
+                    <canvas id="mediumTrendCanvas" width="60" height="30"></canvas>
+                </div>
+            </div>
+            <div class="threat-summary-card info">
+                <div class="card-icon">🚨</div>
+                <div class="card-content">
+                    <div class="card-value" id="overviewAlertsCount">--</div>
+                    <div class="card-label">规则告警</div>
+                </div>
+                <div class="card-trend">
+                    <canvas id="alertsTrendCanvas" width="60" height="30"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 处理流程进度 -->
+    <section class="overview-progress">
+        <div class="progress-header">
+            <h3>处理流程</h3>
+            <div class="progress-percentage" id="overviewProgressPercent">0%</div>
+        </div>
+        <div class="progress-steps">
+            <div class="progress-step" data-step="upload" id="progressStepUpload">
+                <div class="step-dot">
+                    <span class="step-number">1</span>
+                </div>
+                <div class="step-info">
+                    <div class="step-title">数据准备</div>
+                    <div class="step-desc">日志上传/生成</div>
+                </div>
+                <div class="step-status">
+                    <span class="status-badge">待处理</span>
+                </div>
+            </div>
+            <div class="progress-connector"></div>
+            <div class="progress-step" data-step="extract" id="progressStepExtract">
+                <div class="step-dot">
+                    <span class="step-number">2</span>
+                </div>
+                <div class="step-info">
+                    <div class="step-title">事件提取</div>
+                    <div class="step-desc">解析多源日志</div>
+                </div>
+                <div class="step-status">
+                    <span class="status-badge">待处理</span>
+                </div>
+            </div>
+            <div class="progress-connector"></div>
+            <div class="progress-step" data-step="graph" id="progressStepGraph">
+                <div class="step-dot">
+                    <span class="step-number">3</span>
+                </div>
+                <div class="step-info">
+                    <div class="step-title">关系图构建</div>
+                    <div class="step-desc">溯源图分析</div>
+                </div>
+                <div class="step-status">
+                    <span class="status-badge">待处理</span>
+                </div>
+            </div>
+            <div class="progress-connector"></div>
+            <div class="progress-step" data-step="rules" id="progressStepRules">
+                <div class="step-dot">
+                    <span class="step-number">4</span>
+                </div>
+                <div class="step-info">
+                    <div class="step-title">规则检测</div>
+                    <div class="step-desc">25条规则匹配</div>
+                </div>
+                <div class="step-status">
+                    <span class="status-badge">待处理</span>
+                </div>
+            </div>
+            <div class="progress-connector"></div>
+            <div class="progress-step" data-step="threat" id="progressStepThreat">
+                <div class="step-dot">
+                    <span class="step-number">5</span>
+                </div>
+                <div class="step-info">
+                    <div class="step-title">威胁检测</div>
+                    <div class="step-desc">ML异常检测</div>
+                </div>
+                <div class="step-status">
+                    <span class="status-badge">待处理</span>
+                </div>
+            </div>
+            <div class="progress-connector"></div>
+            <div class="progress-step" data-step="relations" id="progressStepRelations">
+                <div class="step-dot">
+                    <span class="step-number">6</span>
+                </div>
+                <div class="step-info">
+                    <div class="step-title">关系挖掘</div>
+                    <div class="step-desc">可疑关联分析</div>
+                </div>
+                <div class="step-status">
+                    <span class="status-badge">待处理</span>
+                </div>
+            </div>
+            <div class="progress-connector"></div>
+            <div class="progress-step" data-step="chains" id="progressStepChains">
+                <div class="step-dot">
+                    <span class="step-number">7</span>
+                </div>
+                <div class="step-info">
+                    <div class="step-title">攻击链重建</div>
+                    <div class="step-desc">ATT&CK映射</div>
+                </div>
+                <div class="step-status">
+                    <span class="status-badge">待处理</span>
+                </div>
+            </div>
+            <div class="progress-connector"></div>
+            <div class="progress-step" data-step="ai" id="progressStepAi">
+                <div class="step-dot">
+                    <span class="step-number">8</span>
+                </div>
+                <div class="step-info">
+                    <div class="step-title">AI分析</div>
+                    <div class="step-desc">智能报告生成</div>
+                </div>
+                <div class="step-status">
+                    <span class="status-badge">待处理</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 数据统计网格 -->
+    <section class="overview-stats-grid">
+        <div class="stat-card events-card">
+            <div class="stat-header">
+                <div class="stat-icon">📋</div>
+                <div class="stat-title">事件统计</div>
+            </div>
+            <div class="stat-value" id="overviewTotalEvents">--</div>
+            <div class="stat-breakdown">
+                <div class="breakdown-item">
+                    <span class="breakdown-label">进程事件</span>
+                    <span class="breakdown-bar"><span class="breakdown-fill process" id="processBar"></span></span>
+                    <span class="breakdown-value" id="processCount">--</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="breakdown-label">文件事件</span>
+                    <span class="breakdown-bar"><span class="breakdown-fill file" id="fileBar"></span></span>
+                    <span class="breakdown-value" id="fileCount">--</span>
+                </div>
+                <div class="breakdown-item">
+                    <span class="breakdown-label">网络事件</span>
+                    <span class="breakdown-bar"><span class="breakdown-fill network" id="networkBar"></span></span>
+                    <span class="breakdown-value" id="networkCount">--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card graph-card">
+            <div class="stat-header">
+                <div class="stat-icon">🕸️</div>
+                <div class="stat-title">图统计</div>
+            </div>
+            <div class="stat-metrics">
+                <div class="metric-item">
+                    <span class="metric-label">节点总数</span>
+                    <span class="metric-value" id="overviewNodeCount">--</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">边总数</span>
+                    <span class="metric-value" id="overviewEdgeCount">--</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">平均度数</span>
+                    <span class="metric-value" id="overviewAvgDegree">--</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">图密度</span>
+                    <span class="metric-value" id="overviewDensity">--</span>
+                </div>
+            </div>
+            <div class="stat-chart">
+                <canvas id="nodeTypePieCanvas" width="120" height="80"></canvas>
+            </div>
+        </div>
+
+        <div class="stat-card rules-card">
+            <div class="stat-header">
+                <div class="stat-icon">🔍</div>
+                <div class="stat-title">规则检测</div>
+            </div>
+            <div class="rule-categories-summary">
+                <div class="rule-category-mini file">
+                    <span class="category-name">文件异常</span>
+                    <span class="category-count" id="ruleFileCount">--</span>
+                </div>
+                <div class="rule-category-mini process">
+                    <span class="category-name">进程异常</span>
+                    <span class="category-count" id="ruleProcessCount">--</span>
+                </div>
+                <div class="rule-category-mini network">
+                    <span class="category-name">网络异常</span>
+                    <span class="category-count" id="ruleNetworkCount">--</span>
+                </div>
+                <div class="rule-category-mini sequence">
+                    <span class="category-name">行为序列</span>
+                    <span class="category-count" id="ruleSequenceCount">--</span>
+                </div>
+                <div class="rule-category-mini temporal">
+                    <span class="category-name">时序异常</span>
+                    <span class="category-count" id="ruleTemporalCount">--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card chains-card">
+            <div class="stat-header">
+                <div class="stat-icon">⛓️</div>
+                <div class="stat-title">攻击链</div>
+            </div>
+            <div class="chains-summary">
+                <div class="chain-count" id="overviewChainsCount">--</div>
+                <div class="chain-label">检测到攻击链</div>
+            </div>
+            <div class="attack-types" id="attackTypesList">
+                <span class="attack-type-tag">--</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 可视化图表区域 -->
+    <section class="overview-charts">
+        <div class="chart-row">
+            <div class="chart-card large">
+                <div class="chart-header">
+                    <h4>事件时间分布</h4>
+                    <div class="chart-controls">
+                        <button class="chart-btn active" data-type="hour">时</button>
+                        <button class="chart-btn" data-type="day">日</button>
+                    </div>
+                </div>
+                <div id="eventTimelineChart" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4>告警严重程度分布</h4>
+                </div>
+                <div id="severityPieChart" class="chart-container"></div>
+            </div>
+        </div>
+        <div class="chart-row">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4>威胁等级分布</h4>
+                </div>
+                <div id="threatLevelChart" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h4>规则类别触发统计</h4>
+                </div>
+                <div id="ruleCategoryChart" class="chart-container"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 威胁节点Top列表 -->
+    <section class="overview-top-threats">
+        <div class="top-threats-header">
+            <h3>高风险节点 TOP 10</h3>
+            <div class="view-all-link">
+                <a href="#page-threat">查看全部 →</a>
+            </div>
+        </div>
+        <div class="top-threats-list" id="topThreatsList">
+            <!-- 动态填充 -->
+            <div class="threat-item skeleton">
+                <div class="threat-rank">1</div>
+                <div class="threat-info">
+                    <div class="threat-name skeleton-text"></div>
+                    <div class="threat-type skeleton-text"></div>
+                </div>
+                <div class="threat-score">
+                    <div class="score-bar"><div class="score-fill skeleton-fill"></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 最新告警时间线 -->
+    <section class="overview-alerts-timeline">
+        <div class="timeline-header">
+            <h3>最新告警时间线</h3>
+            <div class="view-all-link">
+                <a href="#page-rules">查看全部 →</a>
+            </div>
+        </div>
+        <div class="timeline-container" id="alertsTimeline">
+            <div class="timeline-item skeleton">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-time skeleton-text"></div>
+                    <div class="timeline-alert skeleton-text"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ATT&CK 战术覆盖 -->
+    <section class="overview-matrix">
+        <div class="matrix-header">
+            <h3>ATT&CK 战术覆盖</h3>
+            <div class="matrix-summary">
+                <span>覆盖 <strong id="matrixCoverage">--</strong> 个战术</span>
+            </div>
+        </div>
+        <div class="matrix-grid" id="attackMatrix">
+            <div class="matrix-tactic" data-tactic="reconnaissance">
+                <div class="tactic-icon">👁️</div>
+                <div class="tactic-name">Reconnaissance</div>
+                <div class="tactic-count">0</div>
+            </div>
+            <div class="matrix-tactic" data-tactic="initial-access">
+                <div class="tactic-icon">🚪</div>
+                <div class="tactic-name">Initial Access</div>
+                <div class="tactic-count">0</div>
+            </div>
+            <div class="matrix-tactic" data-tactic="execution">
+                <div class="tactic-icon">⚡</div>
+                <div class="tactic-name">Execution</div>
+                <div class="tactic-count">0</div>
+            </div>
+            <div class="matrix-tactic" data-tactic="persistence">
+                <div class="tactic-icon">⏰</div>
+                <div class="tactic-name">Persistence</div>
+                <div class="tactic-count">0</div>
+            </div>
+            <div class="matrix-tactic" data-tactic="privilege-escalation">
+                <div class="tactic-icon">📈</div>
+                <div class="tactic-name">Privilege Escalation</div>
+                <div class="tactic-count">0</div>
+            </div>
+            <div class="matrix-tactic" data-tactic="defense-evasion">
+                <div class="tactic-icon">🎭</div>
+                <div class="tactic-name">Defense Evasion</div>
+                <div class="tactic-count">0</div>
+            </div>
+            <div class="matrix-tactic" data-tactic="credential-access">
+                <div class="tactic-icon">🔑</div>
+                <div class="tactic-name">Credential Access</div>
+                <div class="tactic-count">0</div>
+            </div>
+            <div class="matrix-tactic" data-tactic="discovery">
+                <div class="tactic-icon">🔍</div>
+                <div class="tactic-name">Discovery</div>
+                <div class="tactic-count">0</div>
+            </div>
+            <div class="matrix-tactic" data-tactic="lateral-movement">
+                <div class="tactic-icon">↔️</div>
+                <div class="tactic-name">Lateral Movement</div>
+                <div class="tactic-count">0</div>
+            </div>
+            <div class="matrix-tactic" data-tactic="collection">
+                <div class="tactic-icon">📦</div>
+                <div class="tactic-name">Collection</div>
+                <div class="tactic-count">0</div>
+            </div>
+            <div class="matrix-tactic" data-tactic="exfiltration">
+                <div class="tactic-icon">📤</div>
+                <div class="tactic-name">Exfiltration</div>
+                <div class="tactic-count">0</div>
+            </div>
+            <div class="matrix-tactic" data-tactic="command-control">
+                <div class="tactic-icon">🎮</div>
+                <div class="tactic-name">Command & Control</div>
+                <div class="tactic-count">0</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 快速操作区域 -->
+    <section class="overview-actions" id="overviewActionsSection">
+        <div class="actions-header">
+            <h3>快速操作</h3>
+        </div>
+        <div class="action-buttons">
+            <button class="action-btn primary" id="btnGenerateData">
+                <span class="btn-icon">📊</span>
+                <span class="btn-text">生成测试数据</span>
+            </button>
+            <button class="action-btn" id="btnUploadLogs">
+                <span class="btn-icon">📁</span>
+                <span class="btn-text">上传日志</span>
+            </button>
+            <button class="action-btn" id="btnRunAnalysis">
+                <span class="btn-icon">🚀</span>
+                <span class="btn-text">运行全部分析</span>
+            </button>
+            <button class="action-btn" id="btnExportReport">
+                <span class="btn-icon">📄</span>
+                <span class="btn-text">导出报告</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- 实时活动日志 -->
+    <section class="overview-activity-log">
+        <div class="activity-header">
+            <h3>系统活动日志</h3>
+            <div class="activity-status">
+                <span class="status-dot"></span>
+                <span class="status-text">实时监控中</span>
+            </div>
+        </div>
+        <div class="activity-list" id="activityLogList">
+            <div class="activity-item">
+                <span class="activity-time">--</span>
+                <span class="activity-message">系统初始化完成</span>
+            </div>
+        </div>
+    </section>
+</div>

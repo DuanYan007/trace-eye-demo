@@ -2,7 +2,22 @@
 <div class="page-component" id="page-rules">
     <div class="page-header">
         <h2>🔍 规则检测</h2>
-        <p>基于 25 条预定义规则检测异常</p>
+        <div class="page-description">
+            <p class="main-desc">基于专家知识库的25条检测规则，对图数据和事件进行多维度异常匹配</p>
+            <div class="module-flow">
+                <span class="flow-label">流程位置:</span>
+                <span class="flow-item">关系图构建</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item active">规则检测</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-item">威胁检测</span>
+            </div>
+            <div class="module-details">
+                <p><strong>核心功能:</strong> 覆盖文件、进程、网络、行为序列、时序异常五大类规则。每条规则对应特定攻击模式(Technique)，触发时生成告警并标记严重程度。</p>
+                <p><strong>上游依赖:</strong> 依赖"关系图构建"模块输出的去噪溯源图数据。</p>
+                <p><strong>输出产物:</strong> 规则告警列表，包含触发规则、关联事件、严重程度等信息，作为威胁检测和AI分析的输入。</p>
+            </div>
+        </div>
     </div>
 
     <!-- 输入数据 -->

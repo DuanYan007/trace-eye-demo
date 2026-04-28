@@ -1,0 +1,1090 @@
+/* ==================== 总览页样式 ==================== */
+.overview-page {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* ==================== 威胁态势总览区 ==================== */
+.overview-hero {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+}
+
+.threat-gauge-container {
+    flex: 0 0 280px;
+}
+
+.threat-gauge-wrapper {
+    position: relative;
+    height: 100%;
+    min-height: 200px;
+}
+
+.threat-gauge-chart {
+    width: 100%;
+    height: 160px;
+}
+
+.gauge-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+}
+
+.gauge-fill {
+    transition: stroke-dashoffset 1s ease-out;
+}
+
+.gauge-needle {
+    transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center center;
+}
+
+.threat-gauge-center {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.threat-gauge-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    text-transform: uppercase;
+}
+
+.threat-gauge-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.threat-summary-cards {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.threat-summary-card {
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.threat-summary-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.threat-summary-card.critical {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    color: white;
+}
+
+.threat-summary-card.high {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+}
+
+.threat-summary-card.medium {
+    background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);
+    color: white;
+}
+
+.threat-summary-card.info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.threat-summary-card .card-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.threat-summary-card .card-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.threat-summary-card .card-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.threat-summary-card .card-trend {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    opacity: 0.7;
+}
+
+/* ==================== 处理流程进度 ==================== */
+.overview-progress {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.progress-header h3 {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.progress-percentage {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.progress-steps {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    position: relative;
+    gap: 5px;
+}
+
+.progress-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.step-dot {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.step-dot .step-number {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.progress-step.completed .step-dot {
+    background: var(--success-color);
+}
+
+.progress-step.completed .step-number {
+    color: white;
+}
+
+.progress-step.active .step-dot {
+    background: var(--primary-color);
+    animation: pulse 2s infinite;
+}
+
+.progress-step.active .step-number {
+    color: white;
+}
+
+.progress-step.running .step-dot {
+    background: var(--warning-color);
+}
+
+.progress-step.running .step-number {
+    color: white;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.4); }
+    50% { box-shadow: 0 0 0 10px rgba(33, 150, 243, 0); }
+}
+
+.step-info {
+    margin-bottom: 8px;
+}
+
+.step-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.step-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.step-status .status-badge {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    background: #f0f0f0;
+    color: var(--text-secondary);
+}
+
+.progress-step.completed .status-badge {
+    background: #e8f5e9;
+    color: var(--success-color);
+}
+
+.progress-step.active .status-badge,
+.progress-step.running .status-badge {
+    background: #e3f2fd;
+    color: var(--primary-color);
+}
+
+.progress-connector {
+    flex: 1;
+    height: 3px;
+    background: #e0e0e0;
+    margin-top: -35px;
+    min-width: 20px;
+}
+
+.progress-connector.completed {
+    background: var(--success-color);
+}
+
+/* ==================== 数据统计网格 ==================== */
+.overview-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.stat-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.stat-header .stat-icon {
+    font-size: 1.5rem;
+}
+
+.stat-header .stat-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+/* 事件统计卡片 */
+.stat-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.breakdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.breakdown-label {
+    min-width: 70px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.breakdown-bar {
+    flex: 1;
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.breakdown-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s ease;
+    width: 0;
+}
+
+.breakdown-fill.process {
+    background: linear-gradient(90deg, #2196F3, #1976D2);
+}
+
+.breakdown-fill.file {
+    background: linear-gradient(90deg, #FF9800, #F57C00);
+}
+
+.breakdown-fill.network {
+    background: linear-gradient(90deg, #9C27B0, #7B1FA2);
+}
+
+.breakdown-value {
+    min-width: 40px;
+    text-align: right;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* 图统计卡片 */
+.stat-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.metric-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background: var(--light-bg);
+    border-radius: 6px;
+}
+
+.metric-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.metric-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.stat-chart {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80px;
+}
+
+/* 规则检测卡片 */
+.rule-categories-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rule-category-mini {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+
+.rule-category-mini.file {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.rule-category-mini.process {
+    background: #fff3e0;
+    color: #e65100;
+}
+
+.rule-category-mini.network {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.rule-category-mini.sequence {
+    background: #f3e5f5;
+    color: #6a1b9a;
+}
+
+.rule-category-mini.temporal {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.rule-category-mini .category-name {
+    font-weight: 500;
+}
+
+.rule-category-mini .category-count {
+    font-weight: 600;
+}
+
+/* 攻击链卡片 */
+.chains-summary {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.chain-count {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--danger-color);
+}
+
+.chain-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.attack-types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.attack-type-tag {
+    padding: 4px 10px;
+    background: var(--light-bg);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* ==================== 可视化图表区域 ==================== */
+.overview-charts {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.chart-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.chart-card.large {
+    grid-column: 1 / 2;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.chart-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.chart-controls {
+    display: flex;
+    gap: 5px;
+}
+
+.chart-btn {
+    padding: 4px 12px;
+    border: 1px solid var(--border-color);
+    background: white;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.chart-btn:hover {
+    background: var(--light-bg);
+}
+
+.chart-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.chart-container {
+    height: 280px;
+}
+
+/* ==================== 威胁节点Top列表 ==================== */
+.overview-top-threats {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.top-threats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.top-threats-header h3 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.view-all-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.view-all-link a:hover {
+    text-decoration: underline;
+}
+
+.top-threats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.threat-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 15px;
+    background: var(--light-bg);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.threat-item:hover {
+    background: #f0f0f0;
+    transform: translateX(5px);
+}
+
+.threat-rank {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.threat-rank.top1 {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #333;
+}
+
+.threat-rank.top2 {
+    background: linear-gradient(135deg, #c0c0c0, #e0e0e0);
+    color: #333;
+}
+
+.threat-rank.top3 {
+    background: linear-gradient(135deg, #cd7f32, #daa520);
+    color: white;
+}
+
+.threat-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.threat-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.threat-type {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.threat-score {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 150px;
+}
+
+.score-bar {
+    flex: 1;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.score-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #FFC107, #f44336);
+    border-radius: 4px;
+    transition: width 0.8s ease;
+}
+
+.score-value {
+    min-width: 45px;
+    text-align: right;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ==================== 告警时间线 ==================== */
+.overview-alerts-timeline {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.timeline-header h3 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.timeline-container {
+    position: relative;
+    padding-left: 30px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.timeline-container::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: linear-gradient(180deg, var(--primary-color), var(--success-color));
+    border-radius: 1px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -24px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.timeline-dot.high {
+    background: var(--danger-color);
+    box-shadow: 0 0 0 2px var(--danger-color);
+}
+
+.timeline-dot.medium {
+    background: var(--warning-color);
+    box-shadow: 0 0 0 2px var(--warning-color);
+}
+
+.timeline-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.timeline-time {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.timeline-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--light-bg);
+    border-radius: 6px;
+    border-left: 3px solid var(--border-color);
+}
+
+.timeline-alert.high {
+    border-left-color: var(--danger-color);
+    background: #ffebee;
+}
+
+.timeline-alert.medium {
+    border-left-color: var(--warning-color);
+    background: #fff3e0;
+}
+
+.timeline-alert.low {
+    border-left-color: var(--success-color);
+    background: #e8f5e9;
+}
+
+.alert-rule {
+    padding: 2px 6px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+.alert-message {
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+/* ==================== ATT&CK 战术矩阵 ==================== */
+.overview-matrix {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.matrix-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.matrix-header h3 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.matrix-summary {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.matrix-summary strong {
+    color: var(--primary-color);
+}
+
+.matrix-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+}
+
+.matrix-tactic {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 10px;
+    background: var(--light-bg);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.matrix-tactic:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+.matrix-tactic.active {
+    border-color: var(--primary-color);
+    background: #e3f2fd;
+}
+
+.tactic-icon {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+}
+
+.tactic-name {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.tactic-count {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.matrix-tactic.active .tactic-count {
+    color: var(--primary-color);
+}
+
+/* ==================== 快速操作区域 ==================== */
+.overview-actions {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.actions-header h3 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin: 0 0 15px 0;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px;
+    background: var(--light-bg);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: #f0f0f0;
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, var(--primary-color), #1976D2);
+    color: white;
+}
+
+.action-btn.primary:hover {
+    background: linear-gradient(135deg, #1976D2, #1565c0);
+}
+
+.action-btn .btn-icon {
+    font-size: 2rem;
+}
+
+.action-btn .btn-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* ==================== 实时活动日志 ==================== */
+.overview-activity-log {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.activity-header h3 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.activity-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--success-color);
+}
+
+.activity-status .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success-color);
+    animation: blink 2s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.activity-list {
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.activity-item {
+    display: flex;
+    gap: 15px;
+    padding: 8px 12px;
+    background: var(--light-bg);
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.activity-time {
+    min-width: 80px;
+    color: var(--text-secondary);
+    font-family: 'Courier New', monospace;
+}
+
+.activity-message {
+    flex: 1;
+    color: var(--text-primary);
+}
+
+/* ==================== 骨架屏加载 ==================== */
+.skeleton-text {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    height: 16px;
+}
+
+.skeleton-fill {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.threat-item.skeleton {
+    pointer-events: none;
+}
+
+/* ==================== 响应式设计 ==================== */
+@media (max-width: 1400px) {
+    .overview-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .chart-row {
+        grid-template-columns: 1fr;
+    }
+
+    .matrix-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 1024px) {
+    .overview-hero {
+        flex-direction: column;
+    }
+
+    .threat-gauge-container {
+        flex: none;
+        width: 100%;
+    }
+
+    .threat-summary-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .progress-steps {
+        flex-wrap: wrap;
+    }
+
+    .progress-connector {
+        display: none;
+    }
+
+    .action-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .overview-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .threat-summary-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .matrix-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .action-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .progress-step {
+        min-width: calc(50% - 10px);
+    }
+}
