@@ -12,7 +12,7 @@ import json
 import re
 import time
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Flask, render_template, jsonify, request, send_from_directory, Response
 
 # 导入处理模块
@@ -200,6 +200,292 @@ def ensure_demo_data_exists():
         filepath = os.path.join(DEMO_DATA_DIR, filename)
         if not os.path.exists(filepath):
             save_json(filepath, default_data)
+
+    rich_demo_files = build_rich_demo_dataset()
+    for filename, rich_data in rich_demo_files.items():
+        filepath = os.path.join(DEMO_DATA_DIR, filename)
+        current_data = load_json(filepath)
+        if demo_data_needs_refresh(filename, current_data):
+            save_json(filepath, rich_data)
+
+
+def demo_data_needs_refresh(filename, data):
+    """判断演示数据是否只是空壳数据。"""
+    if not data:
+        return True
+
+    required_array_map = {
+        "data_events.json": "events",
+        "data_graph.json": "nodes",
+        "data_alerts.json": "alerts",
+        "data_relations.json": "suspicious_relations",
+        "data_chains.json": "attack_chains"
+    }
+    key = required_array_map.get(filename)
+    if key and len(data.get(key, []) or []) == 0:
+        return True
+
+    if filename == "data_graph.json" and len(data.get("edges", []) or []) == 0:
+        return True
+
+    if filename == "data_threat.json":
+        scores = data.get("threat_scores", {}) or {}
+        classified = data.get("classified_nodes", {}) or {}
+        classified_count = sum(len(nodes or []) for nodes in classified.values())
+        return len(scores) == 0 or classified_count == 0
+
+    return False
+
+
+def build_rich_demo_dataset():
+    """生成一份足够前端完整展示的演示数据。"""
+    base_time = datetime(2026, 5, 19, 9, 0, 0)
+
+    nodes = [
+        {"id": "host_web01", "name": "WEB-01", "type": "host", "degree": 7},
+        {"id": "p_nginx", "name": "nginx.exe", "type": "process", "degree": 5},
+        {"id": "p_powershell", "name": "powershell.exe -enc", "type": "process", "degree": 8},
+        {"id": "p_payload", "name": "svhost-update.exe", "type": "process", "degree": 9},
+        {"id": "p_rundll32", "name": "rundll32.exe", "type": "process", "degree": 6},
+        {"id": "f_payload", "name": "C:\\Windows\\Temp\\svhost-update.exe", "type": "file", "degree": 5},
+        {"id": "f_credential", "name": "C:\\Users\\Admin\\AppData\\Local\\cred.tmp", "type": "file", "degree": 4},
+        {"id": "f_startup", "name": "HKCU\\Software\\Microsoft\\Windows\\Run\\Updater", "type": "file", "degree": 3},
+        {"id": "s_c2", "name": "45.77.23.91:443", "type": "socket", "degree": 7},
+        {"id": "s_exfil", "name": "185.199.108.23:8443", "type": "socket", "degree": 5},
+        {"id": "host_db01", "name": "DB-01", "type": "host", "degree": 3},
+        {"id": "p_sqlservr", "name": "sqlservr.exe", "type": "process", "degree": 3}
+    ]
+
+    edges = [
+        {"source": "host_web01", "target": "p_nginx", "action": "spawn", "weight": 12},
+        {"source": "p_nginx", "target": "p_powershell", "action": "execute", "weight": 5},
+        {"source": "p_powershell", "target": "f_payload", "action": "write", "weight": 4},
+        {"source": "p_powershell", "target": "p_payload", "action": "execute", "weight": 3},
+        {"source": "p_payload", "target": "s_c2", "action": "connect", "weight": 16},
+        {"source": "p_payload", "target": "f_credential", "action": "read", "weight": 6},
+        {"source": "p_payload", "target": "f_startup", "action": "write", "weight": 3},
+        {"source": "p_payload", "target": "p_rundll32", "action": "inject", "weight": 4},
+        {"source": "p_rundll32", "target": "s_exfil", "action": "connect", "weight": 9},
+        {"source": "p_payload", "target": "host_db01", "action": "scan", "weight": 5},
+        {"source": "host_db01", "target": "p_sqlservr", "action": "spawn", "weight": 3},
+        {"source": "p_sqlservr", "target": "f_credential", "action": "read", "weight": 2}
+    ]
+
+    events = []
+    for index, edge in enumerate(edges * 2):
+        node = next((item for item in nodes if item["id"] == edge["source"]), {})
+        events.append({
+            "event_id": f"evt-{index + 1:03d}",
+            "timestamp": (base_time + timedelta(minutes=index * 3)).isoformat(),
+            "event_type": node.get("type", "process"),
+            "action": edge["action"],
+            "subject": {"id": edge["source"], "name": node.get("name", edge["source"])},
+            "object": {"id": edge["target"], "name": edge["target"]},
+            "label": "malicious" if index < 18 else "benign"
+        })
+
+    rule_defs = [
+        ("R101", "从临时目录执行", "process", "high", "p_powershell", "p_payload", "临时目录载荷被执行"),
+        ("R104", "命令行包含编码内容", "process", "high", "p_nginx", "p_powershell", "Web 服务拉起编码 PowerShell"),
+        ("R201", "连接非白名单境外IP", "network", "high", "p_payload", "s_c2", "可疑进程连接境外 C2"),
+        ("R303", "读敏感文件后联网", "sequence", "high", "p_payload", "s_exfil", "读取凭据后出现外联"),
+        ("R304", "修改启动项", "sequence", "high", "p_payload", "f_startup", "写入启动项实现持久化"),
+        ("R002", "临时目录可执行文件写入", "file", "high", "p_powershell", "f_payload", "向临时目录写入可执行文件"),
+        ("R202", "非网络客户端建立连接", "network", "medium", "p_rundll32", "s_exfil", "非常规进程建立外联"),
+        ("R305", "多进程写入同一文件", "sequence", "medium", "p_powershell", "f_credential", "多个进程访问凭据缓存"),
+        ("R203", "系统进程连接非常用端口", "network", "medium", "p_rundll32", "s_exfil", "系统组件连接 8443"),
+        ("R401", "凌晨异常活动", "temporal", "medium", "p_payload", "host_db01", "异常时段横向探测"),
+        ("R204", "监听高位端口", "network", "low", "p_payload", "s_c2", "进程监听高位端口"),
+        ("R106", "短周期多次执行", "process", "low", "p_powershell", "p_payload", "短时间多次执行载荷")
+    ]
+
+    alerts = []
+    for index, (rule_id, rule_name, category, severity, subject, obj, message) in enumerate(rule_defs):
+        subject_node = next((item for item in nodes if item["id"] == subject), {"name": subject})
+        object_node = next((item for item in nodes if item["id"] == obj), {"name": obj})
+        alerts.append({
+            "alert_id": f"alert-{index + 1:03d}",
+            "event_id": f"evt-{index + 1:03d}",
+            "timestamp": (base_time + timedelta(minutes=index * 4)).isoformat(),
+            "message": message,
+            "rule": {
+                "rule_id": rule_id,
+                "rule_name": rule_name,
+                "category": category,
+                "severity": severity
+            },
+            "subject": {"id": subject, "name": subject_node["name"]},
+            "object": {"id": obj, "name": object_node["name"], "path": object_node["name"]}
+        })
+
+    threat_scores = {
+        "p_payload": 0.94,
+        "p_powershell": 0.86,
+        "s_c2": 0.84,
+        "p_rundll32": 0.72,
+        "s_exfil": 0.7,
+        "f_payload": 0.62,
+        "f_credential": 0.58,
+        "f_startup": 0.55,
+        "host_web01": 0.42,
+        "host_db01": 0.36,
+        "p_nginx": 0.24,
+        "p_sqlservr": 0.18
+    }
+    classified_nodes = {
+        "critical": ["p_payload"],
+        "high": ["p_powershell", "s_c2"],
+        "medium": ["p_rundll32", "s_exfil", "f_payload", "f_credential", "f_startup"],
+        "low": ["host_web01", "host_db01"],
+        "benign": ["p_nginx", "p_sqlservr"]
+    }
+    node_features = {
+        node_id: {
+            "event_count": int(score * 30),
+            "first_seen": base_time.isoformat(),
+            "last_seen": (base_time + timedelta(hours=2)).isoformat()
+        }
+        for node_id, score in threat_scores.items()
+    }
+
+    suspicious_relations = [
+        {"source": "p_powershell", "target": "p_payload", "actions": ["write", "execute"], "event_count": 7, "correlation": 0.91},
+        {"source": "p_payload", "target": "s_c2", "actions": ["connect", "beacon"], "event_count": 16, "correlation": 0.88},
+        {"source": "p_payload", "target": "f_credential", "actions": ["read"], "event_count": 6, "correlation": 0.78},
+        {"source": "p_rundll32", "target": "s_exfil", "actions": ["connect", "upload"], "event_count": 9, "correlation": 0.74},
+        {"source": "p_payload", "target": "f_startup", "actions": ["write"], "event_count": 3, "correlation": 0.69},
+        {"source": "p_payload", "target": "host_db01", "actions": ["scan"], "event_count": 5, "correlation": 0.55}
+    ]
+
+    attack_chains = [
+        {
+            "chain_id": "chain-001",
+            "attack_type": "WebShell 载荷执行",
+            "description": "Web 服务触发编码 PowerShell，写入并执行临时目录载荷。",
+            "nodes": ["p_nginx", "p_powershell", "f_payload", "p_payload"],
+            "node_count": 4,
+            "related_alerts": ["alert-001", "alert-002", "alert-006"],
+            "attack_techniques": ["T1059", "T1105", "T1027"]
+        },
+        {
+            "chain_id": "chain-002",
+            "attack_type": "C2 通信与凭据访问",
+            "description": "载荷进程持续连接 C2，并读取本地凭据缓存。",
+            "nodes": ["p_payload", "s_c2", "f_credential"],
+            "node_count": 3,
+            "related_alerts": ["alert-003", "alert-004", "alert-011"],
+            "attack_techniques": ["T1071", "T1005", "T1041"]
+        },
+        {
+            "chain_id": "chain-003",
+            "attack_type": "持久化与外传",
+            "description": "载荷写入启动项后借助系统组件连接非常用端口进行外传。",
+            "nodes": ["p_payload", "f_startup", "p_rundll32", "s_exfil"],
+            "node_count": 4,
+            "related_alerts": ["alert-005", "alert-007", "alert-009"],
+            "attack_techniques": ["T1547", "T1055", "T1041"]
+        }
+    ]
+
+    by_severity = {
+        "high": sum(1 for item in alerts if item["rule"]["severity"] == "high"),
+        "medium": sum(1 for item in alerts if item["rule"]["severity"] == "medium"),
+        "low": sum(1 for item in alerts if item["rule"]["severity"] == "low")
+    }
+    by_category = {}
+    for item in alerts:
+        category = item["rule"]["category"]
+        by_category[category] = by_category.get(category, 0) + 1
+
+    return {
+        "data_events.json": {
+            "events": events,
+            "statistics": {
+                "total_events": len(events),
+                "by_type": {"process": 10, "file": 6, "network": 8},
+                "by_action": {"execute": 3, "write": 4, "read": 3, "connect": 7, "scan": 2, "spawn": 5},
+                "by_label": {"benign": 6, "malicious": 18}
+            }
+        },
+        "data_graph.json": {
+            "nodes": nodes,
+            "edges": edges,
+            "adjacency": {},
+            "statistics": {
+                "node_count": len(nodes),
+                "edge_count": len(edges),
+                "avg_degree": 4.8,
+                "max_degree": 9,
+                "density": 0.18
+            }
+        },
+        "data_alerts.json": {
+            "alerts": alerts,
+            "statistics": {
+                "total_alerts": len(alerts),
+                "by_severity": by_severity,
+                "by_category": by_category
+            }
+        },
+        "data_threat.json": {
+            "anomaly_detection": {
+                "algorithm": "IsolationForest",
+                "anomaly_nodes": classified_nodes["critical"] + classified_nodes["high"],
+                "scores": threat_scores,
+                "threshold": 0.25
+            },
+            "clustering": {
+                "algorithm": "KMeans",
+                "n_clusters": 4,
+                "labels": {node_id: index % 4 for index, node_id in enumerate(threat_scores.keys())},
+                "cluster_stats": {}
+            },
+            "threat_scores": threat_scores,
+            "node_features": node_features,
+            "classified_nodes": classified_nodes,
+            "summary": {
+                "total_nodes": len(nodes),
+                "by_level": {level: len(items) for level, items in classified_nodes.items()},
+                "critical_count": len(classified_nodes["critical"]),
+                "high_count": len(classified_nodes["high"]),
+                "medium_count": len(classified_nodes["medium"]),
+                "overall_threat_level": "high"
+            }
+        },
+        "data_relations.json": {
+            "suspicious_relations": suspicious_relations,
+            "suspicious_subgraphs": [
+                {"subgraph_id": "sg-001", "nodes": ["p_payload", "s_c2", "f_credential"], "threat_level": "high"},
+                {"subgraph_id": "sg-002", "nodes": ["p_rundll32", "s_exfil"], "threat_level": "medium"}
+            ],
+            "statistics": {
+                "total_relations": len(suspicious_relations),
+                "total_subgraphs": 2,
+                "avg_correlation": round(sum(item["correlation"] for item in suspicious_relations) / len(suspicious_relations), 3)
+            }
+        },
+        "data_chains.json": {
+            "attack_chains": attack_chains,
+            "statistics": {
+                "total_chains": len(attack_chains),
+                "total_nodes_in_chains": sum(chain["node_count"] for chain in attack_chains),
+                "by_attack_type": {chain["attack_type"]: 1 for chain in attack_chains},
+                "top_techniques": [["T1059", 3], ["T1071", 2], ["T1041", 2]],
+                "avg_threat_score": 0.73
+            }
+        },
+        "data_analysis.json": {
+            "analysis_id": "demo_analysis",
+            "analyzed_at": base_time.isoformat(),
+            "events_statistics": {"total_events": len(events)},
+            "graph_statistics": {"node_count": len(nodes), "edge_count": len(edges)},
+            "rule_detection": {"total_alerts": len(alerts), "by_severity": by_severity},
+            "threat_detection": {"summary": {"overall_threat_level": "high", "by_level": {level: len(items) for level, items in classified_nodes.items()}}},
+            "relation_mining": {"total_relations": len(suspicious_relations)},
+            "attack_chains": {"total_chains": len(attack_chains), "by_attack_type": {chain["attack_type"]: 1 for chain in attack_chains}},
+            "overall_assessment": {"threat_level": "high", "high_risk_nodes": 3, "total_alerts": len(alerts)}
+        }
+    }
 
 
 def load_json(filepath):
@@ -1823,6 +2109,7 @@ def llm_status():
     return jsonify({
         "available": analyzer.is_available(),
         "configured": bool(analyzer.api_key),
+        "provider": getattr(analyzer, "provider", "openai"),
         "model": analyzer.model,
         "mock_mode": analyzer.use_mock,  # 添加模拟模式标识
         "mode": "mock" if analyzer.use_mock else "real"
@@ -1835,9 +2122,19 @@ def llm_analyze():
     if system_state["status"] == "running":
         return jsonify({"error": "系统正在运行中"}), 400
 
-    # 检查规则检测是否完成
-    if "rules" not in system_state["steps_completed"]:
-        return jsonify({"error": "请先完成规则检测"}), 400
+    # AI 报告依赖完整攻击检测链路，避免仅有规则告警时生成不完整报告。
+    required_steps = [
+        ("threat", "威胁检测"),
+        ("relations", "关系挖掘"),
+        ("chains", "攻击链重建")
+    ]
+    missing_steps = [name for step, name in required_steps if step not in system_state["steps_completed"]]
+    if missing_steps:
+        return jsonify({
+            "error": "攻击检测尚未完成，暂不允许生成 AI 分析报告",
+            "message": f"请先完成：{'、'.join(missing_steps)}",
+            "missing_steps": missing_steps
+        }), 400
 
     try:
         system_state["status"] = "running"
@@ -1894,6 +2191,9 @@ def llm_analyze():
             llm_result_file = os.path.join(DATA_DIR, "data_llm_analysis.json")
         save_json(llm_result_file, result)
 
+        if "ai" not in system_state["steps_completed"]:
+            system_state["steps_completed"].append("ai")
+
         system_state["status"] = "idle"
 
         return jsonify({
@@ -1916,7 +2216,7 @@ def llm_analyze():
 @app.route("/api/llm/result")
 def get_llm_result():
     """获取 LLM 分析结果"""
-    llm_file = os.path.join(DATA_DIR, "data_llm_analysis.json")
+    llm_file = os.path.join(DEMO_DATA_DIR if IS_DEMO_MODE else DATA_DIR, "data_llm_analysis.json")
 
     if os.path.exists(llm_file):
         return jsonify(load_json(llm_file))

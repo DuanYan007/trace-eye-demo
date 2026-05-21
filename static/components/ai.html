@@ -1,26 +1,25 @@
-<!-- AI分析页面组件 -->
+<!-- AI analysis page component -->
 <div class="page-component" id="page-ai">
     <div class="page-header">
-        <h2>🤖 AI 智能分析</h2>
+        <h2>AI 智能分析</h2>
         <div class="page-description">
-            <p class="main-desc">利用大语言模型对检测结果进行智能分析，生成可读性强的攻击报告和处置建议</p>
+            <p class="main-desc">利用 LLM 大模型对检测结果进行诊断，生成系统问题报告、修复建议和人工复核入口。</p>
             <div class="module-flow">
                 <span class="flow-label">流程位置:</span>
                 <span class="flow-item">攻击链重建</span>
                 <span class="flow-arrow">→</span>
                 <span class="flow-item active">AI分析</span>
                 <span class="flow-arrow">→</span>
-                <span class="flow-item">分析报告</span>
+                <span class="flow-item">复核与导出</span>
             </div>
             <div class="module-details">
-                <p><strong>核心功能:</strong> 对告警进行去重降噪，将分散的检测结果整合为连贯的攻击叙述。生成攻击故事、提取IOC指标、提供处置建议，输出面向安全分析师的可读报告。</p>
-                <p><strong>上游依赖:</strong> 依赖"规则检测"的告警数据和"攻击链重建"的攻击活动序列。</p>
-                <p><strong>输出产物:</strong> 最终分析报告，包含威胁摘要、攻击阶段描述、IOC列表、处置建议，作为系统分析的最终交付物。</p>
+                <p><strong>左侧:</strong> LLM 诊断报告，说明系统当前暴露的问题、证据和影响范围。</p>
+                <p><strong>右侧:</strong> LLM 修复建议，说明应当如何隔离、处置、加固和持续监控。</p>
+                <p><strong>底部:</strong> 显示是否建议人工复核，并提供人工复核修改入口和 PDF 导出。</p>
             </div>
         </div>
     </div>
 
-    <!-- 输入数据 -->
     <div class="data-section">
         <h3>输入数据 - 规则检测告警</h3>
         <div class="data-input-empty" id="aiInputEmpty">
@@ -36,29 +35,30 @@
                     <span class="info-label">高危告警</span>
                     <span class="info-value" id="aiInHighAlerts">-</span>
                 </div>
+                <div class="info-item">
+                    <span class="info-label">运行模式</span>
+                    <span class="info-value" id="aiModeText">-</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- AI 分析操作 -->
     <div class="data-section" id="aiActionSection" style="display:none;">
         <div class="section-header-with-action">
-            <h3>AI 分析</h3>
+            <h3>LLM 分析工作台</h3>
             <div class="ai-status-info">
-                <span class="ai-mode-badge" id="aiModeBadge">模拟模式</span>
+                <span class="ai-mode-badge" id="aiModeBadge">检测中</span>
             </div>
         </div>
 
-        <!-- AI 分析按钮 -->
         <div class="ai-action-area" id="aiActionArea">
-            <p class="ai-desc">点击下方按钮开始 AI 智能分析，系统将自动进行告警降噪、攻击故事生成、IOC 提取等操作。</p>
+            <p class="ai-desc">点击开始后，系统会读取告警、关系图与攻击链结果，生成 Markdown 格式的诊断报告和修复建议。</p>
             <button id="btnAIAnalyze" class="btn btn-primary btn-large">
                 <span class="btn-icon">✨</span>
                 <span class="btn-text">开始 AI 分析</span>
             </button>
         </div>
 
-        <!-- AI 分析进度 -->
         <div class="process-section" id="aiProgressSection" style="display:none;">
             <div class="process-bar-wrapper">
                 <div class="process-bar">
@@ -69,78 +69,96 @@
             <p class="process-message" id="aiProcessMessage">正在分析...</p>
         </div>
 
-        <!-- AI 分析结果 -->
-        <div class="ai-results-full" id="aiResultsSection" style="display:none;">
-            <div class="ai-result-header">
-                <h4>分析报告</h4>
-                <span class="ai-timestamp" id="aiTimestamp"></span>
+        <div class="ai-report-workbench" id="aiResultsSection" style="display:none;">
+            <div class="ai-report-header">
+                <div>
+                    <h4>LLM 最终报告</h4>
+                    <span class="ai-timestamp" id="aiTimestamp"></span>
+                </div>
+                <div class="ai-report-actions">
+                    <button id="btnAIReanalyze" class="btn btn-secondary">
+                        <span class="btn-icon">🔄</span>
+                        <span class="btn-text">重新分析</span>
+                    </button>
+                    <button id="btnAIExportPdf" class="btn btn-primary">
+                        <span class="btn-icon">⬇</span>
+                        <span class="btn-text">导出 PDF</span>
+                    </button>
+                </div>
             </div>
 
-            <!-- 威胁概览 -->
-            <div class="ai-threat-overview">
+            <div class="ai-report-meta">
                 <div class="ai-threat-level" id="aiThreatLevel">
-                    <span class="ai-threat-icon" id="aiThreatIcon">🔴</span>
-                    <span class="ai-threat-text" id="aiThreatText">高危威胁</span>
+                    <span class="ai-threat-icon" id="aiThreatIcon">⚠</span>
+                    <span class="ai-threat-text" id="aiThreatText">等待分析</span>
                 </div>
                 <div class="ai-summary" id="aiSummary"></div>
-            </div>
-
-            <!-- 分析统计 -->
-            <div class="ai-stats-grid">
-                <div class="ai-stat-card">
-                    <span class="ai-stat-label">原始告警</span>
-                    <span class="ai-stat-value" id="aiOriginalCount">-</span>
-                </div>
-                <div class="ai-stat-card">
-                    <span class="ai-stat-label">降噪后</span>
-                    <span class="ai-stat-value" id="aiFilteredCount">-</span>
-                </div>
-                <div class="ai-stat-card">
-                    <span class="ai-stat-label">攻击阶段</span>
-                    <span class="ai-stat-value" id="aiStagesCount">-</span>
-                </div>
-                <div class="ai-stat-card">
-                    <span class="ai-stat-label">IOC 指标</span>
-                    <span class="ai-stat-value" id="aiIocCount">-</span>
+                <div class="ai-stats-inline">
+                    <span>原始告警 <b id="aiOriginalCount">-</b></span>
+                    <span>降噪后 <b id="aiFilteredCount">-</b></span>
+                    <span>攻击阶段 <b id="aiStagesCount">-</b></span>
+                    <span>IOC <b id="aiIocCount">-</b></span>
                 </div>
             </div>
 
-            <!-- 攻击叙述 -->
-            <div class="ai-narrative-section">
-                <h4>攻击故事</h4>
-                <div class="ai-narrative" id="aiNarrative"></div>
+            <div class="ai-split-report" id="aiPrintableReport">
+                <section class="ai-md-panel diagnosis">
+                    <div class="ai-panel-title">
+                        <h4>LLM 诊断报告</h4>
+                        <span>系统存在什么问题</span>
+                    </div>
+                    <article class="ai-markdown-body" id="aiDiagnosisMarkdown"></article>
+                </section>
+                <section class="ai-md-panel remediation">
+                    <div class="ai-panel-title">
+                        <h4>LLM 修复建议</h4>
+                        <span>应当如何修复系统</span>
+                    </div>
+                    <article class="ai-markdown-body" id="aiRemediationMarkdown"></article>
+                </section>
             </div>
 
-            <!-- 攻击阶段 -->
-            <div class="ai-stages-section">
-                <h4>攻击阶段</h4>
-                <div class="ai-stages" id="aiStages"></div>
-            </div>
+            <footer class="ai-review-bar">
+                <div class="ai-review-status">
+                    <span class="ai-review-pill" id="aiReviewRequired">等待判断</span>
+                    <div>
+                        <strong id="aiReviewTitle">人工复核状态</strong>
+                        <p id="aiReviewReason">LLM 分析完成后会给出是否建议人工复核。</p>
+                    </div>
+                </div>
+                <div class="ai-review-actions">
+                    <button id="btnAIReviewEdit" class="btn btn-secondary">
+                        <span class="btn-icon">✎</span>
+                        <span class="btn-text">人工复核修改</span>
+                    </button>
+                </div>
+            </footer>
+        </div>
+    </div>
 
-            <!-- 关键发现 -->
-            <div class="ai-findings-section">
-                <h4>关键发现</h4>
-                <ul class="ai-findings" id="aiFindings"></ul>
+    <div id="aiReviewModal" class="modal">
+        <div class="modal-content ai-review-modal">
+            <div class="modal-header">
+                <h3>人工复核修改</h3>
+                <button class="modal-close" id="btnAIReviewClose">&times;</button>
             </div>
-
-            <!-- IOC 指标 -->
-            <div class="ai-ioc-section">
-                <h4>IOC 指标</h4>
-                <div class="ai-ioc-list" id="aiIocList"></div>
-            </div>
-
-            <!-- 处置建议 -->
-            <div class="ai-recommendations-section">
-                <h4>处置建议</h4>
-                <ul class="ai-recommendations" id="aiRecommendations"></ul>
-            </div>
-
-            <!-- 重新分析按钮 -->
-            <div class="ai-reanalyze-area">
-                <button id="btnAIReanalyze" class="btn btn-secondary">
-                    <span class="btn-icon">🔄</span>
-                    <span class="btn-text">重新分析</span>
-                </button>
+            <div class="modal-body">
+                <label class="ai-review-field">
+                    <span>诊断报告 Markdown</span>
+                    <textarea id="aiReviewDiagnosisInput" rows="10"></textarea>
+                </label>
+                <label class="ai-review-field">
+                    <span>修复建议 Markdown</span>
+                    <textarea id="aiReviewRemediationInput" rows="10"></textarea>
+                </label>
+                <label class="ai-review-field">
+                    <span>复核说明</span>
+                    <textarea id="aiReviewNoteInput" rows="4" placeholder="记录人工复核意见、修改原因或审批说明"></textarea>
+                </label>
+                <div class="ai-review-modal-actions">
+                    <button id="btnAIReviewSave" class="btn btn-primary">保存复核结果</button>
+                    <button id="btnAIReviewCancel" class="btn btn-secondary">取消</button>
+                </div>
             </div>
         </div>
     </div>

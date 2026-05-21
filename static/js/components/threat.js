@@ -265,9 +265,13 @@ function renderTimelineWheel(nodes, nodesMap) {
     updateCenterInfo();
 
     const option = {
+        backgroundColor: 'transparent',
         tooltip: {
             trigger: 'item',
-            formatter: '{b}: {c} 个节点 ({d}%)'
+            formatter: '{b}: {c} 个节点 ({d}%)',
+            backgroundColor: 'rgba(8, 18, 38, 0.96)',
+            borderColor: 'rgba(125, 178, 255, 0.28)',
+            textStyle: { color: '#dbeafe' }
         },
         legend: {
             show: false
@@ -279,14 +283,17 @@ function renderTimelineWheel(nodes, nodesMap) {
             data: pieData,
             itemStyle: {
                 borderRadius: 8,
-                borderColor: '#fff',
+                borderColor: 'rgba(7, 17, 31, 0.96)',
                 borderWidth: 2
             },
             label: {
                 show: true,
                 formatter: '{b}\n{c}',
                 fontSize: 13,
-                fontWeight: 600
+                fontWeight: 600,
+                color: '#dbeafe',
+                textBorderColor: 'rgba(3, 10, 24, 0.92)',
+                textBorderWidth: 3
             },
             labelLine: {
                 length: 15,
@@ -553,7 +560,7 @@ async function renderThreatNetwork(classifiedNodes, threatScores) {
                        level === 'high' ? THREAT_PAGE_LEVEL_COLORS.high :
                        level === 'medium' ? THREAT_PAGE_LEVEL_COLORS.medium : baseColor,
                 borderColor: level === 'critical' ? '#c0392b' :
-                            level === 'high' ? '#e67e22' : '#fff',
+                            level === 'high' ? '#e67e22' : 'rgba(219, 234, 254, 0.76)',
                 borderWidth: level === 'critical' ? 3 : level === 'high' ? 2 : 1
             },
             symbolSize: 15 + (node.degree || 0) * 0.5,
@@ -565,7 +572,9 @@ async function renderThreatNetwork(classifiedNodes, threatScores) {
                     return name.length > 12 ? name.substring(0, 10) + '...' : name;
                 },
                 fontSize: 10,
-                color: '#333'
+                color: '#dbeafe',
+                textBorderColor: 'rgba(3, 10, 24, 0.88)',
+                textBorderWidth: 3
             }
         };
     });
@@ -579,23 +588,27 @@ async function renderThreatNetwork(classifiedNodes, threatScores) {
         source: edge.source,
         target: edge.target,
         lineStyle: {
-            color: '#b0b0b0',
+            color: 'rgba(148, 163, 184, 0.42)',
             width: Math.min((edge.weight || 1) * 0.5, 2),
             opacity: 0.5
         }
     }));
 
     const option = {
+        backgroundColor: 'transparent',
         tooltip: {
+            backgroundColor: 'rgba(8, 18, 38, 0.96)',
+            borderColor: 'rgba(125, 178, 255, 0.28)',
+            textStyle: { color: '#dbeafe' },
             formatter: function(params) {
                 if (params.dataType === 'node') {
                     const typeLabels = { 'process': '进程', 'file': '文件', 'socket': '网络', 'unknown': '未知' };
                     return `
                         <div style="padding:8px;">
                             <strong>${params.data.name}</strong><br/>
-                            <span style="color:#666;">类型: ${typeLabels[params.data.itemType] || '未知'}</span><br/>
-                            <span style="color:#666;">威胁等级: ${THREAT_LEVEL_NAMES[params.data.threatLevel] || '未知'}</span><br/>
-                            <span style="color:#666;">威胁评分: ${(params.data.threatScore * 100).toFixed(1)}%</span>
+                            <span style="color:#cbd5e1;">类型: ${typeLabels[params.data.itemType] || '未知'}</span><br/>
+                            <span style="color:#cbd5e1;">威胁等级: ${THREAT_LEVEL_NAMES[params.data.threatLevel] || '未知'}</span><br/>
+                            <span style="color:#cbd5e1;">威胁评分: ${(params.data.threatScore * 100).toFixed(1)}%</span>
                         </div>
                     `;
                 }
@@ -681,6 +694,7 @@ function renderThreatDistribution(threatScores) {
     });
 
     const option = {
+        backgroundColor: 'transparent',
         grid: {
             left: '10%',
             right: '5%',
@@ -692,28 +706,32 @@ function renderThreatDistribution(threatScores) {
             left: 'center',
             textStyle: {
                 fontSize: 14,
-                color: '#666'
+                color: '#dbeafe'
             }
         },
         tooltip: {
-            formatter: '{b}: {c} 个节点'
+            formatter: '{b}: {c} 个节点',
+            backgroundColor: 'rgba(8, 18, 38, 0.96)',
+            borderColor: 'rgba(125, 178, 255, 0.28)',
+            textStyle: { color: '#dbeafe' }
         },
         xAxis: {
             type: 'category',
             data: ['正常\n0-0.2', '低危\n0.2-0.4', '中危\n0.4-0.6', '高危\n0.6-0.8', '严重\n0.8-1.0'],
             axisLabel: {
                 fontSize: 11,
-                color: '#666'
+                color: '#cbd5e1'
             }
         },
         yAxis: {
             type: 'value',
             name: '节点数量',
+            nameTextStyle: { color: '#cbd5e1' },
             axisLabel: {
-                color: '#666'
+                color: '#cbd5e1'
             },
             splitLine: {
-                lineStyle: { color: '#f5f5f5' }
+                lineStyle: { color: 'rgba(148, 163, 184, 0.12)' }
             }
         },
         series: [{
@@ -728,7 +746,7 @@ function renderThreatDistribution(threatScores) {
             label: {
                 show: true,
                 position: 'top',
-                color: '#666'
+                color: '#dbeafe'
             }
         }]
     };

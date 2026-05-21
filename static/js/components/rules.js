@@ -8,6 +8,15 @@ let rulesDistributionChart = null;
 let rulesTrendChart = null;
 let scatterMatrixChart = null;
 
+const RULES_CHART_THEME = {
+    text: '#dbeafe',
+    muted: '#93a4bd',
+    grid: 'rgba(148, 163, 184, 0.16)',
+    gridSoft: 'rgba(148, 163, 184, 0.1)',
+    tooltipBg: 'rgba(8, 18, 38, 0.96)',
+    tooltipBorder: 'rgba(125, 178, 255, 0.28)'
+};
+
 // 组件加载完成后的初始化
 window.addEventListener('componentLoaded', (e) => {
     if (e.detail.name === 'rules') {
@@ -239,19 +248,23 @@ function renderRulesDistributionChart() {
 
     rulesDistributionChart = echarts.init(chartDom);
     const option = {
+        backgroundColor: 'transparent',
         title: {
             text: '告警严重程度分布',
             left: 'center',
-            textStyle: { color: '#bdc3c7', fontSize: 14 }
+            textStyle: { color: RULES_CHART_THEME.text, fontSize: 14 }
         },
         tooltip: {
             trigger: 'item',
-            formatter: '{b}: {c} ({d}%)'
+            formatter: '{b}: {c} ({d}%)',
+            backgroundColor: RULES_CHART_THEME.tooltipBg,
+            borderColor: RULES_CHART_THEME.tooltipBorder,
+            textStyle: { color: RULES_CHART_THEME.text }
         },
         legend: {
             orient: 'vertical',
             left: 'left',
-            textStyle: { color: '#bdc3c7' }
+            textStyle: { color: RULES_CHART_THEME.text }
         },
         series: [{
             type: 'pie',
@@ -259,12 +272,12 @@ function renderRulesDistributionChart() {
             avoidLabelOverlap: false,
             itemStyle: {
                 borderRadius: 10,
-                borderColor: '#1e1e1e',
+                borderColor: 'rgba(7, 17, 31, 0.96)',
                 borderWidth: 2
             },
             label: {
                 show: true,
-                color: '#bdc3c7'
+                color: RULES_CHART_THEME.text
             },
             data: [
                 { value: severityData.high, name: '高危', itemStyle: { color: '#e74c3c' } },
@@ -293,26 +306,30 @@ function renderRulesTrendChart() {
 
     rulesTrendChart = echarts.init(chartDom);
     const option = {
+        backgroundColor: 'transparent',
         title: {
             text: '告警时间趋势',
             left: 'center',
-            textStyle: { color: '#bdc3c7', fontSize: 14 }
+            textStyle: { color: RULES_CHART_THEME.text, fontSize: 14 }
         },
         tooltip: {
             trigger: 'axis',
-            axisPointer: { type: 'shadow' }
+            axisPointer: { type: 'shadow' },
+            backgroundColor: RULES_CHART_THEME.tooltipBg,
+            borderColor: RULES_CHART_THEME.tooltipBorder,
+            textStyle: { color: RULES_CHART_THEME.text }
         },
         xAxis: {
             type: 'category',
             data: sortedTimes,
-            axisLabel: { color: '#bdc3c7', rotate: 45 },
-            axisLine: { lineStyle: { color: '#3d3d3d' } }
+            axisLabel: { color: RULES_CHART_THEME.text, rotate: 45 },
+            axisLine: { lineStyle: { color: RULES_CHART_THEME.grid } }
         },
         yAxis: {
             type: 'value',
-            axisLabel: { color: '#bdc3c7' },
-            axisLine: { lineStyle: { color: '#3d3d3d' } },
-            splitLine: { lineStyle: { color: '#2d2d2d' } }
+            axisLabel: { color: RULES_CHART_THEME.text },
+            axisLine: { lineStyle: { color: RULES_CHART_THEME.grid } },
+            splitLine: { lineStyle: { color: RULES_CHART_THEME.gridSoft } }
         },
         series: [{
             data: timeData,
@@ -520,6 +537,7 @@ function renderScatterMatrix(alerts, startTime, endTime) {
     }
 
     const option = {
+        backgroundColor: 'transparent',
         grid: {
             left: '10%',
             right: '5%',
@@ -527,17 +545,20 @@ function renderScatterMatrix(alerts, startTime, endTime) {
             bottom: '15%'
         },
         tooltip: {
+            backgroundColor: RULES_CHART_THEME.tooltipBg,
+            borderColor: RULES_CHART_THEME.tooltipBorder,
+            textStyle: { color: RULES_CHART_THEME.text },
             formatter: function(params) {
                 const alert = params.data.value[2];
                 const time = new Date(alert.timestamp).toLocaleString('zh-CN');
                 return `
                     <div style="padding:8px;">
                         <div style="font-weight:600;margin-bottom:6px;">${alert.rule?.rule_id || '未知'}</div>
-                        <div style="font-size:12px;color:#666;">${alert.rule?.rule_name || ''}</div>
+                        <div style="font-size:12px;color:#cbd5e1;">${alert.rule?.rule_name || ''}</div>
                         <div style="margin-top:6px;font-size:12px;">
                             <span style="color:${params.color}">●</span> ${alert.rule?.severity || 'low'}
                         </div>
-                        <div style="font-size:12px;color:#888;margin-top:4px;">${time}</div>
+                        <div style="font-size:12px;color:#93a4bd;margin-top:4px;">${time}</div>
                     </div>
                 `;
             }
@@ -551,7 +572,7 @@ function renderScatterMatrix(alerts, startTime, endTime) {
             axisLabel: { show: false },
             splitLine: {
                 show: true,
-                lineStyle: { color: '#f0f0f0', type: 'dashed' }
+                lineStyle: { color: RULES_CHART_THEME.gridSoft, type: 'dashed' }
             }
         },
         yAxis: {
@@ -576,7 +597,7 @@ function renderScatterMatrix(alerts, startTime, endTime) {
             markLine: {
                 silent: true,
                 lineStyle: {
-                    color: '#e0e0e0',
+                    color: RULES_CHART_THEME.gridSoft,
                     type: 'solid'
                 },
                 data: categoryOrder.map((cat, i) => [
@@ -717,7 +738,11 @@ function initGanttChart(alerts, startTime, endTime) {
     window.ganttChartInstance = echarts.init(chartContainer);
 
     const option = {
+        backgroundColor: 'transparent',
         tooltip: {
+            backgroundColor: RULES_CHART_THEME.tooltipBg,
+            borderColor: RULES_CHART_THEME.tooltipBorder,
+            textStyle: { color: RULES_CHART_THEME.text },
             formatter: function(params) {
                 const data = params.data;
                 const time = new Date(data.value[1]).toLocaleString('zh-CN');
@@ -741,14 +766,14 @@ function initGanttChart(alerts, startTime, endTime) {
             min: startTime,
             max: endTime,
             axisLabel: {
-                color: '#bdc3c7',
+                color: RULES_CHART_THEME.text,
                 formatter: function(value) {
                     const date = new Date(value);
                     return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
                 }
             },
-            axisLine: { lineStyle: { color: '#3d3d3d' } },
-            splitLine: { lineStyle: { color: '#2d2d2d' } }
+            axisLine: { lineStyle: { color: RULES_CHART_THEME.grid } },
+            splitLine: { lineStyle: { color: RULES_CHART_THEME.gridSoft } }
         },
         yAxis: {
             type: 'category',

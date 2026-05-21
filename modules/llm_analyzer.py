@@ -23,7 +23,7 @@ except ImportError:
 class LLMAnalyzer:
     """大模型告警分析器"""
 
-    def __init__(self, api_key: str = None, model: str = "gpt-4o-mini", use_mock: bool = None):
+    def __init__(self, api_key: str = None, model: str = None, use_mock: bool = None):
         """
         初始化 LLM 分析器
 
@@ -32,8 +32,17 @@ class LLMAnalyzer:
             model: 使用的模型名称，默认 gpt-4o-mini
             use_mock: 强制使用模拟模式，None 则自动检测
         """
-        self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
-        self.model = model
+        self._load_env_file()
+        self.provider = os.environ.get("LLM_PROVIDER", "openai").lower()
+        default_model = "deepseek-v4-pro" if self.provider == "deepseek" else "gpt-4o-mini"
+        self.model = os.environ.get("LLM_MODEL", model or default_model)
+
+        if self.provider == "deepseek":
+            self.api_key = api_key or os.environ.get("DEEPSEEK_API_KEY") or os.environ.get("OPENAI_API_KEY")
+            self.api_base = os.environ.get("DEEPSEEK_API_BASE") or os.environ.get("OPENAI_API_BASE") or "https://api.deepseek.com"
+        else:
+            self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
+            self.api_base = os.environ.get("OPENAI_API_BASE") or None
         self.client = None
         self.use_mock = use_mock
 
@@ -45,7 +54,10 @@ class LLMAnalyzer:
 
         if not self.use_mock and HAS_OPENAI and self.api_key:
             try:
-                self.client = openai.AsyncOpenAI(api_key=self.api_key)
+                client_kwargs = {"api_key": self.api_key}
+                if self.api_base:
+                    client_kwargs["base_url"] = self.api_base
+                self.client = openai.AsyncOpenAI(**client_kwargs)
             except:
                 print("OpenAI 连接失败，切换到模拟模式")
                 self.use_mock = True
@@ -59,6 +71,26 @@ class LLMAnalyzer:
             "enable_streaming": True,
             "analysis_timeout": 120  # 超时时间(秒)
         }
+
+    def _load_env_file(self):
+        """Load simple KEY=value pairs from project .env without requiring python-dotenv."""
+        env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+        if not os.path.exists(env_path):
+            return
+
+        try:
+            with open(env_path, "r", encoding="utf-8") as f:
+                for raw_line in f:
+                    line = raw_line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    key, value = line.split("=", 1)
+                    key = key.strip()
+                    value = value.strip().strip('"').strip("'")
+                    if key and key not in os.environ:
+                        os.environ[key] = value
+        except Exception as exc:
+            print(f"读取 .env 失败: {exc}")
 
     def is_available(self) -> bool:
         """检查 LLM 服务是否可用（模拟模式下始终返回 True）"""
@@ -120,7 +152,7 @@ class LLMAnalyzer:
         if progress_callback:
             await progress_callback(100, "分析完成")
 
-        return {
+        return self._finalize_report({
             "original_alerts_count": len(alerts),
             "filtered_alerts_count": len(deduped_alerts),
             "filtered_alerts": deduped_alerts[:100],  # 返回前100条
@@ -129,7 +161,7 @@ class LLMAnalyzer:
             "recommendations": self._generate_recommendations(attack_story),
             "analyzed_at": datetime.now().isoformat() + "Z",
             "llm_mode": "real"
-        }
+        })
 
     async def _deduplicate_alerts(self, alerts: List[Dict], graph: Dict) -> List[Dict]:
         """告警降噪：去除重复和低质量告警"""
@@ -463,7 +495,7 @@ class LLMAnalyzer:
         # 生成处置建议
         recommendations = self._generate_recommendations(attack_story)
 
-        return {
+        return self._finalize_report({
             "original_alerts_count": len(alerts),
             "filtered_alerts_count": len(alerts),
             "filtered_alerts": alerts[:100],
@@ -472,7 +504,134 @@ class LLMAnalyzer:
             "recommendations": recommendations,
             "analyzed_at": datetime.now().isoformat() + "Z",
             "llm_mode": "mock"
+        })
+
+    def _finalize_report(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        """Add Markdown report sections and manual-review guidance."""
+        story = result.get("attack_story", {}) or {}
+        report = result.get("analysis_report", {}) or {}
+        recommendations = result.get("recommendations") or story.get("recommendations") or []
+        iocs = story.get("ioc_list") or story.get("iocs") or []
+        stages = story.get("attack_stages") or []
+        findings = story.get("key_findings") or []
+        severity = report.get("severity_summary") or {}
+
+        result["statistics"] = {
+            "original_alerts": result.get("original_alerts_count", 0),
+            "filtered_alerts": result.get("filtered_alerts_count", report.get("total_filtered", 0))
         }
+
+        result["diagnosis_markdown"] = "\n".join([
+            "# 系统诊断报告",
+            "",
+            "## 总体判断",
+            f"- 威胁等级: **{story.get('threat_level', 'unknown')}**",
+            f"- 摘要: {story.get('summary') or story.get('threat_summary') or '暂无摘要'}",
+            f"- 原始告警: **{result.get('original_alerts_count', 0)}**",
+            f"- 降噪后告警: **{result.get('filtered_alerts_count', 0)}**",
+            "",
+            "## 告警严重度",
+            f"- Critical: **{severity.get('critical', 0)}**",
+            f"- High: **{severity.get('high', 0)}**",
+            f"- Medium: **{severity.get('medium', 0)}**",
+            f"- Low: **{severity.get('low', 0)}**",
+            "",
+            "## 系统存在的问题",
+            *(self._markdown_bullets(findings) or ["- 未提取到明确关键发现，建议人工检查原始告警与攻击链。"]),
+            "",
+            "## 攻击阶段与证据",
+            *(self._markdown_stages(stages) or ["- 暂无明确攻击阶段。"]),
+            "",
+            "## IOC 指标",
+            *(self._markdown_iocs(iocs) or ["- 暂无可提取 IOC。"]),
+            "",
+            "## 攻击叙述",
+            story.get("attack_narrative") or "暂无攻击叙述。"
+        ])
+
+        result["remediation_markdown"] = "\n".join([
+            "# 系统修复建议",
+            "",
+            "## 立即处置",
+            *(self._markdown_bullets(recommendations) or [
+                "- 隔离受影响主机，防止横向移动。",
+                "- 冻结可疑账户并轮换关联凭据。",
+                "- 备份日志、进程、网络连接和可疑文件样本。"
+            ]),
+            "",
+            "## 按攻击阶段修复",
+            *(self._markdown_stage_remediation(stages) or [
+                "- 对告警涉及的主机、进程、文件和网络连接进行人工复核。",
+                "- 将真实威胁沉淀为检测规则，将误报沉淀为白名单。"
+            ]),
+            "",
+            "## IOC 封禁与监控",
+            *(self._markdown_ioc_remediation(iocs) or ["- 暂无 IOC 时，应基于高危告警主体补充主机级排查。"]),
+            "",
+            "## 后续加固",
+            "- 补充检测规则和应急响应剧本。",
+            "- 对关键资产开启更高等级日志留存。",
+            "- 完成修复后执行二次分析，确认告警下降。"
+        ])
+
+        threat_level = story.get("threat_level", "unknown")
+        original_alerts = result.get("original_alerts_count", 0)
+        review_required = threat_level in ["critical", "high", "unknown"] or original_alerts >= 20
+        result["manual_review"] = {
+            "required": review_required,
+            "title": "建议人工复核" if review_required else "可抽样复核",
+            "reason": (
+                "LLM 判断存在较高风险或告警数量较多，建议安全分析师确认攻击链、IOC 和修复优先级。"
+                if review_required
+                else "当前风险较低，可由分析师抽样确认后归档。"
+            )
+        }
+
+        return result
+
+    def _markdown_bullets(self, items: List[Any]) -> List[str]:
+        return [f"- {item}" for item in items if item]
+
+    def _markdown_stages(self, stages: List[Dict]) -> List[str]:
+        lines = []
+        for index, stage in enumerate(stages, 1):
+            if not isinstance(stage, dict):
+                lines.append(f"{index}. **攻击阶段**: {stage}")
+                continue
+            lines.append(f"{index}. **{stage.get('stage', '未命名阶段')}**: {stage.get('description', '暂无描述')}")
+            for evidence in stage.get("evidence", [])[:3]:
+                lines.append(f"   - 证据: {evidence}")
+            techniques = stage.get("techniques", [])
+            if techniques:
+                lines.append(f"   - 技术: {', '.join(techniques)}")
+        return lines
+
+    def _markdown_iocs(self, iocs: List[Dict]) -> List[str]:
+        lines = []
+        for ioc in iocs:
+            if isinstance(ioc, dict):
+                lines.append(f"- `{ioc.get('type', 'unknown')}`: {ioc.get('value', '-')} - {ioc.get('description', '暂无描述')}")
+            else:
+                lines.append(f"- `{ioc}`")
+        return lines
+
+    def _markdown_stage_remediation(self, stages: List[Dict]) -> List[str]:
+        lines = []
+        for stage in stages:
+            if not isinstance(stage, dict):
+                continue
+            name = stage.get("stage", "异常阶段")
+            lines.append(f"- **{name}**: 复核该阶段关联证据，隔离受影响资产，并补充对应检测规则。")
+        return lines
+
+    def _markdown_ioc_remediation(self, iocs: List[Dict]) -> List[str]:
+        lines = []
+        for ioc in iocs:
+            if isinstance(ioc, dict):
+                lines.append(f"- 将 `{ioc.get('value', '-')}` 加入 {ioc.get('type', 'IOC')} 监控或阻断列表。")
+            else:
+                lines.append(f"- 将 `{ioc}` 加入 IOC 监控或阻断列表。")
+        return lines
 
     def _generate_mock_attack_story(self, all_alerts: List[Dict], high_alerts: List[Dict]) -> Dict[str, Any]:
         """生成模拟的攻击故事"""

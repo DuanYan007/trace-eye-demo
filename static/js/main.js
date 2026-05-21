@@ -20,7 +20,7 @@ const PAGE_DEPENDENCIES = {
     'threat': ['rules'],
     'relations': ['threat'],
     'chains': ['relations'],
-    'ai': ['rules']
+    'ai': ['chains']
 };
 
 // 数据缓存
@@ -357,7 +357,10 @@ function updatePageButtons(status) {
     };
 
     for (const [page, dependency] of Object.entries(buttonConditions)) {
-        const btnId = `btn${page.charAt(0).toUpperCase() + page.slice(1)}`;
+        const buttonIds = {
+            ai: 'btnAIAnalyze'
+        };
+        const btnId = buttonIds[page] || `btn${page.charAt(0).toUpperCase() + page.slice(1)}`;
         const btn = document.getElementById(btnId);
         const canExecute = status.steps_completed[dependency];
 

@@ -422,7 +422,11 @@ async function renderChainForestChart(chain) {
     };
 
     const option = {
+        backgroundColor: 'transparent',
         tooltip: {
+            backgroundColor: 'rgba(8, 18, 38, 0.96)',
+            borderColor: 'rgba(125, 178, 255, 0.28)',
+            textStyle: { color: '#dbeafe' },
             formatter: function(params) {
                 if (params.treePathInfo) {
                     const path = params.treePathInfo.map(p => p.name).join(' → ');
@@ -444,14 +448,24 @@ async function renderChainForestChart(chain) {
                 position: 'left',
                 verticalAlign: 'middle',
                 align: 'right',
-                fontSize: 11
+                fontSize: 11,
+                color: '#dbeafe',
+                width: 130,
+                overflow: 'truncate',
+                textBorderColor: 'rgba(3, 10, 24, 0.9)',
+                textBorderWidth: 3
             },
             leaves: {
                 label: {
                     show: showChainLabels,
                     position: 'right',
                     verticalAlign: 'middle',
-                    align: 'left'
+                    align: 'left',
+                    color: '#dbeafe',
+                    width: 150,
+                    overflow: 'truncate',
+                    textBorderColor: 'rgba(3, 10, 24, 0.9)',
+                    textBorderWidth: 3
                 }
             },
             emphasis: {
@@ -466,10 +480,10 @@ async function renderChainForestChart(chain) {
                     const tech = techniques.find(t => TECHNIQUE_TACTICS[t]?.tactic === tactic);
                     return tech ? TECHNIQUE_TACTICS[tech]?.color || '#3498db' : '#3498db';
                 },
-                borderColor: '#fff'
+                borderColor: 'rgba(219, 234, 254, 0.74)'
             },
             lineStyle: {
-                color: '#ccc',
+                color: 'rgba(148, 163, 184, 0.38)',
                 width: 1.5,
                 curveness: 0.5
             }
@@ -500,11 +514,13 @@ function toggleChainLabels() {
         chainForestChart.setOption({
             series: [{
                 label: {
-                    show: showChainLabels
+                    show: showChainLabels,
+                    color: '#dbeafe'
                 },
                 leaves: {
                     label: {
-                        show: showChainLabels
+                        show: showChainLabels,
+                        color: '#dbeafe'
                     }
                 }
             }]

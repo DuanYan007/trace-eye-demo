@@ -302,14 +302,17 @@ async function renderRadiationNetwork(centerNodeId) {
         category: 'threat',
         itemStyle: {
             color: RELATIONS_LEVEL_COLORS[selectedThreatNode?.level] || '#e74c3c',
-            borderColor: '#fff',
+            borderColor: 'rgba(219, 234, 254, 0.82)',
             borderWidth: 3
         },
         symbolSize: 40,
         label: {
             show: true,
             fontSize: 14,
-            fontWeight: 'bold'
+            fontWeight: 'bold',
+            color: '#dbeafe',
+            textBorderColor: 'rgba(3, 10, 24, 0.88)',
+            textBorderWidth: 3
         }
     });
 
@@ -327,13 +330,16 @@ async function renderRadiationNetwork(centerNodeId) {
             category: isInThreatList ? 'threat' : 'suspicious',
             itemStyle: {
                 color: isInThreatList ? '#f39c12' : '#3498db',
-                borderColor: '#fff',
+                borderColor: 'rgba(219, 234, 254, 0.74)',
                 borderWidth: 2
             },
             symbolSize: isInThreatList ? 25 : 20,
             label: {
                 show: showLabels,
-                fontSize: 11
+                fontSize: 11,
+                color: '#dbeafe',
+                textBorderColor: 'rgba(3, 10, 24, 0.88)',
+                textBorderWidth: 3
             }
         });
     });
@@ -353,7 +359,11 @@ async function renderRadiationNetwork(centerNodeId) {
     });
 
     const option = {
+        backgroundColor: 'transparent',
         tooltip: {
+            backgroundColor: 'rgba(8, 18, 38, 0.96)',
+            borderColor: 'rgba(125, 178, 255, 0.28)',
+            textStyle: { color: '#dbeafe' },
             formatter: function(params) {
                 if (params.dataType === 'node') {
                     return `<strong>${params.data.name}</strong><br/>类别: ${params.data.category === 'threat' ? '威胁节点' : '可疑节点'}`;

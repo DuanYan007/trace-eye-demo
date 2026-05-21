@@ -186,7 +186,7 @@ function renderMiniGraph(graphData) {
             itemType: nodeType,
             itemStyle: {
                 color: baseColor,
-                borderColor: '#fff',
+                borderColor: 'rgba(219, 234, 254, 0.78)',
                 borderWidth: 1
             },
             symbolSize: size,
@@ -198,7 +198,9 @@ function renderMiniGraph(graphData) {
                     return name.length > 15 ? name.substring(0, 12) + '...' : name;
                 },
                 fontSize: 10,
-                color: '#333'
+                color: '#dbeafe',
+                textBorderColor: 'rgba(3, 10, 24, 0.88)',
+                textBorderWidth: 3
             },
             data: {
                 type: nodeType,
@@ -214,7 +216,7 @@ function renderMiniGraph(graphData) {
             source: edge.source,
             target: edge.target,
             lineStyle: {
-                color: '#b0b0b0',
+                color: 'rgba(148, 163, 184, 0.42)',
                 width: lineWidth,
                 opacity: 0.6,
                 curveness: 0.1
@@ -224,7 +226,11 @@ function renderMiniGraph(graphData) {
     });
 
     const option = {
+        backgroundColor: 'transparent',
         tooltip: {
+            backgroundColor: 'rgba(8, 18, 38, 0.96)',
+            borderColor: 'rgba(125, 178, 255, 0.28)',
+            textStyle: { color: '#dbeafe' },
             formatter: function(params) {
                 if (params.dataType === 'node') {
                     const d = params.data.data;
@@ -237,8 +243,8 @@ function renderMiniGraph(graphData) {
                     return `
                         <div style="padding:8px;">
                             <strong>${d.name}</strong><br/>
-                            <span style="color:#666;">类型: ${typeLabels[d.type] || d.type}</span><br/>
-                            <span style="color:#666;">连接数: ${d.degree}</span>
+                            <span style="color:#cbd5e1;">类型: ${typeLabels[d.type] || d.type}</span><br/>
+                            <span style="color:#cbd5e1;">连接数: ${d.degree}</span>
                         </div>
                     `;
                 } else if (params.dataType === 'edge') {
@@ -259,11 +265,11 @@ function renderMiniGraph(graphData) {
                 focus: 'adjacency',
                 lineStyle: {
                     width: 3,
-                    color: '#555'
+                    color: 'rgba(191, 219, 254, 0.82)'
                 },
                 itemStyle: {
                     borderWidth: 2,
-                    borderColor: '#333'
+                    borderColor: 'rgba(248, 251, 255, 0.92)'
                 }
             },
             force: {
