@@ -32,6 +32,10 @@ window.addEventListener('componentLoaded', (e) => {
  * 初始化关系图页面
  */
 function initGraphPage() {
+    const page = document.getElementById('page-graph');
+    if (!page || page.dataset.graphInitialized === 'true') return;
+    page.dataset.graphInitialized = 'true';
+
     // 绑定执行按钮
     const btn = document.getElementById('btnGraph');
     if (btn) {
@@ -334,28 +338,7 @@ function displayNodeTypeStats(graphData) {
  * 执行处理步骤
  */
 async function executeStep(pageId, apiEndpoint) {
-    try {
-        showProcessSection(pageId);
-        updateProgress(pageId, 0, '处理中...');
-
-        const result = await apiPost(apiEndpoint);
-
-        if (result.error) {
-            throw new Error(result.error);
-        }
-
-        updateProgress(pageId, 100, '完成');
-
-        setTimeout(async () => {
-            hideProcessSection(pageId);
-            DataCache.clear(pageId);
-            await loadPageData(pageId);
-        }, 500);
-
-    } catch (error) {
-        hideProcessSection(pageId);
-        alert(`处理失败: ${error.message}`);
-    }
+    return runStepWithLock(pageId, apiEndpoint);
 }
 
 /**

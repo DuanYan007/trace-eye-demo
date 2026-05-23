@@ -1,8 +1,28 @@
 # LLM 分析功能配置说明
 
+## DeepSeek 快速配置
+
+项目根目录已经提供 `.env.example`，实际运行时请使用根目录 `.env`：
+
+```env
+TRACE_EYE_MODE=debug
+LLM_PROVIDER=deepseek
+DEEPSEEK_API_KEY=你的 DeepSeek API Key
+DEEPSEEK_API_BASE=https://api.deepseek.com
+LLM_MODEL=deepseek-v4
+```
+
+说明：
+
+- `DEEPSEEK_API_KEY` 由你自己填写，不要提交到 Git。
+- `.env` 已被 `.gitignore` 忽略。
+- `TRACE_EYE_MODE=debug` 才会调用真实 LLM；`demo` 模式会使用模拟分析。
+- 可双击 `run_deepseek.bat` 启动，也可以直接运行 `python app.py`。
+- AI 分析页面顶部提供“模型名称”和“测试连接”，可在生成报告前确认模型是否可访问。
+
 ## 功能概述
 
-在规则检测完成后，可以使用大模型（OpenAI GPT）进行智能分析，包括：
+在规则检测完成后，可以使用大模型（默认 DeepSeek，也兼容 OpenAI 风格接口）进行智能分析，包括：
 
 1. **告警降噪**：去除重复和低质量告警
 2. **攻击故事生成**：用自然语言描述攻击过程
@@ -21,9 +41,9 @@
 - **适用场景**：演示、测试、无 API Key 时
 
 ### 2. 调试模式（DEBUG Mode）
-- **特点**：使用真实的 OpenAI API 进行智能分析
+- **特点**：使用真实的 DeepSeek API 进行智能分析
 - **启用方式**：设置环境变量 `TRACE_EYE_MODE=debug`（默认）
-- **要求**：需要配置有效的 OpenAI API Key
+- **要求**：需要配置有效的 DeepSeek API Key
 
 ```bash
 # 使用演示模式（模拟数据）
@@ -43,20 +63,28 @@ pip install openai
 
 ### 2. 配置 API Key
 
-**方式一：环境变量（推荐）**
+**方式一：`.env` 文件（推荐）**
+
+项目根目录 `.env` 已经准备好，只需要填写：
+
+```env
+DEEPSEEK_API_KEY=你的 DeepSeek API Key
+```
+
+**方式二：环境变量**
 
 ```bash
 # Windows (CMD)
-set OPENAI_API_KEY=sk-xxxxxxxxxxxxx
+set DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxx
 
 # Windows (PowerShell)
-$env:OPENAI_API_KEY="sk-xxxxxxxxxxxxx"
+$env:DEEPSEEK_API_KEY="sk-xxxxxxxxxxxxx"
 
 # Linux/Mac
-export OPENAI_API_KEY=sk-xxxxxxxxxxxxx
+export DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxx
 ```
 
-**方式二：代码配置**
+**方式三：代码配置**
 
 在 `modules/llm_analyzer.py` 中修改：
 
@@ -68,6 +96,12 @@ analyzer = LLMAnalyzer(api_key="sk-xxxxxxxxxxxxx")
 
 ```bash
 python app.py
+```
+
+或双击：
+
+```bash
+run_deepseek.bat
 ```
 
 ## 使用方式
@@ -100,7 +134,9 @@ curl http://localhost:5000/api/llm/result
 {
   "available": true,
   "configured": true,
-  "model": "gpt-4o-mini"
+  "provider": "deepseek",
+  "model": "deepseek-v4",
+  "mode": "real"
 }
 ```
 
@@ -137,17 +173,14 @@ curl http://localhost:5000/api/llm/result
 
 ## 模型选择
 
-默认使用 `gpt-4o-mini`，可在 `modules/llm_analyzer.py` 中修改：
+默认使用 `.env` 中的 `LLM_MODEL=deepseek-v4`。也可以在 AI 分析页面顶部直接修改模型名称并点击“测试连接”。
 
-```python
-analyzer = LLMAnalyzer(model="gpt-4")  # 使用 GPT-4
-analyzer = LLMAnalyzer(model="gpt-3.5-turbo")  # 使用 GPT-3.5
-```
+如果需要切回其他兼容接口，可调整 `.env` 中的 `LLM_PROVIDER`、`*_API_BASE` 和 `LLM_MODEL`。
 
 ## 费用估算
 
-- gpt-4o-mini: 约 $0.001-0.002 / 次（分析约 1000 tokens）
-- gpt-4: 约 $0.01-0.03 / 次
+- 费用取决于 DeepSeek 当前计费规则和实际输入/输出 token 数。
+- 建议先在 AI 页面使用“测试连接”，再生成完整报告。
 
 ## 故障排查
 
@@ -155,7 +188,7 @@ analyzer = LLMAnalyzer(model="gpt-3.5-turbo")  # 使用 GPT-3.5
 
 1. 检查 API Key 是否正确配置
 2. 检查网络连接
-3. 检查 OpenAI 账户余额
+3. 检查 DeepSeek 账户余额和模型名称是否可用
 
 ### 分析结果为空
 

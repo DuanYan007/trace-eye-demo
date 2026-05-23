@@ -15,6 +15,11 @@ let selectedThreatNode = null;
 
 // 威胁节点列表数据
 let threatNodesList = [];
+let totalThreatNodeCount = 0;
+let relatedThreatNodeCount = 0;
+
+const RELATIONS_NODE_DISPLAY_LIMIT = 80;
+const RELATIONS_LEVEL_PRIORITY = { critical: 4, high: 3, medium: 2, low: 1, benign: 0 };
 
 // 组件加载完成后的初始化
 window.addEventListener('componentLoaded', (e) => {
@@ -27,6 +32,10 @@ window.addEventListener('componentLoaded', (e) => {
  * 初始化关系挖掘页面
  */
 function initRelationsPage() {
+    const page = document.getElementById('page-relations');
+    if (!page || page.dataset.relationsInitialized === 'true') return;
+    page.dataset.relationsInitialized = 'true';
+
     const btn = document.getElementById('btnRelations');
     if (btn) {
         btn.addEventListener('click', () => executeStep('relations', '/step/relations'));
@@ -138,7 +147,21 @@ async function loadThreatNodes() {
             });
         }
 
-        // 收集所有威胁节点（critical + high + medium）
+        const suspiciousRelations = relationsDataCache?.suspicious_relations || [];
+        const relationStats = {};
+        suspiciousRelations.forEach(rel => {
+            [rel.source, rel.target].forEach(nodeId => {
+                if (!nodeId) return;
+                relationStats[nodeId] = relationStats[nodeId] || { count: 0, maxCorrelation: 0 };
+                relationStats[nodeId].count += 1;
+                relationStats[nodeId].maxCorrelation = Math.max(
+                    relationStats[nodeId].maxCorrelation,
+                    Number(rel.correlation || 0)
+                );
+            });
+        });
+
+        // 收集威胁节点（critical + high + medium），优先展示已进入可疑关系的节点。
         const threatLevels = ['critical', 'high', 'medium'];
         threatNodesList = [];
 
@@ -154,16 +177,37 @@ async function loadThreatNodes() {
                     type: nodeInfo.type || 'unknown',
                     level: level,
                     score: score,
-                    degree: nodeInfo.degree || 0
+                    degree: nodeInfo.degree || 0,
+                    relationCount: relationStats[nodeId]?.count || 0,
+                    maxCorrelation: relationStats[nodeId]?.maxCorrelation || 0
                 });
             });
         }
 
-        // 按威胁评分排序
-        threatNodesList.sort((a, b) => b.score - a.score);
+        totalThreatNodeCount = threatNodesList.length;
+        relatedThreatNodeCount = threatNodesList.filter(node => node.relationCount > 0).length;
+
+        // 按可疑关系、等级、威胁评分排序；避免大量孤立节点把列表撑爆。
+        threatNodesList.sort((a, b) =>
+            (b.relationCount - a.relationCount) ||
+            (b.maxCorrelation - a.maxCorrelation) ||
+            (RELATIONS_LEVEL_PRIORITY[b.level] - RELATIONS_LEVEL_PRIORITY[a.level]) ||
+            (b.score - a.score) ||
+            (b.degree - a.degree)
+        );
+
+        const relatedNodes = threatNodesList.filter(node => node.relationCount > 0);
+        const isolatedNodes = threatNodesList.filter(node => node.relationCount === 0);
+        threatNodesList = relatedNodes.length > 0
+            ? relatedNodes.slice(0, RELATIONS_NODE_DISPLAY_LIMIT)
+            : isolatedNodes.slice(0, RELATIONS_NODE_DISPLAY_LIMIT);
 
         // 渲染威胁节点列表
         renderThreatNodesList();
+
+        if (threatNodesList.length > 0) {
+            await selectThreatNode(threatNodesList[0].id);
+        }
 
     } catch (e) {
         console.error('[Relations] Load threat nodes error:', e);
@@ -183,15 +227,24 @@ function renderThreatNodesList() {
         return;
     }
 
-    document.getElementById('relationsOutThreatNodes').textContent = threatNodesList.length;
+    const outThreatNodes = document.getElementById('relationsOutThreatNodes');
+    if (outThreatNodes) {
+        outThreatNodes.textContent = relatedThreatNodeCount > 0
+            ? `${threatNodesList.length}/${relatedThreatNodeCount}`
+            : `${threatNodesList.length}/${totalThreatNodeCount}`;
+        outThreatNodes.title = relatedThreatNodeCount > 0
+            ? `当前展示 ${threatNodesList.length} 个有可疑关系的威胁节点，共 ${relatedThreatNodeCount} 个`
+            : `当前展示 ${threatNodesList.length} 个威胁节点，共 ${totalThreatNodeCount} 个`;
+    }
 
     container.innerHTML = threatNodesList.map((node, index) => {
         const levelClass = node.level;
         const scorePercent = (node.score * 100).toFixed(1);
         const isSelected = selectedThreatNode && selectedThreatNode.id === node.id;
+        const escapedId = escapeJsString(node.id);
 
         return `
-            <div class="threat-node-card ${isSelected ? 'selected' : ''}" onclick="selectThreatNode('${node.id}')">
+            <div class="threat-node-card ${isSelected ? 'selected' : ''}" onclick="selectThreatNode('${escapedId}')">
                 <div class="node-card-header">
                     <span class="node-card-rank">#${index + 1}</span>
                     <span class="node-card-level ${levelClass}">${getThreatLevelName(node.level)}</span>
@@ -199,9 +252,12 @@ function renderThreatNodesList() {
                 <div class="node-card-name">${escapeHtml(node.name)}</div>
                 <div class="node-card-stats">
                     <span class="node-stat">评分: <strong>${scorePercent}%</strong></span>
+                    <span class="node-stat">关系: ${node.relationCount}</span>
+                </div>
+                <div class="node-card-footer">
+                    <span class="node-card-type">${getTypeLabel(node.type)}</span>
                     <span class="node-stat">度数: ${node.degree}</span>
                 </div>
-                <div class="node-card-type">${getTypeLabel(node.type)}</div>
             </div>
         `;
     }).join('');
@@ -220,7 +276,7 @@ async function selectThreatNode(nodeId) {
     renderThreatNodesList();
 
     // 更新网络标题
-    document.getElementById('networkTitle').textContent = `🕸️ ${escapeHtml(node.name)} 的辐射关系`;
+    document.getElementById('networkTitle').textContent = `🕸️ ${node.name} 的辐射关系`;
 
     // 显示选中节点信息
     const infoPanel = document.getElementById('selectedNodeInfo');
@@ -272,6 +328,24 @@ async function renderRadiationNetwork(centerNodeId) {
         : 0;
     document.getElementById('selectedNodeCorrelation').textContent = avgCorr.toFixed(3);
 
+    if (nodeRelations.length === 0) {
+        if (relationsChart) {
+            relationsChart.dispose();
+            relationsChart = null;
+        }
+        container.style.display = 'none';
+        const placeholder = document.getElementById('networkPlaceholder');
+        if (placeholder) {
+            placeholder.style.display = 'flex';
+            placeholder.innerHTML = `
+                <div class="placeholder-icon">⛓</div>
+                <p>该节点暂未发现可疑关系</p>
+                <p>左侧列表已优先展示有关系的节点，可重新执行关系挖掘刷新结果</p>
+            `;
+        }
+        return;
+    }
+
     // 获取图数据
     const graphCache = await DataCache.get('graph');
     const graphData = graphCache?.data || graphCache || {};
@@ -301,7 +375,7 @@ async function renderRadiationNetwork(centerNodeId) {
         value: 100,
         category: 'threat',
         itemStyle: {
-            color: RELATIONS_LEVEL_COLORS[selectedThreatNode?.level] || '#e74c3c',
+            color: RELATIONS_LEVEL_COLORS[selectedThreatNode?.level] || RELATIONS_LEVEL_COLORS.critical,
             borderColor: 'rgba(219, 234, 254, 0.82)',
             borderWidth: 3
         },
@@ -329,7 +403,7 @@ async function renderRadiationNetwork(centerNodeId) {
             value: 50,
             category: isInThreatList ? 'threat' : 'suspicious',
             itemStyle: {
-                color: isInThreatList ? '#f39c12' : '#3498db',
+                color: isInThreatList ? '#f59e0b' : '#60a5fa',
                 borderColor: 'rgba(219, 234, 254, 0.74)',
                 borderWidth: 2
             },
@@ -422,11 +496,14 @@ async function updateRelationsTable(nodeId) {
     nodeRelations.sort((a, b) => (b.correlation || 0) - (a.correlation || 0));
 
     const tbody = document.getElementById('relationsTableBody');
+    const subtitle = document.getElementById('relationsSubtitle');
+    if (!tbody) return;
 
     if (nodeRelations.length === 0) {
+        if (subtitle) subtitle.textContent = '当前节点暂无可疑关系记录';
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align:center; color:#999; padding:30px;">
+                <td colspan="5" style="text-align:center; color:#a8b8d2; padding:30px;">
                     该节点暂无可疑关系记录
                 </td>
             </tr>
@@ -444,7 +521,7 @@ async function updateRelationsTable(nodeId) {
         });
     }
 
-    document.getElementById('relationsSubtitle').textContent = `${nodesMap[nodeId]?.name || nodeId} 的 ${nodeRelations.length} 条可疑关系`;
+    if (subtitle) subtitle.textContent = `${nodesMap[nodeId]?.name || nodeId} 的 ${nodeRelations.length} 条可疑关系`;
 
     tbody.innerHTML = nodeRelations.slice(0, 20).map(rel => {
         const sourceNode = nodesMap[rel.source] || { name: rel.source };
@@ -467,7 +544,7 @@ async function updateRelationsTable(nodeId) {
     if (nodeRelations.length > 20) {
         tbody.innerHTML += `
             <tr>
-                <td colspan="5" style="text-align:center; color:#999; padding:10px;">
+                <td colspan="5" style="text-align:center; color:#a8b8d2; padding:10px;">
                     ...还有 ${nodeRelations.length - 20} 条关系
                 </td>
             </tr>
@@ -531,28 +608,7 @@ function getTypeLabel(type) {
  * 执行处理步骤
  */
 async function executeStep(pageId, apiEndpoint) {
-    try {
-        showProcessSection(pageId);
-        updateProgress(pageId, 0, '处理中...');
-
-        const result = await apiPost(apiEndpoint);
-
-        if (result.error) {
-            throw new Error(result.error);
-        }
-
-        updateProgress(pageId, 100, '完成');
-
-        setTimeout(async () => {
-            hideProcessSection(pageId);
-            DataCache.clear(pageId);
-            await loadPageData(pageId);
-        }, 500);
-
-    } catch (error) {
-        hideProcessSection(pageId);
-        alert(`处理失败: ${error.message}`);
-    }
+    return runStepWithLock(pageId, apiEndpoint);
 }
 
 /**
@@ -658,13 +714,17 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function escapeJsString(text) {
+    return String(text).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
 // 威胁等级颜色
 const RELATIONS_LEVEL_COLORS = {
-    'critical': '#e74c3c',
-    'high': '#f39c12',
-    'medium': '#f1c40f',
-    'low': '#27ae60',
-    'benign': '#95a5a6'
+    'critical': '#fb7185',
+    'high': '#f59e0b',
+    'medium': '#facc15',
+    'low': '#34d399',
+    'benign': '#94a3b8'
 };
 
 // 覆盖main.js中的占位函数

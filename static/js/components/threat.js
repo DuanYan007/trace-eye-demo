@@ -16,6 +16,10 @@ let timelineFilterLevel = 'all';
 // 时间轮节点数据
 let timelineNodesData = [];
 
+const TIMELINE_VISIBLE_LEVELS = ['critical', 'high', 'medium', 'low'];
+const NETWORK_VISIBLE_LEVELS = ['critical', 'high', 'medium'];
+const THREAT_LEVEL_PRIORITY = { critical: 4, high: 3, medium: 2, low: 1, benign: 0 };
+
 // 节点类型颜色配置（局部变量，避免全局冲突）
 const threatNodeTypeColors = {
     'process': '#2196F3',
@@ -26,11 +30,11 @@ const threatNodeTypeColors = {
 
 // 威胁等级颜色配置（加前缀避免冲突）
 const THREAT_PAGE_LEVEL_COLORS = {
-    'critical': '#e74c3c',
-    'high': '#f39c12',
-    'medium': '#f1c40f',
-    'low': '#27ae60',
-    'benign': '#95a5a6'
+    'critical': '#fb7185',
+    'high': '#f59e0b',
+    'medium': '#facc15',
+    'low': '#34d399',
+    'benign': '#94a3b8'
 };
 
 // 威胁等级中文名称
@@ -53,6 +57,10 @@ window.addEventListener('componentLoaded', (e) => {
  * 初始化威胁检测页面
  */
 function initThreatPage() {
+    const page = document.getElementById('page-threat');
+    if (!page || page.dataset.threatInitialized === 'true') return;
+    page.dataset.threatInitialized = 'true';
+
     const btn = document.getElementById('btnThreat');
     if (btn) {
         btn.addEventListener('click', () => executeStep('threat', '/step/threat'));
@@ -179,14 +187,14 @@ async function renderThreatTimeline(classifiedNodes, nodeFeatures) {
     }
     threatTimelineChart = echarts.init(container);
 
-    // 收集所有节点
+    // 时间轮只展示异常/威胁侧节点，避免把全部正常节点塞进环形图。
     const allNodes = [];
-    const priorityLevels = ['critical', 'high', 'medium', 'low', 'benign'];
+    const scoreMap = threatDataCache.threat_scores || threatDataCache.anomaly_detection?.scores || {};
 
-    for (const level of priorityLevels) {
+    for (const level of TIMELINE_VISIBLE_LEVELS) {
         const nodes = classifiedNodes[level] || [];
         nodes.forEach(nodeId => {
-            const score = threatDataCache.threat_scores?.[nodeId] || 0;
+            const score = Number(scoreMap[nodeId] || 0);
             allNodes.push({
                 id: nodeId,
                 level: level,
@@ -194,6 +202,11 @@ async function renderThreatTimeline(classifiedNodes, nodeFeatures) {
             });
         });
     }
+
+    allNodes.sort((a, b) =>
+        (THREAT_LEVEL_PRIORITY[b.level] - THREAT_LEVEL_PRIORITY[a.level]) ||
+        (b.score - a.score)
+    );
 
     // 获取图数据来获取节点信息
     let graphData = null;
@@ -225,7 +238,7 @@ async function renderThreatTimeline(classifiedNodes, nodeFeatures) {
     if (highRiskCountEl) highRiskCountEl.textContent = criticalCount + highCount;
 
     // 渲染环形图
-    renderTimelineWheel(allNodes, nodesMap);
+    renderTimelineWheel(timelineNodesData, nodesMap);
 }
 
 /**
@@ -248,17 +261,12 @@ function renderTimelineWheel(nodes, nodesMap) {
     });
 
     // 根据当前筛选过滤数据
-    const filteredNodes = timelineFilterLevel === 'all'
-        ? nodes
-        : nodes.filter(n => n.level === timelineFilterLevel);
-
     // 构建环形图数据
     const pieData = [
-        { name: '严重', value: levelCounts.critical, level: 'critical', color: THREAT_PAGE_LEVEL_COLORS.critical },
-        { name: '高危', value: levelCounts.high, level: 'high', color: THREAT_PAGE_LEVEL_COLORS.high },
-        { name: '中危', value: levelCounts.medium, level: 'medium', color: THREAT_PAGE_LEVEL_COLORS.medium },
-        { name: '低危', value: levelCounts.low, level: 'low', color: THREAT_PAGE_LEVEL_COLORS.low },
-        { name: '正常', value: levelCounts.benign, level: 'benign', color: THREAT_PAGE_LEVEL_COLORS.benign }
+        { name: '严重', value: levelCounts.critical, level: 'critical', itemStyle: { color: THREAT_PAGE_LEVEL_COLORS.critical } },
+        { name: '高危', value: levelCounts.high, level: 'high', itemStyle: { color: THREAT_PAGE_LEVEL_COLORS.high } },
+        { name: '中危', value: levelCounts.medium, level: 'medium', itemStyle: { color: THREAT_PAGE_LEVEL_COLORS.medium } },
+        { name: '低危', value: levelCounts.low, level: 'low', itemStyle: { color: THREAT_PAGE_LEVEL_COLORS.low } }
     ].filter(d => d.value > 0);
 
     // 更新中心信息
@@ -393,9 +401,10 @@ function updateNodesList() {
     const container = document.getElementById('timelineNodesList');
     if (!container) return;
 
-    const filteredNodes = timelineFilterLevel === 'all'
-        ? timelineNodesData.slice(0, 20) // 最多显示20个
-        : timelineNodesData.filter(n => n.level === timelineFilterLevel).slice(0, 20);
+    const filteredAll = timelineFilterLevel === 'all'
+        ? timelineNodesData
+        : timelineNodesData.filter(n => n.level === timelineFilterLevel);
+    const filteredNodes = filteredAll.slice(0, 20); // 最多显示20个
 
     if (filteredNodes.length === 0) {
         container.innerHTML = '<p style="text-align:center; color:#999; padding:15px;">暂无节点</p>';
@@ -415,8 +424,8 @@ function updateNodesList() {
         `;
     }).join('');
 
-    if (timelineNodesData.length > 20) {
-        container.innerHTML += `<p style="text-align:center; color:#999; font-size:0.85rem; padding:10px;">...还有 ${timelineNodesData.length - 20} 个节点</p>`;
+    if (filteredAll.length > 20) {
+        container.innerHTML += `<p style="text-align:center; color:#a8b8d2; font-size:0.85rem; padding:10px;">...还有 ${filteredAll.length - 20} 个节点</p>`;
     }
 }
 
@@ -525,25 +534,55 @@ async function renderThreatNetwork(classifiedNodes, threatScores) {
         return;
     }
 
-    // 只显示高风险节点（critical + high）
-    const highRiskSet = new Set([
-        ...(classifiedNodes.critical || []),
-        ...(classifiedNodes.high || []),
-        ...(classifiedNodes.medium || [])
-    ]);
+    const nodeLevelMap = {};
+    NETWORK_VISIBLE_LEVELS.forEach(level => {
+        (classifiedNodes[level] || []).forEach(nodeId => {
+            nodeLevelMap[nodeId] = level;
+        });
+    });
 
-    // 限制节点数量
-    const MAX_NODES = 100;
-    const displayNodes = graphData.nodes.filter(n => highRiskSet.has(n.id)).slice(0, MAX_NODES);
-    const nodeSet = new Set(displayNodes.map(n => n.id));
+    const degreeMap = {};
+    (graphData.edges || []).forEach(edge => {
+        degreeMap[edge.source] = (degreeMap[edge.source] || 0) + 1;
+        degreeMap[edge.target] = (degreeMap[edge.target] || 0) + 1;
+    });
+
+    const nodesById = {};
+    graphData.nodes.forEach(node => {
+        nodesById[node.id] = node;
+    });
+
+    const candidateIds = Object.keys(nodeLevelMap)
+        .filter(nodeId => nodesById[nodeId])
+        .sort((a, b) =>
+            (THREAT_LEVEL_PRIORITY[nodeLevelMap[b]] - THREAT_LEVEL_PRIORITY[nodeLevelMap[a]]) ||
+            ((threatScores[b] || 0) - (threatScores[a] || 0)) ||
+            ((degreeMap[b] || 0) - (degreeMap[a] || 0))
+        );
+
+    const candidateSet = new Set(candidateIds.slice(0, 350));
+    const connectedIds = new Set();
+    const candidateEdges = graphData.edges.filter(edge => {
+        const keep = candidateSet.has(edge.source) && candidateSet.has(edge.target);
+        if (keep) {
+            connectedIds.add(edge.source);
+            connectedIds.add(edge.target);
+        }
+        return keep;
+    });
+
+    const MAX_NODES = 80;
+    const selectedIds = (connectedIds.size > 0
+        ? candidateIds.filter(id => connectedIds.has(id))
+        : candidateIds
+    ).slice(0, MAX_NODES);
+
+    const nodeSet = new Set(selectedIds);
+    const displayNodes = selectedIds.map(id => nodesById[id]).filter(Boolean);
 
     const nodes = displayNodes.map(node => {
         const threatScore = threatScores[node.id] || 0;
-        let level = 'benign';
-        if (threatScore >= 0.8) level = 'critical';
-        else if (threatScore >= 0.6) level = 'high';
-        else if (threatScore >= 0.4) level = 'medium';
-        else if (threatScore >= 0.2) level = 'low';
+        const level = nodeLevelMap[node.id] || 'medium';
 
         const nodeType = node.type || 'unknown';
         const baseColor = threatNodeTypeColors[nodeType] || threatNodeTypeColors.unknown;
@@ -560,13 +599,15 @@ async function renderThreatNetwork(classifiedNodes, threatScores) {
                        level === 'high' ? THREAT_PAGE_LEVEL_COLORS.high :
                        level === 'medium' ? THREAT_PAGE_LEVEL_COLORS.medium : baseColor,
                 borderColor: level === 'critical' ? '#c0392b' :
-                            level === 'high' ? '#e67e22' : 'rgba(219, 234, 254, 0.76)',
+                            level === 'high' ? '#f59e0b' :
+                            level === 'medium' ? '#facc15' :
+                            'rgba(219, 234, 254, 0.76)',
                 borderWidth: level === 'critical' ? 3 : level === 'high' ? 2 : 1
             },
-            symbolSize: 15 + (node.degree || 0) * 0.5,
+            symbolSize: Math.min(34, 15 + (degreeMap[node.id] || node.degree || 0) * 0.45),
             symbol: nodeType === 'process' ? 'circle' : nodeType === 'file' ? 'rect' : 'diamond',
             label: {
-                show: (node.degree || 0) > 5,
+                show: (degreeMap[node.id] || node.degree || 0) > 2,
                 formatter: function(params) {
                     const name = params.data.name;
                     return name.length > 12 ? name.substring(0, 10) + '...' : name;
@@ -580,9 +621,14 @@ async function renderThreatNetwork(classifiedNodes, threatScores) {
     });
 
     // 过滤边：只显示两个端点都在显示节点集合中的边
-    const displayEdges = graphData.edges
+    const displayEdges = candidateEdges
         .filter(e => nodeSet.has(e.source) && nodeSet.has(e.target))
         .slice(0, 200);
+
+    if (displayNodes.length === 0) {
+        container.innerHTML = '<p style="text-align:center; padding:50px; color:#a8b8d2;">暂无可展示的高风险关联节点</p>';
+        return;
+    }
 
     const links = displayEdges.map(edge => ({
         source: edge.source,
@@ -675,6 +721,23 @@ function renderThreatDistribution(threatScores) {
         return;
     }
 
+    const rawScores = Object.values(threatScores || {});
+    const fallbackScores = Object.values(threatDataCache?.anomaly_detection?.scores || {});
+    const scores = (rawScores.length > 0 ? rawScores : fallbackScores)
+        .map(score => Number(score))
+        .filter(score => Number.isFinite(score));
+
+    if (scores.length === 0) {
+        if (threatDistributionChart) {
+            threatDistributionChart.dispose();
+            threatDistributionChart = null;
+        }
+        container.innerHTML = '<p style="text-align:center; padding:50px; color:#a8b8d2;">暂无异常分数数据，请重新执行威胁检测</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+
     // 初始化图表
     if (threatDistributionChart) {
         threatDistributionChart.dispose();
@@ -682,7 +745,6 @@ function renderThreatDistribution(threatScores) {
     threatDistributionChart = echarts.init(container);
 
     // 构建分数分布数据
-    const scores = Object.values(threatScores);
     const bins = [0, 0, 0, 0, 0]; // 0-0.2, 0.2-0.4, 0.4-0.6, 0.6-0.8, 0.8-1.0
 
     scores.forEach(score => {
@@ -739,7 +801,13 @@ function renderThreatDistribution(threatScores) {
             data: bins.map((count, index) => ({
                 value: count,
                 itemStyle: {
-                    color: THREAT_PAGE_LEVEL_COLORS[Object.keys(THREAT_PAGE_LEVEL_COLORS)[index]]
+                    color: [
+                        THREAT_PAGE_LEVEL_COLORS.benign,
+                        THREAT_PAGE_LEVEL_COLORS.low,
+                        THREAT_PAGE_LEVEL_COLORS.medium,
+                        THREAT_PAGE_LEVEL_COLORS.high,
+                        THREAT_PAGE_LEVEL_COLORS.critical
+                    ][index]
                 }
             })),
             barWidth: '60%',
@@ -761,28 +829,7 @@ function renderThreatDistribution(threatScores) {
  * 执行处理步骤
  */
 async function executeStep(pageId, apiEndpoint) {
-    try {
-        showProcessSection(pageId);
-        updateProgress(pageId, 0, '处理中...');
-
-        const result = await apiPost(apiEndpoint);
-
-        if (result.error) {
-            throw new Error(result.error);
-        }
-
-        updateProgress(pageId, 100, '完成');
-
-        setTimeout(async () => {
-            hideProcessSection(pageId);
-            DataCache.clear(pageId);
-            await loadPageData(pageId);
-        }, 500);
-
-    } catch (error) {
-        hideProcessSection(pageId);
-        alert(`处理失败: ${error.message}`);
-    }
+    return runStepWithLock(pageId, apiEndpoint);
 }
 
 /**

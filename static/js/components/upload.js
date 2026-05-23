@@ -17,6 +17,10 @@ window.addEventListener('componentLoaded', (e) => {
  * 初始化上传页面
  */
 function initUploadPage() {
+    const page = document.getElementById('page-upload');
+    if (!page || page.dataset.uploadInitialized === 'true') return;
+    page.dataset.uploadInitialized = 'true';
+
     // 绑定文件选择事件
     const fileInput = document.getElementById('fileUpload');
     if (fileInput) {
@@ -34,6 +38,11 @@ function initUploadPage() {
     if (uploadBtn) {
         uploadBtn.addEventListener('click', uploadFiles);
     }
+
+    const continueBtn = document.getElementById('btnContinueUpload');
+    if (continueBtn) {
+        continueBtn.addEventListener('click', continueUpload);
+    }
 }
 
 /**
@@ -50,6 +59,22 @@ function showModeSelector() {
 function selectUploadMode() {
     document.getElementById('modeSelector').style.display = 'none';
     document.getElementById('uploadArea').style.display = 'block';
+}
+
+function continueUpload() {
+    selectedFiles = [];
+    const fileInput = document.getElementById('fileUpload');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    document.getElementById('modeSelector').style.display = 'none';
+    document.getElementById('uploadArea').style.display = 'block';
+    document.getElementById('uploadEmpty').style.display = 'none';
+    document.getElementById('uploadFileList').style.display = 'none';
+    document.getElementById('uploadResultSection').style.display = 'block';
+    if (fileInput) {
+        fileInput.click();
+    }
 }
 
 /**
@@ -181,8 +206,17 @@ async function uploadFiles() {
         updateProgress('upload', 100, '上传完成');
         setTimeout(async () => {
             hideProcessSection('upload');
-            // 重新加载页面数据
-            window.TraceEye?.loadPageData?.('upload');
+            showUploadedResult(data.statistics?.files || [], data.statistics?.total_events || 0);
+            selectedFiles = [];
+            const fileInput = document.getElementById('fileUpload');
+            if (fileInput) fileInput.value = '';
+            window.DataCache?.clearSubsequent?.('upload');
+            try {
+                const status = await getSystemStatus();
+                updateNavigationStatus(status);
+            } catch (error) {
+                console.warn('更新上传状态失败:', error);
+            }
         }, 500);
 
     } catch (error) {
@@ -260,28 +294,7 @@ async function displayUploadedFiles() {
         const logInfo = await apiGet('/logs/info');
         const files = logInfo?.files || [];
 
-        const filesList = document.getElementById('uploadedFilesList');
-
-        if (files.length > 0) {
-            // 更新文件计数
-            document.getElementById('uploadedFileCount').textContent = files.length;
-
-            filesList.innerHTML = files.map(file => `
-                <div style="display: flex; align-items: center; gap: 15px; padding: 12px; background: var(--light-bg); border-radius: 6px;">
-                    <span style="font-size: 1.5rem;">${getFileIcon(file.type)}</span>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 500;">${escapeHtml(file.name)}</div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary);">
-                            ${getTypeLabel(file.type)} | ${file.lines?.toLocaleString() || 0} 行
-                        </div>
-                    </div>
-                    <span style="font-size: 0.85rem; color: var(--success-color);">✓</span>
-                </div>
-            `).join('');
-        } else {
-            filesList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无日志文件</p>';
-            document.getElementById('uploadedFileCount').textContent = '0';
-        }
+        showUploadedResult(files, logInfo?.total_events || logInfo?.total_lines || 0);
     } catch (error) {
         console.error('displayUploadedFiles error:', error);
         // 在 demo 模式下，如果 API 调用失败，显示默认的演示文件信息
@@ -299,6 +312,54 @@ async function displayUploadedFiles() {
             </div>
         `;
         document.getElementById('uploadedFileCount').textContent = '1';
+    }
+}
+
+function showUploadedResult(files, totalEvents = 0) {
+    const normalizedFiles = (files || []).map(file => {
+        const name = file.name || file.filename || file.file || 'unknown';
+        const lines = Number(file.lines ?? file.line_count ?? file.count ?? 0);
+        const events = Number(file.event_count ?? 0);
+        const type = file.type || detectLogType(name);
+        return { name, lines, events, type };
+    });
+
+    document.getElementById('modeSelector').style.display = 'none';
+    document.getElementById('uploadArea').style.display = 'none';
+    document.getElementById('uploadFileList').style.display = 'none';
+    document.getElementById('uploadEmpty').style.display = 'block';
+    document.getElementById('uploadResultSection').style.display = 'block';
+
+    const downloadBtn = document.getElementById('downloadLogs');
+    if (downloadBtn) downloadBtn.style.display = 'inline-block';
+
+    const filesList = document.getElementById('uploadedFilesList');
+    document.getElementById('uploadedFileCount').textContent = normalizedFiles.length;
+
+    if (!normalizedFiles.length) {
+        filesList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无日志文件</p>';
+        return;
+    }
+
+    filesList.innerHTML = normalizedFiles.map(file => `
+        <div class="uploaded-file-row">
+            <span class="uploaded-file-icon">${getFileIcon(file.type)}</span>
+            <div class="uploaded-file-main">
+                <div class="uploaded-file-name">${escapeHtml(file.name)}</div>
+                <div class="uploaded-file-meta">
+                    ${getTypeLabel(file.type)} | ${file.lines.toLocaleString()} 行${file.events ? ` | ${file.events.toLocaleString()} 个事件` : ''}
+                </div>
+            </div>
+            <span class="uploaded-file-status">已就绪</span>
+        </div>
+    `).join('');
+
+    if (totalEvents) {
+        filesList.insertAdjacentHTML('afterbegin', `
+            <div class="upload-success-summary">
+                上传完成，共解析 ${Number(totalEvents).toLocaleString()} 个事件。可以进入下一步进行事件提取。
+            </div>
+        `);
     }
 }
 
@@ -364,6 +425,7 @@ window.removeFile = removeFile;
 window.uploadFiles = uploadFiles;
 window.showModeSelector = showModeSelector;
 window.selectUploadMode = selectUploadMode;
+window.continueUpload = continueUpload;
 window.startDemoMode = startDemoMode;
 window.showProcessSection = showProcessSection;
 window.hideProcessSection = hideProcessSection;
@@ -372,3 +434,7 @@ window.updateProgress = updateProgress;
 // 覆盖main.js中的占位函数
 window.TraceEye = window.TraceEye || {};
 window.TraceEye.loadUploadData = loadUploadData;
+
+if (document.getElementById('page-upload')) {
+    initUploadPage();
+}

@@ -752,7 +752,7 @@ class RuleEngine:
             "benign_events": 0,
             "total_alerts": 0,
             "by_rule": {},
-            "by_severity": {"high": 0, "medium": 0, "low": 0},
+            "by_severity": {"critical": 0, "high": 0, "medium": 0, "low": 0},
             "by_category": {}
         }
 
@@ -777,12 +777,13 @@ class RuleEngine:
             triggered = self.evaluate_event(event, context)
 
             if triggered:
-                # 只保留最严重的一条告警（high > medium > low）
-                severity_order = {"high": 3, "medium": 2, "low": 1}
+                # 只保留最严重的一条告警（critical > high > medium > low）
+                severity_order = {"critical": 4, "high": 3, "medium": 2, "low": 1}
                 triggered.sort(key=lambda r: severity_order.get(r["severity"], 0), reverse=True)
                 rule = triggered[0]  # 取最严重的
 
                 # 计算告警优先级（用于排序和截断）
+                severity_priority = severity_order.get(rule["severity"], 0)
                 alert = {
                     "event_id": event.get("event_id", ""),
                     "timestamp": event.get("timestamp", ""),
@@ -791,15 +792,16 @@ class RuleEngine:
                     "object": event.get("object", {}),
                     "message": event.get("message", ""),
                     "log_type": event.get("log_type", ""),
-                    "_priority": severity_order.get(rule["severity"], 0) * 1000 + len(all_alerts)
+                    "_severity_priority": severity_priority,
+                    "_sequence": len(all_alerts)
                 }
                 all_alerts.append(alert)
 
         # 按优先级排序告警（高危优先，同类告警按时间顺序）
-        all_alerts.sort(key=lambda a: (a["_priority"], a["timestamp"]))
+        all_alerts.sort(key=lambda a: (-a["_severity_priority"], a["timestamp"], a["_sequence"]))
 
         # 截断到最大告警数量
-        final_alerts = all_alerts[:self.max_alerts]
+        final_alerts = self._select_final_alerts(all_alerts)
 
         # 统计最终告警
         for alert in final_alerts:
@@ -814,12 +816,51 @@ class RuleEngine:
 
         # 移除内部字段
         for alert in final_alerts:
-            alert.pop("_priority", None)
+            alert.pop("_severity_priority", None)
+            alert.pop("_sequence", None)
 
         return {
             "alerts": final_alerts,
             "statistics": rule_statistics
         }
+
+    def _select_final_alerts(self, alerts: List[Dict]) -> List[Dict]:
+        """按严重性优先，同时保留中低危代表样本，避免展示结果被单一等级淹没。"""
+        if len(alerts) <= self.max_alerts:
+            return alerts
+
+        severity_order = ["critical", "high", "medium", "low"]
+        groups = {severity: [] for severity in severity_order}
+        for alert in alerts:
+            severity = alert.get("rule", {}).get("severity", "low")
+            groups.setdefault(severity, []).append(alert)
+
+        quotas = {
+            "critical": int(self.max_alerts * 0.20),
+            "high": int(self.max_alerts * 0.45),
+            "medium": int(self.max_alerts * 0.25),
+            "low": self.max_alerts
+        }
+        quotas["low"] = self.max_alerts - sum(quotas[level] for level in ["critical", "high", "medium"])
+
+        selected = []
+        selected_ids = set()
+        for severity in severity_order:
+            limit = quotas.get(severity, 0)
+            for alert in groups.get(severity, [])[:limit]:
+                selected.append(alert)
+                selected_ids.add(id(alert))
+
+        if len(selected) < self.max_alerts:
+            for alert in alerts:
+                if id(alert) in selected_ids:
+                    continue
+                selected.append(alert)
+                if len(selected) >= self.max_alerts:
+                    break
+
+        selected.sort(key=lambda a: (-a["_severity_priority"], a["timestamp"], a["_sequence"]))
+        return selected[:self.max_alerts]
 
 
 if __name__ == "__main__":

@@ -20,8 +20,7 @@ async function apiRequest(endpoint, options = {}) {
         headers: {
             'Content-Type': 'application/json',
             ...options.headers
-        },
-        ...options
+        }
     };
 
     if (options.body && config.method !== 'GET') {
@@ -30,7 +29,7 @@ async function apiRequest(endpoint, options = {}) {
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+        const timeoutId = setTimeout(() => controller.abort(), options.timeout || REQUEST_TIMEOUT);
 
         const response = await fetch(url, {
             ...config,
@@ -39,11 +38,20 @@ async function apiRequest(endpoint, options = {}) {
 
         clearTimeout(timeoutId);
 
+        const contentType = response.headers.get('content-type');
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            let errorData = null;
+            if (contentType && contentType.includes('application/json')) {
+                errorData = await response.json();
+                errorMessage = errorData.error || errorData.message || errorMessage;
+            }
+            const error = new Error(errorMessage);
+            error.status = response.status;
+            error.data = errorData;
+            throw error;
         }
 
-        const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
             return await response.json();
         }
@@ -75,6 +83,223 @@ function apiPost(endpoint, data = {}) {
         method: 'POST',
         body: data
     });
+}
+
+// ==================== Step execution guard ====================
+
+const STEP_REQUEST_TIMEOUT = 600000;
+const STEP_BUTTON_IDS = {
+    extract: 'btnExtract',
+    graph: 'btnGraph',
+    rules: 'btnRules',
+    threat: 'btnThreat',
+    relations: 'btnRelations',
+    chains: 'btnChains'
+};
+
+const STEP_ESTIMATES = {
+    extract: 6,
+    graph: 8,
+    rules: 7,
+    threat: 5,
+    relations: 7,
+    chains: 10
+};
+
+const STEP_RUNNING_MESSAGES = {
+    extract: '正在提取事件特征',
+    graph: '正在构建关系图',
+    rules: '正在执行规则检测',
+    threat: '正在进行威胁检测',
+    relations: '正在挖掘可疑关系',
+    chains: '正在重建攻击链'
+};
+
+window.TraceEyeStepLocks = window.TraceEyeStepLocks || {};
+window.TraceEyeStepAnimations = window.TraceEyeStepAnimations || {};
+
+function setStepProgress(pageId, percent, message) {
+    const fill = document.getElementById(`${pageId}ProcessFill`);
+    const text = document.getElementById(`${pageId}ProcessText`);
+    const msg = document.getElementById(`${pageId}ProcessMessage`);
+
+    if (fill) fill.style.width = `${percent}%`;
+    if (text) text.textContent = `${percent}%`;
+    if (msg) msg.textContent = message;
+}
+
+function setStepProcessVisible(pageId, visible) {
+    const section = document.getElementById(`${pageId}ProcessSection`);
+    if (!section) return;
+    section.style.display = visible ? 'block' : 'none';
+    section.classList.toggle('is-running', Boolean(visible));
+}
+
+function formatRemaining(seconds) {
+    const safeSeconds = Math.max(0, Math.ceil(seconds));
+    if (safeSeconds < 60) {
+        return `约 ${safeSeconds} 秒`;
+    }
+    const minutes = Math.floor(safeSeconds / 60);
+    const rest = safeSeconds % 60;
+    return rest ? `约 ${minutes} 分 ${rest} 秒` : `约 ${minutes} 分钟`;
+}
+
+function ensureStepRuntime(pageId) {
+    const section = document.getElementById(`${pageId}ProcessSection`);
+    if (!section) return null;
+
+    let runtime = document.getElementById(`${pageId}ProcessRuntime`);
+    if (!runtime) {
+        runtime = document.createElement('div');
+        runtime.className = 'process-runtime';
+        runtime.id = `${pageId}ProcessRuntime`;
+        runtime.innerHTML = `
+            <span class="process-spinner" aria-hidden="true"></span>
+            <span class="process-runtime-text" id="${pageId}ProcessRuntimeText"></span>
+            <span class="process-runtime-eta" id="${pageId}ProcessEta"></span>
+        `;
+
+        const wrapper = section.querySelector('.process-bar-wrapper');
+        if (wrapper) {
+            wrapper.insertAdjacentElement('afterend', runtime);
+        } else {
+            section.appendChild(runtime);
+        }
+    }
+
+    return runtime;
+}
+
+function setStepRuntime(pageId, message, remainingSeconds) {
+    ensureStepRuntime(pageId);
+    const runtimeText = document.getElementById(`${pageId}ProcessRuntimeText`);
+    const etaText = document.getElementById(`${pageId}ProcessEta`);
+
+    if (runtimeText) runtimeText.textContent = message || STEP_RUNNING_MESSAGES[pageId] || '正在处理';
+    if (etaText) etaText.textContent = `预计剩余 ${formatRemaining(remainingSeconds)}`;
+}
+
+function stopStepAnimation(pageId, finalMessage = '') {
+    const animation = window.TraceEyeStepAnimations[pageId];
+    if (animation) {
+        clearInterval(animation.timer);
+        clearInterval(animation.poller);
+        delete window.TraceEyeStepAnimations[pageId];
+    }
+
+    const runtimeText = document.getElementById(`${pageId}ProcessRuntimeText`);
+    const etaText = document.getElementById(`${pageId}ProcessEta`);
+    if (runtimeText && finalMessage) runtimeText.textContent = finalMessage;
+    if (etaText && finalMessage) etaText.textContent = '';
+}
+
+function startStepAnimation(pageId, estimateSeconds = STEP_ESTIMATES[pageId] || 8) {
+    stopStepAnimation(pageId);
+    ensureStepRuntime(pageId);
+
+    const startedAt = Date.now();
+    let lastPercent = 0;
+    let lastBackendMessage = '';
+
+    const updateEstimatedProgress = () => {
+        const elapsedSeconds = (Date.now() - startedAt) / 1000;
+        const estimatedPercent = Math.min(92, Math.floor((elapsedSeconds / estimateSeconds) * 90));
+        const nextPercent = Math.max(lastPercent, estimatedPercent);
+        lastPercent = nextPercent;
+        const remainingSeconds = Math.max(1, estimateSeconds - elapsedSeconds);
+        const message = lastBackendMessage || STEP_RUNNING_MESSAGES[pageId] || '正在处理';
+
+        setStepProgress(pageId, nextPercent, `${message}，预计剩余 ${formatRemaining(remainingSeconds)}`);
+        setStepRuntime(pageId, message, remainingSeconds);
+    };
+
+    const pollBackendStatus = async () => {
+        try {
+            const status = await apiGet('/status');
+            if (status?.status === 'running' && status.current_step === pageId) {
+                const backendProgress = Number(status.progress || 0);
+                if (backendProgress > lastPercent) {
+                    lastPercent = Math.min(95, backendProgress);
+                }
+                lastBackendMessage = status.message || lastBackendMessage;
+                const elapsedSeconds = (Date.now() - startedAt) / 1000;
+                const remainingSeconds = Math.max(1, estimateSeconds * (100 - lastPercent) / 100);
+                setStepProgress(pageId, lastPercent, `${lastBackendMessage || STEP_RUNNING_MESSAGES[pageId]}，预计剩余 ${formatRemaining(Math.max(remainingSeconds, estimateSeconds - elapsedSeconds))}`);
+                setStepRuntime(pageId, lastBackendMessage || STEP_RUNNING_MESSAGES[pageId], Math.max(remainingSeconds, estimateSeconds - elapsedSeconds));
+            }
+        } catch (error) {
+            console.warn('状态轮询失败:', error);
+        }
+    };
+
+    updateEstimatedProgress();
+    window.TraceEyeStepAnimations[pageId] = {
+        timer: setInterval(updateEstimatedProgress, 350),
+        poller: setInterval(pollBackendStatus, 1000)
+    };
+    pollBackendStatus();
+}
+
+async function runStepWithLock(pageId, apiEndpoint, options = {}) {
+    if (window.TraceEyeStepLocks[pageId]) {
+        return { busy: true };
+    }
+
+    const button = document.getElementById(options.buttonId || STEP_BUTTON_IDS[pageId]);
+    window.TraceEyeStepLocks[pageId] = true;
+
+    if (button) {
+        button.disabled = true;
+        button.dataset.originalText = button.textContent;
+        button.textContent = options.runningText || '处理中...';
+    }
+
+    try {
+        setStepProcessVisible(pageId, true);
+        setStepProgress(pageId, 0, '处理中...');
+        startStepAnimation(pageId, options.estimateSeconds || STEP_ESTIMATES[pageId]);
+
+        const result = await apiRequest(apiEndpoint, {
+            method: 'POST',
+            body: options.body || {},
+            timeout: options.timeout || STEP_REQUEST_TIMEOUT
+        });
+
+        if (result.error) {
+            throw new Error(result.error);
+        }
+
+        stopStepAnimation(pageId, '处理完成');
+        setStepProgress(pageId, 100, '完成');
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setStepProcessVisible(pageId, false);
+        DataCache.clear(pageId);
+        await loadPageData(pageId);
+        return result;
+
+    } catch (error) {
+        if (error.status === 409) {
+            const data = error.data || {};
+            stopStepAnimation(pageId);
+            setStepProgress(pageId, data.progress || 0, data.message || error.message || '当前任务正在运行...');
+            setStepRuntime(pageId, data.message || '当前任务正在运行', STEP_ESTIMATES[pageId] || 8);
+            return { busy: true };
+        }
+
+        stopStepAnimation(pageId, '处理失败');
+        setStepProcessVisible(pageId, false);
+        alert(`处理失败: ${error.message}`);
+        return { error: error.message };
+
+    } finally {
+        window.TraceEyeStepLocks[pageId] = false;
+        if (button) {
+            button.disabled = false;
+            button.textContent = button.dataset.originalText || '开始处理';
+        }
+    }
 }
 
 /**
@@ -300,3 +525,4 @@ function getAllFiles() {
 window.apiGet = apiGet;
 window.apiPost = apiPost;
 window.apiRequest = apiRequest;
+window.runStepWithLock = runStepWithLock;

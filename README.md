@@ -23,6 +23,20 @@
 - **机器学习**：Isolation Forest、K-Means、DBSCAN
 - **数据存储**：JSON 文件
 
+## DeepSeek LLM 配置
+
+真实大模型分析从项目根目录 `.env` 读取配置。你只需要把自己的 Key 填到 `DEEPSEEK_API_KEY`：
+
+```env
+TRACE_EYE_MODE=debug
+LLM_PROVIDER=deepseek
+DEEPSEEK_API_KEY=你的 DeepSeek API Key
+DEEPSEEK_API_BASE=https://api.deepseek.com
+LLM_MODEL=deepseek-v4
+```
+
+`.env` 已在 `.gitignore` 中忽略，不会提交到仓库。配置完成后可运行 `run_deepseek.bat` 或 `python app.py`，然后在 AI 分析页面使用“测试连接”确认模型可访问。
+
 ## 项目结构
 
 ```

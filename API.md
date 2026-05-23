@@ -7,6 +7,48 @@
 
 ## 接口列表
 
+### LLM 配置与测试
+
+大模型配置从项目根目录 `.env` 读取：
+
+```env
+TRACE_EYE_MODE=debug
+LLM_PROVIDER=deepseek
+DEEPSEEK_API_KEY=你的 DeepSeek API Key
+DEEPSEEK_API_BASE=https://api.deepseek.com
+LLM_MODEL=deepseek-v4
+```
+
+#### 获取 LLM 状态
+
+```http
+GET /api/llm/status
+```
+
+#### 测试 LLM 连接
+
+```http
+POST /api/llm/test
+Content-Type: application/json
+
+{
+  "model": "deepseek-v4"
+}
+```
+
+#### 生成 AI 分析报告
+
+```http
+POST /api/llm/analyze
+Content-Type: application/json
+
+{
+  "model": "deepseek-v4"
+}
+```
+
+说明：生成报告前需要先完成威胁检测、关系挖掘和攻击链重建。
+
 ### 1. 获取系统状态
 
 获取当前系统运行状态。

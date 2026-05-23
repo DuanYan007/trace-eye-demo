@@ -10,6 +10,60 @@ let overviewData = {
     overview: null
 };
 
+const OVERVIEW_CHART_TEXT = '#dbeafe';
+const OVERVIEW_CHART_MUTED = '#9fb2d2';
+const OVERVIEW_CHART_LINE = 'rgba(148, 163, 184, 0.18)';
+const OVERVIEW_LEVEL_COLORS = {
+    critical: '#fb7185',
+    high: '#f59e0b',
+    medium: '#facc15',
+    low: '#34d399',
+    benign: '#94a3b8'
+};
+
+function applyOverviewChartTheme(option = {}) {
+    option.backgroundColor = 'transparent';
+    option.textStyle = {
+        color: OVERVIEW_CHART_TEXT,
+        ...(option.textStyle || {})
+    };
+    option.tooltip = {
+        backgroundColor: 'rgba(8, 18, 38, 0.96)',
+        borderColor: 'rgba(125, 178, 255, 0.28)',
+        textStyle: { color: OVERVIEW_CHART_TEXT },
+        ...(option.tooltip || {})
+    };
+    option.legend = {
+        textStyle: { color: OVERVIEW_CHART_TEXT },
+        ...(option.legend || {})
+    };
+
+    const axes = [];
+    if (option.xAxis) axes.push(...(Array.isArray(option.xAxis) ? option.xAxis : [option.xAxis]));
+    if (option.yAxis) axes.push(...(Array.isArray(option.yAxis) ? option.yAxis : [option.yAxis]));
+
+    axes.forEach(axis => {
+        axis.axisLabel = {
+            color: OVERVIEW_CHART_MUTED,
+            ...(axis.axisLabel || {})
+        };
+        axis.axisLine = {
+            lineStyle: { color: OVERVIEW_CHART_LINE },
+            ...(axis.axisLine || {})
+        };
+        axis.splitLine = {
+            lineStyle: { color: OVERVIEW_CHART_LINE },
+            ...(axis.splitLine || {})
+        };
+        axis.axisTick = {
+            lineStyle: { color: OVERVIEW_CHART_LINE },
+            ...(axis.axisTick || {})
+        };
+    });
+
+    return option;
+}
+
 // ==================== 初始化 ====================
 document.addEventListener('DOMContentLoaded', () => {
     initOverviewPage();
@@ -274,7 +328,7 @@ function initTimelineChart(events) {
         }
     }
 
-    const option = {
+    const option = applyOverviewChartTheme({
         tooltip: {
             trigger: 'axis',
             axisPointer: { type: 'cross' }
@@ -308,7 +362,7 @@ function initTimelineChart(events) {
             lineStyle: { color: '#2196F3', width: 2 },
             itemStyle: { color: '#2196F3' }
         }]
-    };
+    });
 
     chart.setOption(option);
     overviewCharts.timeline = chart;
@@ -321,7 +375,7 @@ function initSeverityPieChart(rules) {
 
     const chart = echarts.init(document.getElementById('severityPieChart'));
 
-    const option = {
+    const option = applyOverviewChartTheme({
         tooltip: {
             trigger: 'item',
             formatter: '{b}: {c} ({d}%)'
@@ -336,15 +390,16 @@ function initSeverityPieChart(rules) {
             radius: ['40%', '70%'],
             center: ['40%', '50%'],
             data: [
-                { value: bySeverity.high || 0, name: '高危', itemStyle: { color: '#f44336' } },
-                { value: bySeverity.medium || 0, name: '中危', itemStyle: { color: '#ff9800' } },
-                { value: bySeverity.low || 0, name: '低危', itemStyle: { color: '#4CAF50' } }
+                { value: bySeverity.high || 0, name: '高危', itemStyle: { color: OVERVIEW_LEVEL_COLORS.high } },
+                { value: bySeverity.medium || 0, name: '中危', itemStyle: { color: OVERVIEW_LEVEL_COLORS.medium } },
+                { value: bySeverity.low || 0, name: '低危', itemStyle: { color: OVERVIEW_LEVEL_COLORS.low } }
             ],
             label: {
+                color: OVERVIEW_CHART_TEXT,
                 formatter: '{b}\n{d}%'
             }
         }]
-    };
+    });
 
     chart.setOption(option);
     overviewCharts.severity = chart;
@@ -357,7 +412,7 @@ function initThreatLevelChart(threat) {
 
     const chart = echarts.init(document.getElementById('threatLevelChart'));
 
-    const option = {
+    const option = applyOverviewChartTheme({
         tooltip: {
             trigger: 'axis',
             axisPointer: { type: 'shadow' }
@@ -378,20 +433,21 @@ function initThreatLevelChart(threat) {
         series: [{
             type: 'bar',
             data: [
-                { value: byLevel.critical || 0, itemStyle: { color: '#d32f2f' } },
-                { value: byLevel.high || 0, itemStyle: { color: '#f57c00' } },
-                { value: byLevel.medium || 0, itemStyle: { color: '#ffc107' } },
-                { value: byLevel.low || 0, itemStyle: { color: '#4CAF50' } },
-                { value: byLevel.benign || 0, itemStyle: { color: '#9e9e9e' } }
+                { value: byLevel.critical || 0, itemStyle: { color: OVERVIEW_LEVEL_COLORS.critical } },
+                { value: byLevel.high || 0, itemStyle: { color: OVERVIEW_LEVEL_COLORS.high } },
+                { value: byLevel.medium || 0, itemStyle: { color: OVERVIEW_LEVEL_COLORS.medium } },
+                { value: byLevel.low || 0, itemStyle: { color: OVERVIEW_LEVEL_COLORS.low } },
+                { value: byLevel.benign || 0, itemStyle: { color: OVERVIEW_LEVEL_COLORS.benign } }
             ],
             barWidth: '60%',
             label: {
                 show: true,
                 position: 'right',
+                color: OVERVIEW_CHART_TEXT,
                 formatter: '{c}'
             }
         }]
-    };
+    });
 
     chart.setOption(option);
     overviewCharts.threatLevel = chart;
@@ -415,7 +471,7 @@ function initRuleCategoryChart(rules) {
     const categories = Object.keys(byCategory);
     const data = categories.map(cat => byCategory[cat] || 0);
 
-    const option = {
+    const option = applyOverviewChartTheme({
         tooltip: {
             trigger: 'axis',
             axisPointer: { type: 'shadow' }
@@ -446,10 +502,11 @@ function initRuleCategoryChart(rules) {
             label: {
                 show: true,
                 position: 'right',
+                color: OVERVIEW_CHART_TEXT,
                 formatter: '{c}'
             }
         }]
-    };
+    });
 
     chart.setOption(option);
     overviewCharts.ruleCategory = chart;

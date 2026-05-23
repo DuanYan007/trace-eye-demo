@@ -399,10 +399,58 @@ body {
     transition: width 0.3s;
 }
 
+.process-section.is-running .process-fill {
+    background-size: 180% 100%;
+    animation: process-flow 1.2s linear infinite;
+}
+
 .process-text {
     min-width: 45px;
     font-size: 0.9rem;
     color: var(--text-secondary);
+}
+
+.process-runtime {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: -8px 0 18px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.process-spinner {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(59, 130, 246, 0.22);
+    border-top-color: var(--primary-color);
+    animation: process-spin 0.8s linear infinite;
+    flex: 0 0 auto;
+}
+
+.process-runtime-text {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.process-runtime-eta {
+    color: var(--text-secondary);
+}
+
+@keyframes process-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes process-flow {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 180% 50%;
+    }
 }
 
 .process-steps {

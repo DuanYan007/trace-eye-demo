@@ -3,19 +3,19 @@
     <div class="page-header">
         <h2>AI 智能分析</h2>
         <div class="page-description">
-            <p class="main-desc">利用 LLM 大模型对检测结果进行诊断，生成系统问题报告、修复建议和人工复核入口。</p>
+            <p class="main-desc">利用 LLM 大模型对检测结果进行诊断，生成系统问题报告、修复建议、复核入口和可导出的 PDF 报告。</p>
             <div class="module-flow">
                 <span class="flow-label">流程位置:</span>
                 <span class="flow-item">攻击链重建</span>
                 <span class="flow-arrow">→</span>
-                <span class="flow-item active">AI分析</span>
+                <span class="flow-item active">AI 分析</span>
                 <span class="flow-arrow">→</span>
                 <span class="flow-item">复核与导出</span>
             </div>
             <div class="module-details">
                 <p><strong>左侧:</strong> LLM 诊断报告，说明系统当前暴露的问题、证据和影响范围。</p>
                 <p><strong>右侧:</strong> LLM 修复建议，说明应当如何隔离、处置、加固和持续监控。</p>
-                <p><strong>底部:</strong> 显示是否建议人工复核，并提供人工复核修改入口和 PDF 导出。</p>
+                <p><strong>图表:</strong> 报告中包含告警严重度、降噪效果、攻击阶段和 IOC 类型分布，可随 PDF 一并导出。</p>
             </div>
         </div>
     </div>
@@ -51,10 +51,21 @@
             </div>
         </div>
 
+        <div class="ai-connection-panel">
+            <label class="ai-model-field" for="aiModelName">
+                <span>模型名称</span>
+                <input id="aiModelName" type="text" placeholder="deepseek-v4" autocomplete="off">
+            </label>
+            <button id="btnAITestConnection" class="btn btn-secondary" type="button">
+                <span class="btn-text">测试连接</span>
+            </button>
+            <span class="ai-connection-status" id="aiConnectionStatus">等待测试</span>
+        </div>
+
         <div class="ai-action-area" id="aiActionArea">
             <p class="ai-desc">点击开始后，系统会读取告警、关系图与攻击链结果，生成 Markdown 格式的诊断报告和修复建议。</p>
             <button id="btnAIAnalyze" class="btn btn-primary btn-large">
-                <span class="btn-icon">✨</span>
+                <span class="btn-icon">▶</span>
                 <span class="btn-text">开始 AI 分析</span>
             </button>
         </div>
@@ -77,11 +88,9 @@
                 </div>
                 <div class="ai-report-actions">
                     <button id="btnAIReanalyze" class="btn btn-secondary">
-                        <span class="btn-icon">🔄</span>
                         <span class="btn-text">重新分析</span>
                     </button>
                     <button id="btnAIExportPdf" class="btn btn-primary">
-                        <span class="btn-icon">⬇</span>
                         <span class="btn-text">导出 PDF</span>
                     </button>
                 </div>
@@ -89,7 +98,7 @@
 
             <div class="ai-report-meta">
                 <div class="ai-threat-level" id="aiThreatLevel">
-                    <span class="ai-threat-icon" id="aiThreatIcon">⚠</span>
+                    <span class="ai-threat-icon" id="aiThreatIcon">!</span>
                     <span class="ai-threat-text" id="aiThreatText">等待分析</span>
                 </div>
                 <div class="ai-summary" id="aiSummary"></div>
@@ -100,6 +109,8 @@
                     <span>IOC <b id="aiIocCount">-</b></span>
                 </div>
             </div>
+
+            <div class="ai-report-charts" id="aiReportCharts"></div>
 
             <div class="ai-split-report" id="aiPrintableReport">
                 <section class="ai-md-panel diagnosis">
@@ -128,8 +139,7 @@
                 </div>
                 <div class="ai-review-actions">
                     <button id="btnAIReviewEdit" class="btn btn-secondary">
-                        <span class="btn-icon">✎</span>
-                        <span class="btn-text">人工复核修改</span>
+                        <span class="btn-text">专家复核修改</span>
                     </button>
                 </div>
             </footer>
@@ -139,22 +149,59 @@
     <div id="aiReviewModal" class="modal">
         <div class="modal-content ai-review-modal">
             <div class="modal-header">
-                <h3>人工复核修改</h3>
+                <h3>专家复核修改</h3>
                 <button class="modal-close" id="btnAIReviewClose">&times;</button>
             </div>
             <div class="modal-body">
-                <label class="ai-review-field">
-                    <span>诊断报告 Markdown</span>
-                    <textarea id="aiReviewDiagnosisInput" rows="10"></textarea>
-                </label>
-                <label class="ai-review-field">
-                    <span>修复建议 Markdown</span>
-                    <textarea id="aiReviewRemediationInput" rows="10"></textarea>
-                </label>
-                <label class="ai-review-field">
-                    <span>复核说明</span>
-                    <textarea id="aiReviewNoteInput" rows="4" placeholder="记录人工复核意见、修改原因或审批说明"></textarea>
-                </label>
+                <div class="ai-review-mode-switch" role="tablist" aria-label="专家复核模式">
+                    <button type="button" class="ai-review-mode active" data-mode="direct" id="aiReviewModeDirect">
+                        <span class="mode-icon">[E]</span>
+                        <span>
+                            <strong>专家直接修改</strong>
+                            <small>手动编辑 Markdown 报告内容</small>
+                        </span>
+                    </button>
+                    <button type="button" class="ai-review-mode" data-mode="llm" id="aiReviewModeLLM">
+                        <span class="mode-icon">[AI]</span>
+                        <span>
+                            <strong>专家与 LLM 对话</strong>
+                            <small>由 LLM 根据专家建议智能修订</small>
+                        </span>
+                    </button>
+                </div>
+
+                <div class="ai-review-mode-panel active" id="aiReviewDirectPanel">
+                    <label class="ai-review-field">
+                        <span>诊断报告 Markdown</span>
+                        <textarea id="aiReviewDiagnosisInput" rows="10"></textarea>
+                    </label>
+                    <label class="ai-review-field">
+                        <span>修复建议 Markdown</span>
+                        <textarea id="aiReviewRemediationInput" rows="10"></textarea>
+                    </label>
+                    <label class="ai-review-field">
+                        <span>复核说明</span>
+                        <textarea id="aiReviewNoteInput" rows="4" placeholder="记录人工复核意见、修改原因或审批说明"></textarea>
+                    </label>
+                </div>
+
+                <div class="ai-review-mode-panel" id="aiReviewLLMPanel">
+                    <div class="ai-review-chat" id="aiReviewChatLog">
+                        <div class="ai-chat-message assistant">
+                            <strong>LLM</strong>
+                            <p>请输入专家修订意见，例如“把修复建议按优先级重排，并补充验证步骤”。LLM 会生成更新后的左右两栏报告。</p>
+                        </div>
+                    </div>
+                    <label class="ai-review-field">
+                        <span>专家建议</span>
+                        <textarea id="aiReviewLLMInput" rows="5" placeholder="输入专家意见，LLM 将根据该意见智能修改诊断报告和修复建议"></textarea>
+                    </label>
+                    <div class="ai-review-llm-actions">
+                        <button id="btnAIReviewLLMSend" class="btn btn-primary" type="button">发送给 LLM 智能修改</button>
+                        <span id="aiReviewLLMStatus" class="ai-review-llm-status"></span>
+                    </div>
+                </div>
+
                 <div class="ai-review-modal-actions">
                     <button id="btnAIReviewSave" class="btn btn-primary">保存复核结果</button>
                     <button id="btnAIReviewCancel" class="btn btn-secondary">取消</button>

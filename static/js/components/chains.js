@@ -86,6 +86,9 @@ const TACTIC_ORDER = [
     '命令与控制', '影响'
 ];
 
+const CHAIN_CHART_MAX_TOTAL_LEAVES = 42;
+const CHAIN_LABEL_MAX_LENGTH = 24;
+
 // 组件加载完成后的初始化
 window.addEventListener('componentLoaded', (e) => {
     if (e.detail.name === 'chains') {
@@ -97,6 +100,10 @@ window.addEventListener('componentLoaded', (e) => {
  * 初始化攻击链重建页面
  */
 function initChainsPage() {
+    const page = document.getElementById('page-chains');
+    if (!page || page.dataset.chainsInitialized === 'true') return;
+    page.dataset.chainsInitialized = 'true';
+
     const btn = document.getElementById('btnChains');
     if (btn) {
         btn.addEventListener('click', () => executeStep('chains', '/step/chains'));
@@ -373,7 +380,6 @@ async function renderChainForestChart(chain) {
     if (chainForestChart) {
         chainForestChart.dispose();
     }
-    chainForestChart = echarts.init(container);
 
     // 获取图数据
     const graphCache = await DataCache.get('graph');
@@ -391,10 +397,9 @@ async function renderChainForestChart(chain) {
     const chainNodeIds = chain.nodes || [];
 
     // 为每个节点分配攻击阶段
-    chainNodeIds.forEach(nodeId => {
+    chainNodeIds.forEach((nodeId, nodeIndex) => {
         const node = nodesMap[nodeId] || { name: nodeId, type: 'unknown' };
         // 简单分配：根据节点类型或索引分配阶段
-        const nodeIndex = chainNodeIds.indexOf(nodeId);
         const tacticIndex = Math.min(Math.floor(nodeIndex / Math.max(1, chainNodeIds.length / TACTIC_ORDER.length)), TACTIC_ORDER.length - 1);
         const tactic = TACTIC_ORDER[tacticIndex];
 
@@ -409,17 +414,55 @@ async function renderChainForestChart(chain) {
         });
     });
 
-    // 构建树形数据
+    const activeTactics = TACTIC_ORDER.filter(t => tacticNodes[t]);
+    const maxLeavesPerTactic = Math.max(3, Math.floor(CHAIN_CHART_MAX_TOTAL_LEAVES / Math.max(1, activeTactics.length)));
+
+    // 构建摘要树形数据。大链路只展示每阶段代表节点，其余节点聚合，避免图面挤成一团。
     const treeData = {
         name: chain.attack_type || '攻击链',
-        children: TACTIC_ORDER.filter(t => tacticNodes[t]).map(tactic => ({
-            name: tactic,
-            children: tacticNodes[tactic].map(node => ({
-                name: node.name,
+        children: activeTactics.map(tactic => {
+            const nodes = tacticNodes[tactic] || [];
+            const visibleNodes = nodes.slice(0, maxLeavesPerTactic);
+            const hiddenCount = Math.max(0, nodes.length - visibleNodes.length);
+            const children = visibleNodes.map(node => ({
+                name: truncateChainLabel(node.name),
+                rawName: node.name,
                 value: node.value
-            }))
-        }))
+            }));
+            if (hiddenCount > 0) {
+                children.push({
+                    name: `其余 ${hiddenCount} 个节点`,
+                    rawName: nodes.slice(visibleNodes.length).map(node => node.name).join(', '),
+                    value: hiddenCount,
+                    isAggregate: true
+                });
+            }
+            return {
+                name: `${tactic} (${nodes.length})`,
+                rawName: tactic,
+                children
+            };
+        })
     };
+
+    const allChartNames = [
+        treeData.name,
+        ...treeData.children.flatMap(tactic => [
+            tactic.name,
+            ...(tactic.children || []).map(node => node.name || '')
+        ])
+    ].filter(Boolean);
+    const longestLabel = allChartNames.reduce((max, name) => Math.max(max, String(name).length), 0);
+    const leafCount = treeData.children.reduce((sum, tactic) => sum + (tactic.children?.length || 0), 0);
+    const shell = container.closest('.chain-forest-chart-shell');
+    const baseWidth = shell?.clientWidth || container.clientWidth || 1180;
+    const chartWidth = Math.max(baseWidth, 1180, Math.min(1900, 980 + longestLabel * 12));
+    const chartHeight = Math.max(520, Math.min(860, 300 + Math.max(leafCount, treeData.children.length) * 54));
+    container.style.width = `${chartWidth}px`;
+    container.style.minWidth = `${chartWidth}px`;
+    container.style.height = `${chartHeight}px`;
+
+    chainForestChart = echarts.init(container);
 
     const option = {
         backgroundColor: 'transparent',
@@ -429,28 +472,40 @@ async function renderChainForestChart(chain) {
             textStyle: { color: '#dbeafe' },
             formatter: function(params) {
                 if (params.treePathInfo) {
-                    const path = params.treePathInfo.map(p => p.name).join(' → ');
-                    return `<strong>${params.name}</strong><br/>路径: ${path}`;
+                    const path = params.treePathInfo.map(p => p.rawName || p.name).join(' → ');
+                    const rawName = params.data.rawName || params.name;
+                    return `<strong>${escapeHtml(rawName)}</strong><br/>路径: ${escapeHtml(path)}`;
                 }
-                return params.name;
+                return escapeHtml(params.name);
             }
         },
         series: [{
             type: 'tree',
             data: [treeData],
-            top: '10%',
-            left: '10%',
-            bottom: '10%',
-            right: '20%',
+            top: 48,
+            left: 190,
+            bottom: 48,
+            right: 260,
+            roam: true,
+            scaleLimit: {
+                min: 0.55,
+                max: 2.4
+            },
+            layout: 'orthogonal',
+            edgeShape: 'polyline',
+            edgeForkPosition: '46%',
+            initialTreeDepth: -1,
             symbolSize: 8,
             label: {
                 show: showChainLabels,
                 position: 'left',
+                distance: 14,
                 verticalAlign: 'middle',
                 align: 'right',
                 fontSize: 11,
+                lineHeight: 16,
                 color: '#dbeafe',
-                width: 130,
+                width: 150,
                 overflow: 'truncate',
                 textBorderColor: 'rgba(3, 10, 24, 0.9)',
                 textBorderWidth: 3
@@ -459,14 +514,20 @@ async function renderChainForestChart(chain) {
                 label: {
                     show: showChainLabels,
                     position: 'right',
+                    distance: 16,
                     verticalAlign: 'middle',
                     align: 'left',
+                    fontSize: 11,
+                    lineHeight: 16,
                     color: '#dbeafe',
-                    width: 150,
+                    width: 210,
                     overflow: 'truncate',
                     textBorderColor: 'rgba(3, 10, 24, 0.9)',
                     textBorderWidth: 3
                 }
+            },
+            labelLayout: {
+                hideOverlap: true
             },
             emphasis: {
                 focus: 'descendant'
@@ -476,7 +537,8 @@ async function renderChainForestChart(chain) {
             animationDurationUpdate: 750,
             itemStyle: {
                 color: function(params) {
-                    const tactic = params.data.name;
+                    if (params.data.isAggregate) return 'rgba(148, 163, 184, 0.92)';
+                    const tactic = params.data.rawName || params.data.name;
                     const tech = techniques.find(t => TECHNIQUE_TACTICS[t]?.tactic === tactic);
                     return tech ? TECHNIQUE_TACTICS[tech]?.color || '#3498db' : '#3498db';
                 },
@@ -532,28 +594,7 @@ function toggleChainLabels() {
  * 执行处理步骤
  */
 async function executeStep(pageId, apiEndpoint) {
-    try {
-        showProcessSection(pageId);
-        updateProgress(pageId, 0, '处理中...');
-
-        const result = await apiPost(apiEndpoint);
-
-        if (result.error) {
-            throw new Error(result.error);
-        }
-
-        updateProgress(pageId, 100, '完成');
-
-        setTimeout(async () => {
-            hideProcessSection(pageId);
-            DataCache.clear(pageId);
-            await loadPageData(pageId);
-        }, 500);
-
-    } catch (error) {
-        hideProcessSection(pageId);
-        alert(`处理失败: ${error.message}`);
-    }
+    return runStepWithLock(pageId, apiEndpoint);
 }
 
 /**
@@ -657,6 +698,12 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function truncateChainLabel(text, maxLength = CHAIN_LABEL_MAX_LENGTH) {
+    const value = String(text || '');
+    if (value.length <= maxLength) return value;
+    return `${value.slice(0, Math.max(0, maxLength - 1))}…`;
 }
 
 // 导出到全局

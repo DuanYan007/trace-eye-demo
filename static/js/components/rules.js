@@ -17,6 +17,18 @@ const RULES_CHART_THEME = {
     tooltipBorder: 'rgba(125, 178, 255, 0.28)'
 };
 
+const RULE_SEVERITY_COLORS = {
+    high: '#fb7185',
+    medium: '#f59e0b',
+    low: '#34d399'
+};
+
+const RULE_SEVERITY_SHADOWS = {
+    high: 'rgba(251, 113, 133, 0.55)',
+    medium: 'rgba(245, 158, 11, 0.42)',
+    low: 'rgba(52, 211, 153, 0.32)'
+};
+
 // 组件加载完成后的初始化
 window.addEventListener('componentLoaded', (e) => {
     if (e.detail.name === 'rules') {
@@ -28,6 +40,10 @@ window.addEventListener('componentLoaded', (e) => {
  * 初始化规则检测页面
  */
 function initRulesPage() {
+    const page = document.getElementById('page-rules');
+    if (!page || page.dataset.rulesInitialized === 'true') return;
+    page.dataset.rulesInitialized = 'true';
+
     // 绑定执行按钮
     const btn = document.getElementById('btnRules');
     if (btn) {
@@ -280,9 +296,9 @@ function renderRulesDistributionChart() {
                 color: RULES_CHART_THEME.text
             },
             data: [
-                { value: severityData.high, name: '高危', itemStyle: { color: '#e74c3c' } },
-                { value: severityData.medium, name: '中危', itemStyle: { color: '#f39c12' } },
-                { value: severityData.low, name: '低危', itemStyle: { color: '#27ae60' } }
+                { value: severityData.high, name: '高危', itemStyle: { color: RULE_SEVERITY_COLORS.high } },
+                { value: severityData.medium, name: '中危', itemStyle: { color: RULE_SEVERITY_COLORS.medium } },
+                { value: severityData.low, name: '低危', itemStyle: { color: RULE_SEVERITY_COLORS.low } }
             ]
         }]
     };
@@ -490,13 +506,10 @@ function renderScatterMatrix(alerts, startTime, endTime) {
             category: category,
             symbolSize: symbolSize,
             itemStyle: {
-                color: severity === 'high' ? '#e74c3c' :
-                       severity === 'medium' ? '#f39c12' : '#27ae60',
+                color: RULE_SEVERITY_COLORS[severity] || RULE_SEVERITY_COLORS.low,
                 opacity: 0.8,
                 shadowBlur: severity === 'high' ? 15 : 8,
-                shadowColor: severity === 'high' ? 'rgba(231, 76, 60, 0.6)' :
-                             severity === 'medium' ? 'rgba(243, 156, 18, 0.4)' :
-                             'rgba(39, 174, 96, 0.3)'
+                shadowColor: RULE_SEVERITY_SHADOWS[severity] || RULE_SEVERITY_SHADOWS.low
             }
         });
     });
@@ -730,7 +743,7 @@ function initGanttChart(alerts, startTime, endTime) {
                 alert.event_id || index
             ],
             itemStyle: {
-                color: severityClass === 'high' ? '#e74c3c' : severityClass === 'medium' ? '#f39c12' : '#27ae60'
+                color: RULE_SEVERITY_COLORS[severityClass] || RULE_SEVERITY_COLORS.low
             }
         };
     });
@@ -946,7 +959,7 @@ function showRuleDetail(ruleId) {
     // 显示触发该规则的告警列表
     if (alertsEl && alerts.length > 0) {
         alertsEl.innerHTML = alerts.slice(0, 10).map(alert => `
-            <div class="alert-item" style="padding: 8px; border-left: 3px solid ${alert.rule?.severity === 'high' ? '#e74c3c' : alert.rule?.severity === 'medium' ? '#f39c12' : '#27ae60'}; background: var(--card-bg); margin-bottom: 8px; border-radius: 4px;">
+            <div class="alert-item" style="padding: 8px; border-left: 3px solid ${RULE_SEVERITY_COLORS[alert.rule?.severity || 'low'] || RULE_SEVERITY_COLORS.low}; background: var(--card-bg); margin-bottom: 8px; border-radius: 4px;">
                 <div style="font-size: 0.85rem; color: var(--text-secondary);">${alert.timestamp ? new Date(alert.timestamp).toLocaleString('zh-CN') : '未知时间'}</div>
                 <div style="margin-top: 4px;">${escapeHtml(alert.message || '-')}</div>
             </div>
@@ -990,7 +1003,7 @@ function showAlertTrace(eventId) {
                         <div><strong>主体:</strong> ${alert.subject?.type || '-'}:${alert.subject?.name || '-'}</div>
                         <div><strong>客体:</strong> ${alert.object?.type || '-'}:${alert.object?.path || alert.object?.name || '-'}</div>
                         <div><strong>动作:</strong> ${alert.action || '-'}</div>
-                        <div><strong>严重程度:</strong> <span style="color: ${alert.rule?.severity === 'high' ? '#e74c3c' : alert.rule?.severity === 'medium' ? '#f39c12' : '#27ae60'}">${(alert.rule?.severity || 'low').toUpperCase()}</span></div>
+                        <div><strong>严重程度:</strong> <span style="color: ${RULE_SEVERITY_COLORS[alert.rule?.severity || 'low'] || RULE_SEVERITY_COLORS.low}">${(alert.rule?.severity || 'low').toUpperCase()}</span></div>
                     </div>
                 </div>
             </div>
@@ -1077,28 +1090,7 @@ function exportToExcel() {
  * 执行处理步骤
  */
 async function executeStep(pageId, apiEndpoint) {
-    try {
-        showProcessSection(pageId);
-        updateProgress(pageId, 0, '处理中...');
-
-        const result = await apiPost(apiEndpoint);
-
-        if (result.error) {
-            throw new Error(result.error);
-        }
-
-        updateProgress(pageId, 100, '完成');
-
-        setTimeout(async () => {
-            hideProcessSection(pageId);
-            DataCache.clear(pageId);
-            await loadPageData(pageId);
-        }, 500);
-
-    } catch (error) {
-        hideProcessSection(pageId);
-        alert(`处理失败: ${error.message}`);
-    }
+    return runStepWithLock(pageId, apiEndpoint);
 }
 
 /**

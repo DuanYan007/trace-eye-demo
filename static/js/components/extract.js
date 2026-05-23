@@ -13,6 +13,10 @@ window.addEventListener('componentLoaded', (e) => {
  * 初始化事件提取页面
  */
 function initExtractPage() {
+    const page = document.getElementById('page-extract');
+    if (!page || page.dataset.extractInitialized === 'true') return;
+    page.dataset.extractInitialized = 'true';
+
     // 绑定执行按钮
     const btn = document.getElementById('btnExtract');
     if (btn) {
@@ -118,31 +122,7 @@ async function loadExtractResults(pageDataCache) {
  * 执行处理步骤
  */
 async function executeStep(pageId, apiEndpoint) {
-    try {
-        showProcessSection(pageId);
-        updateProgress(pageId, 0, '处理中...');
-
-        // 直接执行步骤（Demo 模式会立即返回）
-        const result = await apiPost(apiEndpoint);
-
-        if (result.error) {
-            throw new Error(result.error);
-        }
-
-        updateProgress(pageId, 100, '完成');
-
-        setTimeout(async () => {
-            hideProcessSection(pageId);
-
-            // 清除缓存，重新加载数据
-            DataCache.clear(pageId);
-            await loadPageData(pageId);
-        }, 500);
-
-    } catch (error) {
-        hideProcessSection(pageId);
-        alert(`处理失败: ${error.message}`);
-    }
+    return runStepWithLock(pageId, apiEndpoint);
 }
 
 /**

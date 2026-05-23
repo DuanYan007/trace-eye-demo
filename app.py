@@ -19,6 +19,29 @@ from flask import Flask, render_template, jsonify, request, send_from_directory,
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+def load_env_file():
+    """Load simple KEY=value pairs from project .env before reading mode/config."""
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    if not os.path.exists(env_path):
+        return
+
+    try:
+        with open(env_path, "r", encoding="utf-8") as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if key and key not in os.environ:
+                    os.environ[key] = value
+    except Exception as exc:
+        print(f"读取 .env 失败: {exc}")
+
+
+load_env_file()
+
 from modules.data_generator import DataGenerator
 from modules.event_extractor import EventExtractor
 from modules.graph_builder import GraphBuilder
@@ -510,8 +533,11 @@ system_state = {
     "message": "",
     "steps_completed": [],
     "last_generated": None,
+    "running_since": None,
     "mode": MODE.upper()  # 添加模式信息: DEBUG 或 DEMO
 }
+
+RUNNING_STATE_TTL_SECONDS = int(os.environ.get("TRACE_EYE_RUNNING_TTL", "900"))
 
 # ==================== Demo 数据内存缓存 ====================
 # 在启动时预加载 demo 数据到内存，避免每次请求都读取大文件
@@ -562,7 +588,7 @@ if IS_DEMO_MODE:
 
 # 步骤定义
 STEPS = [
-    {"id": "upload", "name": "上传数据", "file": None},
+    {"id": "upload", "name": "上传数据", "file": LOGS_FILE},
     {"id": "extract", "name": "提取事件", "file": EVENTS_FILE},
     {"id": "graph", "name": "构建关系图", "file": GRAPH_FILE},
     {"id": "rules", "name": "规则检测", "file": ALERTS_FILE},
@@ -570,6 +596,40 @@ STEPS = [
     {"id": "relations", "name": "关系挖掘", "file": RELATIONS_FILE},
     {"id": "chains", "name": "攻击链重建", "file": CHAINS_FILE}
 ]
+
+
+def is_step_completed(step_id):
+    """Check step completion from memory, output file, or cache."""
+    if step_id in system_state.get("steps_completed", []):
+        return True
+
+    if IS_DEMO_MODE:
+        return False
+
+    step = next((item for item in STEPS if item["id"] == step_id), None)
+    if step and step.get("file") and os.path.exists(step["file"]):
+        return True
+
+    cache_index = get_cache_manager().get_all_steps_status()
+    return bool(cache_index.get(step_id, {}).get("has_data"))
+
+
+def restore_debug_steps_from_disk():
+    """Restore completed debug steps from existing output files/cache after restart."""
+    if IS_DEMO_MODE:
+        return
+
+    cache_index = get_cache_manager().get_all_steps_status()
+    restored_steps = []
+    for step in STEPS:
+        step_id = step["id"]
+        if is_step_completed(step_id):
+            restored_steps.append(step_id)
+
+    system_state["steps_completed"] = restored_steps
+
+
+restore_debug_steps_from_disk()
 
 
 # ==================== 辅助函数 ====================
@@ -590,9 +650,61 @@ def load_json(filepath):
 
 def update_state(step, progress, message):
     """更新系统状态"""
+    previous_step = system_state.get("current_step")
+    previous_progress = system_state.get("progress", 0)
+    if (
+        system_state.get("status") == "running"
+        and (
+            not system_state.get("running_since")
+            or previous_step != step
+            or progress <= previous_progress
+        )
+    ):
+        system_state["running_since"] = time.time()
     system_state["current_step"] = step
     system_state["progress"] = progress
     system_state["message"] = message
+
+
+def mark_running():
+    """开始运行状态并记录时间。"""
+    system_state["status"] = "running"
+    system_state["running_since"] = time.time()
+
+
+def mark_idle():
+    """结束运行状态，避免后续步骤被旧状态锁住。"""
+    system_state["status"] = "idle"
+    system_state["running_since"] = None
+
+
+def reset_stale_running_state():
+    """恢复异常残留的 running 状态。"""
+    if system_state.get("status") != "running":
+        return False
+
+    running_since = system_state.get("running_since")
+    if not running_since:
+        system_state["running_since"] = time.time()
+        return False
+
+    if time.time() - running_since <= RUNNING_STATE_TTL_SECONDS:
+        return False
+
+    system_state["status"] = "idle"
+    system_state["running_since"] = None
+    system_state["message"] = "上一次任务超时，已恢复为空闲状态"
+    return True
+
+
+def busy_response():
+    """返回当前运行任务信息，前端可据此提示用户等待。"""
+    return jsonify({
+        "error": "系统正在运行中，请等待当前任务完成",
+        "current_step": system_state.get("current_step", ""),
+        "progress": system_state.get("progress", 0),
+        "message": system_state.get("message", "")
+    }), 409
 
 
 # ==================== 路由处理 ====================
@@ -606,11 +718,13 @@ def index():
 @app.route("/api/status")
 def get_status():
     """获取系统状态"""
+    reset_stale_running_state()
+
     # 检查各步骤是否完成
     steps_status = {}
     for step in STEPS:
         steps_status[step["id"]] = {
-            "completed": step["id"] in system_state["steps_completed"],
+            "completed": is_step_completed(step["id"]),
             "has_data": step["file"] and os.path.exists(step["file"])
         }
 
@@ -646,7 +760,7 @@ def reset():
         cache_mgr = get_cache_manager()
         cache_mgr.clear_all()
 
-        system_state["status"] = "idle"
+        mark_idle()
         system_state["current_step"] = ""
         system_state["progress"] = 0
         system_state["message"] = "系统已重置"
@@ -662,8 +776,9 @@ def reset():
 @app.route("/api/upload", methods=["POST"])
 def upload_logs():
     """上传多源日志文件，实际统计日志行数"""
+    reset_stale_running_state()
     if system_state["status"] == "running":
-        return jsonify({"error": "系统正在运行中"}), 400
+        return busy_response()
 
     try:
         # 支持单文件和多文件上传
@@ -676,12 +791,17 @@ def upload_logs():
         if not files or files[0].filename == "":
             return jsonify({"error": "未选择文件"}), 400
 
-        system_state["status"] = "running"
+        mark_running()
         update_state("upload", 10, f"正在处理 {len(files)} 个文件...")
 
         # 导入日志解析器
         from modules.log_parser import LogParser
         parser = LogParser()
+
+        existing_log_data = load_json(LOGS_FILE) or {}
+        existing_meta = existing_log_data.get("meta", {})
+        existing_events = existing_log_data.get("events", [])
+        existing_files = existing_meta.get("files") or existing_meta.get("log_files", [])
 
         all_events = []
         file_info = []
@@ -726,35 +846,53 @@ def upload_logs():
                     "event_count": len(events)
                 })
             except Exception as e:
+                mark_idle()
                 return jsonify({"error": f"无法解析文件 {filename}: {str(e)}"}), 400
+
+        combined_events = existing_events + all_events
+        combined_files = existing_files + file_info
 
         # 构建统一的日志数据
         log_data = {
             "meta": {
                 "version": "2.0",
                 "uploaded_at": datetime.now().isoformat() + "Z",
-                "total_events": len(all_events),
+                "total_events": len(combined_events),
                 "source": "upload",
-                "files": file_info
+                "files": combined_files
             },
-            "events": all_events
+            "events": combined_events
         }
 
         # 保存到日志文件
         save_json(LOGS_FILE, log_data)
 
+        # 上传数据变更后，下游步骤必须重新执行，避免沿用旧的事件/图/告警结果。
+        downstream_files = [EVENTS_FILE, GRAPH_FILE, ALERTS_FILE, THREAT_FILE, RELATIONS_FILE, CHAINS_FILE, ANALYSIS_FILE]
+        for filepath in downstream_files:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
         update_state("upload", 100, "文件上传完成")
-        system_state["steps_completed"].append("upload")
-        system_state["status"] = "idle"
+        system_state["steps_completed"] = [step for step in system_state["steps_completed"] if step == "upload"]
+        if "upload" not in system_state["steps_completed"]:
+            system_state["steps_completed"].append("upload")
+        mark_idle()
         system_state["last_generated"] = datetime.now().isoformat()
 
         # 保存到缓存
         cache_mgr = get_cache_manager()
+        for step in ["extract", "graph", "rules", "threat", "relations", "chains"]:
+            cache_mgr.clear_step(step)
         cache_mgr.save_step_data("upload", {
             "completed_at": datetime.now().isoformat() + "Z",
             "status": "completed",
-            "files": file_info,
-            "total_events": len(all_events),
+            "files": combined_files,
+            "total_events": len(combined_events),
+            "last_batch": {
+                "files": file_info,
+                "total_events": len(all_events)
+            },
             "log_data_path": LOGS_FILE
         })
 
@@ -762,13 +900,15 @@ def upload_logs():
             "success": True,
             "message": f"成功上传 {len(files)} 个文件",
             "statistics": {
-                "total_events": len(all_events),
-                "files": file_info
+                "total_events": len(combined_events),
+                "files": combined_files,
+                "uploaded_events": len(all_events),
+                "uploaded_files": file_info
             }
         })
 
     except Exception as e:
-        system_state["status"] = "idle"
+        mark_idle()
         return jsonify({"error": f"上传失败: {str(e)}"}), 500
 
 
@@ -833,8 +973,9 @@ def start_demo_mode():
 @app.route("/api/generate", methods=["POST"])
 def generate_logs():
     """生成多格式测试数据"""
+    reset_stale_running_state()
     if system_state["status"] == "running":
-        return jsonify({"error": "系统正在运行中"}), 400
+        return busy_response()
 
     try:
         # 获取参数，支持 JSON body 或默认值
@@ -843,7 +984,7 @@ def generate_logs():
         if isinstance(total_events, str):
             total_events = int(total_events)
 
-        system_state["status"] = "running"
+        mark_running()
         update_state("upload", 10, "开始生成日志数据...")
 
         # 1. 生成多格式日志文件
@@ -902,7 +1043,7 @@ def generate_logs():
 
         update_state("upload", 100, "数据生成完成")
         system_state["steps_completed"].append("upload")
-        system_state["status"] = "idle"
+        mark_idle()
         system_state["last_generated"] = datetime.now().isoformat()
 
         # 保存到缓存
@@ -930,18 +1071,19 @@ def generate_logs():
         })
 
     except Exception as e:
-        system_state["status"] = "idle"
+        mark_idle()
         return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/step/extract", methods=["POST"])
 def step_extract():
     """步骤1: 提取事件"""
+    reset_stale_running_state()
     if system_state["status"] == "running":
-        return jsonify({"error": "系统正在运行中"}), 400
+        return busy_response()
 
     # 检查依赖
-    if "upload" not in system_state["steps_completed"]:
+    if not is_step_completed("upload"):
         return jsonify({"error": "请先上传或生成数据"}), 400
 
     # Demo 模式：标记完成并返回
@@ -957,7 +1099,7 @@ def step_extract():
         })
 
     try:
-        system_state["status"] = "running"
+        mark_running()
         update_state("extract", 0, "开始提取事件...")
 
         # 获取缓存管理器
@@ -995,7 +1137,7 @@ def step_extract():
 
         update_state("extract", 100, "事件提取完成")
         system_state["steps_completed"].append("extract")
-        system_state["status"] = "idle"
+        mark_idle()
 
         return jsonify({
             "success": True,
@@ -1004,17 +1146,18 @@ def step_extract():
         })
 
     except Exception as e:
-        system_state["status"] = "idle"
+        mark_idle()
         return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/step/graph", methods=["POST"])
 def step_graph():
     """步骤2: 构建关系图"""
+    reset_stale_running_state()
     if system_state["status"] == "running":
-        return jsonify({"error": "系统正在运行中"}), 400
+        return busy_response()
 
-    if "extract" not in system_state["steps_completed"]:
+    if not is_step_completed("extract"):
         return jsonify({"error": "请先完成事件提取"}), 400
 
     # Demo 模式：标记完成并返回
@@ -1030,7 +1173,7 @@ def step_graph():
         })
 
     try:
-        system_state["status"] = "running"
+        mark_running()
         update_state("graph", 0, "开始构建关系图...")
 
         # 获取缓存管理器
@@ -1071,7 +1214,7 @@ def step_graph():
 
         update_state("graph", 100, "关系图构建完成")
         system_state["steps_completed"].append("graph")
-        system_state["status"] = "idle"
+        mark_idle()
 
         return jsonify({
             "success": True,
@@ -1080,17 +1223,18 @@ def step_graph():
         })
 
     except Exception as e:
-        system_state["status"] = "idle"
+        mark_idle()
         return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/step/rules", methods=["POST"])
 def step_rules():
     """步骤3: 规则检测"""
+    reset_stale_running_state()
     if system_state["status"] == "running":
-        return jsonify({"error": "系统正在运行中"}), 400
+        return busy_response()
 
-    if "graph" not in system_state["steps_completed"]:
+    if not is_step_completed("graph"):
         return jsonify({"error": "请先完成关系图构建"}), 400
 
     # Demo 模式：标记完成并返回
@@ -1106,7 +1250,7 @@ def step_rules():
         })
 
     try:
-        system_state["status"] = "running"
+        mark_running()
         update_state("rules", 0, "开始规则检测...")
 
         # 获取缓存管理器
@@ -1136,7 +1280,7 @@ def step_rules():
             "status": "completed",
             "total_alerts": len(alerts),
             "by_severity": by_severity,
-            "alerts": alerts[:50],  # 保存前50条告警用于前端显示
+            "alerts": alerts,
             "statistics": rule_result.get("statistics", {}),
             "input_from": {
                 "step": "graph",
@@ -1147,7 +1291,7 @@ def step_rules():
 
         update_state("rules", 100, "规则检测完成")
         system_state["steps_completed"].append("rules")
-        system_state["status"] = "idle"
+        mark_idle()
 
         return jsonify({
             "success": True,
@@ -1156,17 +1300,18 @@ def step_rules():
         })
 
     except Exception as e:
-        system_state["status"] = "idle"
+        mark_idle()
         return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/step/threat", methods=["POST"])
 def step_threat():
     """步骤4: 威胁检测"""
+    reset_stale_running_state()
     if system_state["status"] == "running":
-        return jsonify({"error": "系统正在运行中"}), 400
+        return busy_response()
 
-    if "rules" not in system_state["steps_completed"]:
+    if not is_step_completed("rules"):
         return jsonify({"error": "请先完成规则检测"}), 400
 
     # Demo 模式：标记完成并返回
@@ -1182,7 +1327,7 @@ def step_threat():
         })
 
     try:
-        system_state["status"] = "running"
+        mark_running()
         update_state("threat", 0, "开始威胁检测...")
 
         # 获取缓存管理器
@@ -1223,6 +1368,8 @@ def step_threat():
             "overall_threat_level": summary.get("overall_threat_level", "unknown"),
             "anomaly_count": len(anomaly_nodes),
             "anomaly_nodes": anomaly_nodes[:20],  # 保存前20个异常节点
+            "anomaly_detection": threat_result.get("anomaly_detection", {}),
+            "threat_scores": threat_result.get("threat_scores", {}),
             "classified_nodes": classified_nodes,
             "summary": summary,
             "input_from": {
@@ -1233,7 +1380,7 @@ def step_threat():
 
         update_state("threat", 100, "威胁检测完成")
         system_state["steps_completed"].append("threat")
-        system_state["status"] = "idle"
+        mark_idle()
 
         return jsonify({
             "success": True,
@@ -1242,17 +1389,18 @@ def step_threat():
         })
 
     except Exception as e:
-        system_state["status"] = "idle"
+        mark_idle()
         return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/step/relations", methods=["POST"])
 def step_relations():
     """步骤5: 关系挖掘"""
+    reset_stale_running_state()
     if system_state["status"] == "running":
-        return jsonify({"error": "系统正在运行中"}), 400
+        return busy_response()
 
-    if "threat" not in system_state["steps_completed"]:
+    if not is_step_completed("threat"):
         return jsonify({"error": "请先完成威胁检测"}), 400
 
     # Demo 模式：标记完成并返回
@@ -1268,7 +1416,7 @@ def step_relations():
         })
 
     try:
-        system_state["status"] = "running"
+        mark_running()
         update_state("relations", 0, "开始挖掘可疑关系...")
 
         # 获取缓存管理器
@@ -1299,8 +1447,8 @@ def step_relations():
             "status": "completed",
             "relation_count": len(suspicious_relations),
             "subgraph_count": len(suspicious_subgraphs),
-            "suspicious_relations": suspicious_relations[:30],  # 保存前30条关系
-            "suspicious_subgraphs": suspicious_subgraphs[:10],  # 保存前10个子图
+            "suspicious_relations": suspicious_relations,
+            "suspicious_subgraphs": suspicious_subgraphs[:80],
             "statistics": relation_result.get("statistics", {}),
             "input_from": {
                 "step": "threat",
@@ -1310,7 +1458,7 @@ def step_relations():
 
         update_state("relations", 100, "关系挖掘完成")
         system_state["steps_completed"].append("relations")
-        system_state["status"] = "idle"
+        mark_idle()
 
         return jsonify({
             "success": True,
@@ -1319,17 +1467,18 @@ def step_relations():
         })
 
     except Exception as e:
-        system_state["status"] = "idle"
+        mark_idle()
         return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/step/chains", methods=["POST"])
 def step_chains():
     """步骤6: 攻击链重建"""
+    reset_stale_running_state()
     if system_state["status"] == "running":
-        return jsonify({"error": "系统正在运行中"}), 400
+        return busy_response()
 
-    if "relations" not in system_state["steps_completed"]:
+    if not is_step_completed("relations"):
         return jsonify({"error": "请先完成关系挖掘"}), 400
 
     # Demo 模式：标记完成并返回
@@ -1345,7 +1494,7 @@ def step_chains():
         })
 
     try:
-        system_state["status"] = "running"
+        mark_running()
         update_state("chains", 0, "开始重建攻击链...")
 
         # 获取缓存管理器
@@ -1424,7 +1573,7 @@ def step_chains():
 
         update_state("chains", 100, "攻击链重建完成")
         system_state["steps_completed"].append("chains")
-        system_state["status"] = "idle"
+        mark_idle()
 
         return jsonify({
             "success": True,
@@ -1433,7 +1582,7 @@ def step_chains():
         })
 
     except Exception as e:
-        system_state["status"] = "idle"
+        mark_idle()
         return jsonify({"error": str(e)}), 500
 
 
@@ -1804,13 +1953,27 @@ def get_current_progress():
     """获取当前实际进度"""
     cache_mgr = get_cache_manager()
     steps = ["upload", "extract", "graph", "rules", "threat", "relations", "chains", "ai"]
+    step_files = {
+        "upload": LOGS_FILE,
+        "extract": EVENTS_FILE,
+        "graph": GRAPH_FILE,
+        "rules": ALERTS_FILE,
+        "threat": THREAT_FILE,
+        "relations": RELATIONS_FILE,
+        "chains": CHAINS_FILE,
+        "ai": os.path.join(DEMO_DATA_DIR if IS_DEMO_MODE else DATA_DIR, "data_llm_analysis.json")
+    }
 
     progress_data = {}
     completed_count = 0
 
     for step in steps:
-        step_cache = cache_mgr.get(step)
-        is_completed = step_cache is not None
+        step_cache = cache_mgr.get_step_data(step)
+        is_completed = (
+            step in system_state.get("steps_completed", [])
+            or step_cache is not None
+            or os.path.exists(step_files.get(step, ""))
+        )
         progress_data[step] = {"completed": is_completed, "running": False}
         if is_completed:
             completed_count += 1
@@ -1959,15 +2122,22 @@ def get_logs_info():
     files_info = []
 
     # 检查是否有log_files信息（上传或生成时记录的）
-    log_files = log_data.get("meta", {}).get("log_files", [])
+    meta = log_data.get("meta", {})
+    log_files = meta.get("files") or meta.get("log_files", [])
 
     if log_files:
         # 有记录的文件信息
         for log_file in log_files:
+            filename = log_file.get("filename") or log_file.get("file") or log_file.get("name") or "unknown"
+            line_count = log_file.get("line_count", log_file.get("count", log_file.get("lines", 0)))
+            event_count = log_file.get("event_count", 0)
             files_info.append({
-                "filename": log_file.get("file", "unknown"),
+                "name": filename,
+                "filename": filename,
                 "type": log_file.get("type", "unknown"),
-                "line_count": log_file.get("count", 0)
+                "lines": line_count,
+                "line_count": line_count,
+                "event_count": event_count
             })
     else:
         # 没有记录，从实际文件推断
@@ -1977,29 +2147,42 @@ def get_logs_info():
 
         if os.path.exists(syslog_path):
             with open(syslog_path, 'r') as f:
+                line_count = sum(1 for _ in f)
                 files_info.append({
+                    "name": "syslog.log",
                     "filename": "syslog.log",
                     "type": "process",
-                    "line_count": sum(1 for _ in f)
+                    "lines": line_count,
+                    "line_count": line_count
                 })
 
         if os.path.exists(audit_path):
             with open(audit_path, 'r') as f:
+                line_count = sum(1 for _ in f)
                 files_info.append({
+                    "name": "file_audit.log",
                     "filename": "file_audit.log",
                     "type": "file",
-                    "line_count": sum(1 for _ in f)
+                    "lines": line_count,
+                    "line_count": line_count
                 })
 
         if os.path.exists(netflow_path):
             with open(netflow_path, 'r') as f:
+                line_count = sum(1 for _ in f)
                 files_info.append({
+                    "name": "netflow.log",
                     "filename": "netflow.log",
                     "type": "network",
-                    "line_count": sum(1 for _ in f)
+                    "lines": line_count,
+                    "line_count": line_count
                 })
 
-    return jsonify({"files": files_info})
+    return jsonify({
+        "files": files_info,
+        "total_events": log_data.get("meta", {}).get("total_events", len(log_data.get("events", []))),
+        "source": log_data.get("meta", {}).get("source", "unknown")
+    })
 
 
 # ==================== 缓存数据获取接口 ====================
@@ -2078,6 +2261,34 @@ def get_step_cache(step):
     if not step_data:
         return jsonify({"error": f"步骤 {step} 的缓存数据不存在"}), 404
 
+    # 兼容旧缓存：前端图表需要完整评分/关系数据，旧版缓存只保留了摘要。
+    if step == "threat":
+        full_threat_data = load_json(THREAT_FILE) or {}
+        for key in ["anomaly_detection", "threat_scores", "classified_nodes", "summary"]:
+            if key in full_threat_data and (key not in step_data or not step_data.get(key)):
+                step_data[key] = full_threat_data[key]
+    elif step == "rules":
+        full_rules_data = load_json(ALERTS_FILE) or {}
+        cache_alerts = step_data.get("alerts")
+        full_alerts = full_rules_data.get("alerts")
+        if isinstance(cache_alerts, list) and isinstance(full_alerts, list) and len(cache_alerts) < len(full_alerts):
+            step_data["alerts"] = full_alerts
+            step_data["statistics"] = full_rules_data.get("statistics", step_data.get("statistics", {}))
+            step_data["total_alerts"] = len(full_alerts)
+            step_data["by_severity"] = full_rules_data.get("statistics", {}).get("by_severity", step_data.get("by_severity", {}))
+    elif step == "relations":
+        full_relations_data = load_json(RELATIONS_FILE) or {}
+        for key in ["suspicious_relations", "suspicious_subgraphs", "statistics"]:
+            cache_value = step_data.get(key)
+            full_value = full_relations_data.get(key)
+            cache_is_truncated = (
+                isinstance(cache_value, list) and
+                isinstance(full_value, list) and
+                len(cache_value) < len(full_value)
+            )
+            if key in full_relations_data and (not cache_value or cache_is_truncated):
+                step_data[key] = full_relations_data[key]
+
     # 同时获取该步骤的摘要信息
     summary = cache_mgr.get_step_summary(step)
 
@@ -2094,6 +2305,65 @@ def get_all_cache():
     all_status = cache_mgr.get_all_steps_status()
 
     return jsonify(all_status)
+
+
+@app.route("/api/llm/revise", methods=["POST"])
+def llm_revise_report():
+    """Revise an existing AI report with expert guidance."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        current_report = payload.get("report") or {}
+        expert_message = (payload.get("expert_message") or "").strip()
+
+        if not current_report:
+            return jsonify({"error": "缺少待修订的 AI 报告"}), 400
+        if not expert_message:
+            return jsonify({"error": "请输入专家建议"}), 400
+
+        from modules.llm_analyzer import get_llm_analyzer
+        import asyncio
+        analyzer = get_llm_analyzer()
+
+        if not analyzer.is_available():
+            return jsonify({
+                "error": "LLM 服务不可用",
+                "message": "请检查 DeepSeek API 配置或启用演示模式",
+                "llm_available": False
+            }), 503
+
+        async def run_revision():
+            return await analyzer.revise_report(current_report, expert_message)
+
+        revision = asyncio.run(run_revision())
+        revised_report = {
+            **current_report,
+            **revision,
+            "manual_review": {
+                "required": False,
+                "title": "专家与 LLM 已完成智能复核",
+                "reason": revision.get("review_note") or "LLM 已根据专家建议完成报告修订。"
+            },
+            "review_note": revision.get("review_note", expert_message),
+            "review_mode": "llm_assisted",
+            "reviewed_at": revision.get("revised_at", datetime.now().isoformat() + "Z")
+        }
+
+        llm_result_file = os.path.join(DEMO_DATA_DIR if IS_DEMO_MODE else DATA_DIR, "data_llm_analysis.json")
+        save_json(llm_result_file, revised_report)
+
+        return jsonify({
+            "success": True,
+            "message": "LLM 已根据专家建议完成智能修订",
+            "result": revised_report
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "error": str(e),
+            "message": f"AI 报告智能修订失败: {str(e)}"
+        }), 500
 
 
 # ==================== 数据下载接口 ====================
@@ -2116,19 +2386,60 @@ def llm_status():
     })
 
 
+@app.route("/api/llm/test", methods=["POST"])
+def llm_test_connection():
+    """测试 LLM API 连接，不生成分析报告。"""
+    try:
+        data = request.get_json(silent=True) or {}
+        model = (data.get("model") or "").strip() or None
+
+        import asyncio
+        from modules.llm_analyzer import LLMAnalyzer
+
+        analyzer = LLMAnalyzer(model=model, use_mock=False)
+        result = asyncio.run(analyzer.test_connection())
+        status = {
+            "available": bool(result.get("success")),
+            "configured": bool(analyzer.api_key),
+            "provider": getattr(analyzer, "provider", "openai"),
+            "model": analyzer.model,
+            "mock_mode": False,
+            "mode": "real"
+        }
+
+        return jsonify({
+            "success": bool(result.get("success")),
+            "message": result.get("message", ""),
+            "configured": bool(analyzer.api_key),
+            "provider": getattr(analyzer, "provider", "openai"),
+            "model": analyzer.model,
+            "mode": "real",
+            "status": status
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"连接测试失败: {str(e)}"
+        }), 500
+
+
 @app.route("/api/llm/analyze", methods=["POST"])
 def llm_analyze():
     """执行 LLM 告警分析"""
+    reset_stale_running_state()
     if system_state["status"] == "running":
-        return jsonify({"error": "系统正在运行中"}), 400
+        return busy_response()
 
     # AI 报告依赖完整攻击检测链路，避免仅有规则告警时生成不完整报告。
+    payload = request.get_json(silent=True) or {}
+    requested_model = (payload.get("model") or "").strip() or None
+
     required_steps = [
         ("threat", "威胁检测"),
         ("relations", "关系挖掘"),
         ("chains", "攻击链重建")
     ]
-    missing_steps = [name for step, name in required_steps if step not in system_state["steps_completed"]]
+    missing_steps = [name for step, name in required_steps if not is_step_completed(step)]
     if missing_steps:
         return jsonify({
             "error": "攻击检测尚未完成，暂不允许生成 AI 分析报告",
@@ -2137,19 +2448,19 @@ def llm_analyze():
         }), 400
 
     try:
-        system_state["status"] = "running"
+        mark_running()
 
         # 导入组件
         import asyncio
-        from modules.llm_analyzer import get_llm_analyzer
+        from modules.llm_analyzer import LLMAnalyzer, get_llm_analyzer
 
-        analyzer = get_llm_analyzer()
+        analyzer = LLMAnalyzer(model=requested_model) if requested_model else get_llm_analyzer()
 
         if not analyzer.is_available():
-            system_state["status"] = "idle"
+            mark_idle()
             return jsonify({
                 "error": "LLM 服务不可用",
-                "message": "请配置 OPENAI_API_KEY 环境变量",
+                "message": "请在 .env 中配置 DEEPSEEK_API_KEY，或设置 OPENAI_API_KEY",
                 "llm_available": False
             }), 503
 
@@ -2162,10 +2473,39 @@ def llm_analyze():
             alerts_data = load_json(ALERTS_FILE)
             graph_data = load_json(GRAPH_FILE)
             events_data = load_json(EVENTS_FILE)
+            threat_data = load_json(THREAT_FILE) or {}
+            relations_data = load_json(RELATIONS_FILE) or {}
+            chains_data = load_json(CHAINS_FILE) or {}
 
         alerts = alerts_data.get("alerts", []) if alerts_data else []
         graph = graph_data or {}
         events = events_data.get("events", []) if events_data else []
+        if IS_DEMO_MODE:
+            threat_data = get_cached_demo_data("threat") or {}
+            relations_data = get_cached_demo_data("relations") or {}
+            chains_data = get_cached_demo_data("chains") or {}
+
+        severity_rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}
+        alerts_for_llm = sorted(
+            alerts,
+            key=lambda alert: severity_rank.get(alert.get("rule", {}).get("severity", alert.get("severity", "low")), 0),
+            reverse=True
+        )[:300]
+        threat_scores = (threat_data or {}).get("threat_scores", {}) or {}
+        top_threat_scores = sorted(
+            threat_scores.items(),
+            key=lambda item: item[1],
+            reverse=True
+        )[:50] if isinstance(threat_scores, dict) else []
+        detection_context = {
+            "threat_summary": (threat_data or {}).get("summary", {}),
+            "classified_nodes": (threat_data or {}).get("classified_nodes", {}),
+            "top_threat_scores": top_threat_scores,
+            "relation_statistics": (relations_data or {}).get("statistics", {}),
+            "suspicious_relations": (relations_data or {}).get("suspicious_relations", [])[:50],
+            "chain_statistics": (chains_data or {}).get("statistics", {}),
+            "attack_chains": (chains_data or {}).get("attack_chains", [])[:8]
+        }
 
         # 运行异步分析
         async def run_analysis():
@@ -2175,10 +2515,11 @@ def llm_analyze():
                 progress_updates.append({"value": value, "message": message})
 
             result = await analyzer.analyze_alerts(
-                alerts[:100],  # 限制输入数量
+                alerts_for_llm,
                 graph,
                 events[:500],
-                progress_cb
+                progress_cb,
+                detection_context
             )
             return result, progress_updates
 
@@ -2194,7 +2535,7 @@ def llm_analyze():
         if "ai" not in system_state["steps_completed"]:
             system_state["steps_completed"].append("ai")
 
-        system_state["status"] = "idle"
+        mark_idle()
 
         return jsonify({
             "success": True,
@@ -2204,7 +2545,7 @@ def llm_analyze():
         })
 
     except Exception as e:
-        system_state["status"] = "idle"
+        mark_idle()
         import traceback
         traceback.print_exc()
         return jsonify({

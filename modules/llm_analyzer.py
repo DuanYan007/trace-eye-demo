@@ -8,8 +8,10 @@
 import os
 import json
 import asyncio
+import hashlib
 from typing import List, Dict, Any, Optional, Callable
 from datetime import datetime
+from collections import Counter
 import random
 
 try:
@@ -34,8 +36,8 @@ class LLMAnalyzer:
         """
         self._load_env_file()
         self.provider = os.environ.get("LLM_PROVIDER", "openai").lower()
-        default_model = "deepseek-v4-pro" if self.provider == "deepseek" else "gpt-4o-mini"
-        self.model = os.environ.get("LLM_MODEL", model or default_model)
+        default_model = "deepseek-v4" if self.provider == "deepseek" else "gpt-4o-mini"
+        self.model = model or os.environ.get("LLM_MODEL") or default_model
 
         if self.provider == "deepseek":
             self.api_key = api_key or os.environ.get("DEEPSEEK_API_KEY") or os.environ.get("OPENAI_API_KEY")
@@ -66,10 +68,11 @@ class LLMAnalyzer:
 
         # 分析配置
         self.config = {
-            "max_tokens": 2000,
-            "temperature": 0.3,
+            "max_tokens": int(os.environ.get("LLM_MAX_TOKENS", "5000")),
+            "temperature": float(os.environ.get("LLM_TEMPERATURE", "0.65")),
+            "top_p": float(os.environ.get("LLM_TOP_P", "0.92")),
             "enable_streaming": True,
-            "analysis_timeout": 120  # 超时时间(秒)
+            "analysis_timeout": 180  # 超时时间(秒)
         }
 
     def _load_env_file(self):
@@ -98,12 +101,51 @@ class LLMAnalyzer:
             return True
         return HAS_OPENAI and self.client is not None
 
+    async def test_connection(self) -> Dict[str, Any]:
+        """Test the configured chat-completions endpoint with a tiny request."""
+        if not self.api_key:
+            return {
+                "success": False,
+                "message": "未配置 API Key，请先设置 DEEPSEEK_API_KEY 或 OPENAI_API_KEY。"
+            }
+        if not HAS_OPENAI:
+            return {
+                "success": False,
+                "message": "未安装 openai SDK，请先安装 requirements.txt 中的依赖。"
+            }
+        if not self.client:
+            return {
+                "success": False,
+                "message": "LLM 客户端初始化失败，请检查 API Base 与网络连接。"
+            }
+
+        try:
+            await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You are a connection test responder."},
+                    {"role": "user", "content": "Reply with OK."}
+                ],
+                max_tokens=8,
+                temperature=0
+            )
+            return {
+                "success": True,
+                "message": f"连接测试通过，模型 {self.model} 可访问。"
+            }
+        except Exception as exc:
+            return {
+                "success": False,
+                "message": f"连接测试失败: {exc}"
+            }
+
     async def analyze_alerts(
         self,
         alerts: List[Dict],
         graph: Dict,
         events: List[Dict],
-        progress_callback: Optional[Callable] = None
+        progress_callback: Optional[Callable] = None,
+        detection_context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         分析告警列表
@@ -131,14 +173,17 @@ class LLMAnalyzer:
             await progress_callback(30, "分析告警关联性...")
 
         # 2. 按严重程度分组
-        high_priority_alerts = [a for a in deduped_alerts if a.get("severity") == "high"]
-        medium_priority_alerts = [a for a in deduped_alerts if a.get("severity") == "medium"]
+        priority_alerts = [
+            a for a in deduped_alerts
+            if a.get("severity") in ["critical", "high", "medium"]
+        ] or deduped_alerts[:20]
 
         # 3. 生成攻击故事
         attack_story = await self._generate_attack_story(
-            high_priority_alerts[:20],  # 限制输入数量
+            priority_alerts[:30],  # 限制输入数量
             graph,
             events,
+            detection_context or {},
             progress_callback
         )
 
@@ -159,24 +204,32 @@ class LLMAnalyzer:
             "attack_story": attack_story,
             "analysis_report": report,
             "recommendations": self._generate_recommendations(attack_story),
+            "detection_context": detection_context or {},
             "analyzed_at": datetime.now().isoformat() + "Z",
             "llm_mode": "real"
         })
 
     async def _deduplicate_alerts(self, alerts: List[Dict], graph: Dict) -> List[Dict]:
         """告警降噪：去除重复和低质量告警"""
-        # 简化实现：按主体和动作去重
+        # 按主体、客体、动作和规则去重，并优先保留高风险告警。
+        severity_rank = {"critical": 4, "high": 3, "medium": 2, "low": 1, "unknown": 0}
+        sorted_alerts = sorted(
+            alerts or [],
+            key=lambda alert: severity_rank.get(alert.get("rule", {}).get("severity", alert.get("severity", "unknown")), 0),
+            reverse=True
+        )
         seen = set()
         deduped = []
 
-        for alert in alerts:
+        for alert in sorted_alerts:
             subject_id = alert.get("subject", {}).get("id", "")
+            object_id = alert.get("object", {}).get("id", "")
             action = alert.get("action", "")
-            key = f"{subject_id}:{action}"
+            rule_id = alert.get("rule", {}).get("rule_id", alert.get("rule", {}).get("rule_name", ""))
+            key = f"{subject_id}:{object_id}:{action}:{rule_id}"
 
-            # 保留高危告警
-            severity = alert.get("rule", {}).get("severity", "low")
-            if severity == "high" and key not in seen:
+            severity = alert.get("rule", {}).get("severity", alert.get("severity", "low"))
+            if key not in seen:
                 deduped.append({
                     "id": alert.get("event_id", ""),
                     "subject": alert.get("subject", {}),
@@ -188,6 +241,8 @@ class LLMAnalyzer:
                     "timestamp": alert.get("timestamp", "")
                 })
                 seen.add(key)
+            if len(deduped) >= 120:
+                break
 
         return deduped
 
@@ -196,17 +251,18 @@ class LLMAnalyzer:
         alerts: List[Dict],
         graph: Dict,
         events: List[Dict],
+        detection_context: Optional[Dict[str, Any]] = None,
         progress_callback: Optional[Callable] = None
     ) -> Dict[str, Any]:
         """生成攻击故事"""
         if not alerts:
-            return {"summary": "未检测到高危告警", "narrative": "", "chains": []}
+            return self._generate_fallback_story([], "没有可用于 LLM 分析的优先级告警。")
 
         if progress_callback:
             await progress_callback(50, "生成攻击叙述...")
 
         # 构建上下文信息
-        context = self._build_context(alerts, graph, events)
+        context = self._build_context(alerts, graph, events, detection_context or {})
 
         # 调用 LLM 生成故事
         prompt = self._get_story_prompt(context)
@@ -241,103 +297,270 @@ class LLMAnalyzer:
             "timeline": self._build_timeline(alerts)
         }
 
-    def _build_context(self, alerts: List[Dict], graph: Dict, events: List[Dict]) -> str:
+    def _build_context(self, alerts: List[Dict], graph: Dict, events: List[Dict], detection_context: Dict[str, Any] = None) -> str:
         """构建 LLM 上下文"""
-        # 提取关键信息
-        high_alerts = [a for a in alerts if a.get("severity") == "high"][:10]
+        detection_context = detection_context or {}
+        severity_rank = {"critical": 4, "high": 3, "medium": 2, "low": 1, "unknown": 0}
+        priority_alerts = sorted(
+            alerts or [],
+            key=lambda alert: severity_rank.get(alert.get("severity", "unknown"), 0),
+            reverse=True
+        )[:25]
+        severity_counts = Counter(alert.get("severity", "unknown") for alert in alerts or [])
+        graph_stats = graph.get("statistics", {}) if isinstance(graph, dict) else {}
+        threat_summary = detection_context.get("threat_summary") or {}
+        relation_stats = detection_context.get("relation_statistics") or {}
+        chain_stats = detection_context.get("chain_statistics") or {}
+        attack_chains = detection_context.get("attack_chains") or []
+        classified_nodes = detection_context.get("classified_nodes") or {}
+        threat_scores = detection_context.get("threat_scores") or {}
+        top_threat_scores = detection_context.get("top_threat_scores") or []
+        suspicious_relations = detection_context.get("suspicious_relations") or []
+        focus_modes = [
+            "攻击路径优先：先判断攻击者如何串联事件，再回推薄弱点",
+            "资产影响优先：先识别受影响资产，再判断攻击阶段",
+            "规则可信度优先：先区分强证据与弱证据，再给出处置顺序",
+            "修复闭环优先：先定义可验证的修复目标，再组织诊断结论"
+        ]
+        context_fingerprint = hashlib.sha1(
+            json.dumps({
+                "severity": dict(severity_counts),
+                "threat": threat_summary,
+                "relations": relation_stats,
+                "chains": chain_stats,
+                "alert_sample": [
+                    {
+                        "rule": alert.get("rule", {}).get("rule_id") or alert.get("rule", {}).get("rule_name"),
+                        "severity": alert.get("severity"),
+                        "subject": alert.get("subject", {}).get("name"),
+                        "object": alert.get("object", {}).get("name") or alert.get("object", {}).get("path") or alert.get("object", {}).get("ip")
+                    }
+                    for alert in priority_alerts[:12]
+                ]
+            }, ensure_ascii=False, sort_keys=True).encode("utf-8")
+        ).hexdigest()[:10]
+        focus_index = int(context_fingerprint[:2], 16) % len(focus_modes)
+        focus_hint = focus_modes[focus_index]
+        top_threat_nodes = top_threat_scores[:20] if top_threat_scores else (
+            sorted(
+                threat_scores.items(),
+                key=lambda item: item[1],
+                reverse=True
+            )[:20] if isinstance(threat_scores, dict) else []
+        )
 
         context_parts = [
-            f"检测到 {len(alerts)} 条经过降噪后的告警",
-            f"其中高危告警 {len(high_alerts)} 条",
-            ""
+            "【系统检测摘要】",
+            f"- 降噪后告警数量: {len(alerts)}",
+            f"- 告警严重度分布: {dict(severity_counts)}",
+            f"- 关系图规模: 节点 {graph_stats.get('node_count', len(graph.get('nodes', [])) if isinstance(graph, dict) else 0)}, 边 {graph_stats.get('edge_count', len(graph.get('edges', [])) if isinstance(graph, dict) else 0)}",
+            f"- 威胁检测摘要: {json.dumps(threat_summary, ensure_ascii=False)}",
+            f"- 关系挖掘统计: {json.dumps(relation_stats, ensure_ascii=False)}",
+            f"- 攻击链统计: {json.dumps(chain_stats, ensure_ascii=False)}",
+            f"- 本次分析指纹: {context_fingerprint}",
+            f"- 推荐分析视角: {focus_hint}",
+            "",
+            "【威胁节点摘要】",
+            f"- 分级节点数量: {json.dumps({k: len(v or []) for k, v in classified_nodes.items()}, ensure_ascii=False)}",
+            f"- Top 威胁评分节点: {json.dumps(top_threat_nodes, ensure_ascii=False)}",
+            "",
+            "【可疑关系样本】",
+            json.dumps(suspicious_relations[:12], ensure_ascii=False),
+            "",
+            "【优先级告警样本】"
         ]
 
-        # 添加高危告警详情
-        for i, alert in enumerate(high_alerts, 1):
+        for i, alert in enumerate(priority_alerts, 1):
             rule_name = alert.get("rule", {}).get("rule_name", "未知规则")
             subject = alert.get("subject", {}).get("name", "未知进程")
             obj = alert.get("object", {})
             obj_info = obj.get("name", "") or obj.get("path", "") or obj.get("ip", "")
             timestamp = alert.get("timestamp", "")[:16]
+            severity = alert.get("severity", "unknown")
+            message = alert.get("message", "")
 
             context_parts.append(
-                f"{i}. [{timestamp}] {rule_name}\n"
+                f"{i}. [{severity}] [{timestamp}] {rule_name}\n"
                 f"   主体: {subject}\n"
                 f"   客体: {obj_info}\n"
+                f"   说明: {message}\n"
             )
+
+        if attack_chains:
+            context_parts.extend(["", "【攻击链重建结果】"])
+            for index, chain in enumerate(attack_chains[:5], 1):
+                context_parts.append(
+                    f"{index}. {chain.get('title') or chain.get('description') or chain.get('attack_type') or '未命名攻击链'}\n"
+                    f"   阶段: {chain.get('primary_tactic') or chain.get('stage') or '-'}\n"
+                    f"   节点数: {chain.get('node_count', len(chain.get('nodes', [])) if isinstance(chain.get('nodes'), list) else '-')}\n"
+                    f"   告警数: {chain.get('alert_count', len(chain.get('alerts', [])) if isinstance(chain.get('alerts'), list) else '-')}"
+                )
 
         return "\n".join(context_parts)
 
     def _get_story_prompt(self, context: str) -> str:
         """获取攻击故事生成的提示词"""
-        return f"""你是一个网络安全分析专家，需要分析以下系统告警数据，生成一份清晰的攻击分析报告。
+        return f"""你是 Trace-Eye APT 检测系统中的资深安全分析师。请基于给定检测结果生成结构化 AI 分析报告。
 
-## 告警数据
+重要约束：
+1. 必须使用中文。
+2. 只能基于输入证据分析，不要编造不存在的 IP、文件、账号或漏洞。
+3. 输出必须是严格 JSON，不要 Markdown 代码块，不要 HTML，不要解释性前后缀。
+4. 你需要像真实分析师一样自主研判，不要套用固定模板；每次应根据输入的威胁节点、可疑关系、攻击链和告警分布选择分析重点。
+5. 结论要具体，避免“建议进一步分析”这类空话单独成段。任何判断都必须能回指到输入中的规则、节点、关系、攻击链或统计。
+6. `diagnosis_markdown` 说明系统存在什么问题；`remediation_markdown` 说明应当如何修复系统。
+7. Markdown 标题由你自主命名，不要固定使用“总体判断/告警严重度/IOC 指标/后续加固”这套模板。标题应体现本次数据特征。
+8. 如果证据不足，请明确写出“不足以证明”的边界，而不是编造攻击事实。
+
+自主分析要求：
+- 先识别本次数据最值得关注的 2-4 个异常主题，而不是平均覆盖所有字段。
+- 对每个主题给出“证据 -> 推断 -> 风险 -> 修复验证”的链路。
+- 报告应出现至少 3 个来自输入的具体证据值，例如规则名、节点名、路径、进程、IP、攻击链阶段或统计数量。
+- 修复建议要按优先级组织，允许根据威胁上下文自行设计处置顺序。
+- 不要为了格式整齐牺牲判断力；如果某类数据不重要，可以少写或不写。
+
+## 检测上下文
 {context}
 
-## 任务要求
-
-请基于以上告警数据，生成一份 JSON 格式的分析报告，包含以下字段：
+## 输出 JSON Schema
 
 {{
-  "summary": "用2-3句话概括整体威胁状况",
+  "summary": "2-3 句话概括整体威胁状况，必须引用关键统计或证据",
   "threat_level": "评估威胁等级 (critical/high/medium/low)",
   "attack_stages": [
     {{
-      "stage": "阶段名称（如：初始访问、持久化、权限提升等）",
-      "description": "该阶段的详细描述",
-      "techniques": ["使用的攻击技术ID（如T1059）"],
-      "evidence": ["支持该阶段的关键证据"]
+      "stage": "阶段名称，例如初始访问、执行、持久化、命令与控制、横向移动、影响",
+      "description": "该阶段发生了什么，受影响对象是什么",
+      "techniques": ["可映射的 ATT&CK 技术编号或技术名；不确定就写空数组"],
+      "evidence": ["从输入中抽取的主体、客体、规则、攻击链或统计证据"]
     }}
   ],
-  "attack_narrative": "用连贯的叙述性文字描述整个攻击过程，让非技术人员也能理解",
+  "attack_narrative": "用连贯叙述描述攻击过程，既能被管理者理解，也能让分析师定位证据",
   "key_findings": [
-    "发现1：具体的发现内容",
-    "发现2：具体的发现内容"
+    "具体问题1：说明问题、影响和证据",
+    "具体问题2：说明问题、影响和证据"
   ],
   "ioc_list": [
-    {{"type": "ip", "value": "可疑IP地址", "description": "描述"}},
-    {{"type": "file", "value": "可疑文件路径", "description": "描述"}}
+    {{"type": "ip/file/process/domain/account", "value": "输入中真实出现的指标", "description": "为什么可疑"}}
   ],
   "recommendations": [
-    "紧急处置建议1",
-    "后续处置建议2"
-  ]
+    "可执行的紧急处置建议",
+    "可验证的修复建议"
+  ],
+  "diagnosis_markdown": "# 请自行命名的系统问题报告标题\\n\\n## 基于本次证据自行组织的小节...",
+  "remediation_markdown": "# 请自行命名的修复建议标题\\n\\n## 按本次攻击面自行组织的小节..."
 }}
-
-请只返回 JSON，不要包含其他说明文字。"""
+"""
 
     async def _call_llm(self, prompt: str) -> str:
         """调用 LLM API"""
-        response = await self.client.chat.completions.create(
+        request = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": "你是一个专业的网络安全分析专家，擅长分析系统告警并生成清晰的威胁报告。"},
+                {"role": "system", "content": "你是资深 APT 威胁狩猎与应急响应专家。只输出严格 JSON，中文回答，拒绝编造证据。"},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=self.config["max_tokens"],
-            temperature=self.config["temperature"]
+            temperature=self.config["temperature"],
+            top_p=self.config["top_p"],
+            timeout=self.config["analysis_timeout"]
         )
+        response = await asyncio.wait_for(request, timeout=self.config["analysis_timeout"] + 10)
         return response.choices[0].message.content
+
+    async def revise_report(self, current_report: Dict[str, Any], expert_message: str) -> Dict[str, Any]:
+        """Revise the AI report with expert guidance."""
+        diagnosis = current_report.get("diagnosis_markdown", "")
+        remediation = current_report.get("remediation_markdown", "")
+        expert_message = (expert_message or "").strip()
+
+        if self.use_mock:
+            note = expert_message or "专家要求对报告进行二次复核与智能修订。"
+            return {
+                "diagnosis_markdown": "\n".join([
+                    diagnosis,
+                    "",
+                    "## 🧑‍💼 专家复核补充",
+                    f"- 专家意见: {note}",
+                    "- LLM 已根据专家意见重新强调证据链、影响范围和需要复核的关键资产。"
+                ]).strip(),
+                "remediation_markdown": "\n".join([
+                    remediation,
+                    "",
+                    "## 🤖 LLM 智能修订",
+                    f"- 修订依据: {note}",
+                    "- 建议先由专家确认高危主机、关键 IOC 和业务影响，再按优先级执行隔离、封禁、补丁与二次验证。",
+                    "- 修复完成后保留专家复核记录，并将确认后的检测逻辑沉淀为规则或响应剧本。"
+                ]).strip(),
+                "review_note": f"演示模式智能修订：{note}",
+                "revised_at": datetime.now().isoformat() + "Z",
+                "llm_mode": "mock"
+            }
+
+        prompt = f"""你是网络安全应急响应专家。请根据专家意见修订 Trace-Eye 的 AI 分析报告。
+
+要求：
+1. 保持 Markdown 格式。
+2. 诊断报告说明系统存在什么问题、证据和影响。
+3. 修复建议说明如何修复、验证和持续监控。
+4. 不要删除专家明确要求保留的信息。
+5. 仅返回 JSON，不要输出额外解释。
+
+JSON 格式：
+{{
+  "diagnosis_markdown": "修订后的诊断报告 Markdown",
+  "remediation_markdown": "修订后的修复建议 Markdown",
+  "review_note": "一句话说明本次根据专家意见做了哪些调整"
+}}
+
+## 专家意见
+{expert_message}
+
+## 当前诊断报告
+{diagnosis}
+
+## 当前修复建议
+{remediation}
+"""
+        response = await self._call_llm(prompt)
+        parsed = self._parse_json_response(response)
+        return {
+            "diagnosis_markdown": parsed.get("diagnosis_markdown", diagnosis),
+            "remediation_markdown": parsed.get("remediation_markdown", remediation),
+            "review_note": parsed.get("review_note", expert_message or "LLM 已根据专家意见完成智能修订。"),
+            "revised_at": datetime.now().isoformat() + "Z",
+            "llm_mode": "real"
+        }
+
+    def _parse_json_response(self, response: str) -> Dict[str, Any]:
+        """Parse a JSON object from a raw LLM response."""
+        try:
+            text = (response or "").strip()
+            if text.startswith("```"):
+                text = text.split("```", 1)[1]
+                if text.startswith("json"):
+                    text = text[4:]
+                text = text.strip()
+            if text.endswith("```"):
+                text = text.rsplit("```", 1)[0].strip()
+            if not text.startswith("{"):
+                start = text.find("{")
+                end = text.rfind("}")
+                if start >= 0 and end > start:
+                    text = text[start:end + 1]
+            return json.loads(text)
+        except Exception:
+            return {}
 
     def _parse_story_response(self, response: str, alerts: List[Dict]) -> Dict:
         """解析 LLM 响应"""
-        try:
-            # 尝试解析 JSON
-            # 移除可能的 markdown 代码块标记
-            response = response.strip()
-            if response.startswith("```"):
-                response = response.split("```")[1]
-                if response.startswith("json"):
-                    response = response[4:]
-                response = response.strip()
-            if response.endswith("```"):
-                response = response.rsplit("```", 1)[0].strip()
-
-            return json.loads(response)
-        except:
-            # 解析失败，返回简化版
-            return self._generate_fallback_story(alerts, response)
+        parsed = self._parse_json_response(response)
+        if parsed:
+            fallback = self._generate_fallback_story(alerts, response)
+            for key, value in fallback.items():
+                parsed.setdefault(key, value)
+            return parsed
+        return self._generate_fallback_story(alerts, response)
 
     def _generate_fallback_story(self, alerts: List[str], context: str) -> Dict:
         """生成备用故事（当 LLM 调用失败时）"""
@@ -521,7 +744,10 @@ class LLMAnalyzer:
             "filtered_alerts": result.get("filtered_alerts_count", report.get("total_filtered", 0))
         }
 
-        result["diagnosis_markdown"] = "\n".join([
+        generated_diagnosis = story.get("diagnosis_markdown") or result.get("diagnosis_markdown")
+        generated_remediation = story.get("remediation_markdown") or result.get("remediation_markdown")
+
+        result["diagnosis_markdown"] = generated_diagnosis or "\n".join([
             "# 系统诊断报告",
             "",
             "## 总体判断",
@@ -549,7 +775,7 @@ class LLMAnalyzer:
             story.get("attack_narrative") or "暂无攻击叙述。"
         ])
 
-        result["remediation_markdown"] = "\n".join([
+        result["remediation_markdown"] = generated_remediation or "\n".join([
             "# 系统修复建议",
             "",
             "## 立即处置",
@@ -786,7 +1012,7 @@ class LLMAnalyzer:
                 "timeline": []
             },
             "recommendations": [
-                "LLM 服务未配置，建议配置 OpenAI API Key 以获得智能分析",
+                "LLM 服务未配置，建议配置 DeepSeek API Key 以获得智能分析",
                 "当前显示为规则引擎基础检测结果"
             ],
             "analyzed_at": datetime.now().isoformat() + "Z",

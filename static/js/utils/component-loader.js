@@ -69,7 +69,7 @@ async function loadComponent(componentName, containerId = 'pageContainer') {
 
     try {
         // 加载 HTML 模板
-        const htmlResponse = await fetch(component.template);
+        const htmlResponse = await fetch(`${component.template}?v=${Date.now()}`);
         if (!htmlResponse.ok) {
             throw new Error(`Failed to load template: ${htmlResponse.statusText}`);
         }
@@ -78,16 +78,19 @@ async function loadComponent(componentName, containerId = 'pageContainer') {
 
         // 加载 JavaScript
         if (!loadedScripts.has(componentName)) {
-            const script = document.createElement('script');
-            script.src = component.script;
-            script.onload = () => {
-                loadedScripts.add(componentName);
-                console.log(`组件 "${componentName}" 脚本加载完成`);
-            };
-            script.onerror = () => {
-                console.error(`组件 "${componentName}" 脚本加载失败`);
-            };
-            document.body.appendChild(script);
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = `${component.script}?v=${Date.now()}`;
+                script.onload = () => {
+                    loadedScripts.add(componentName);
+                    console.log(`组件 "${componentName}" 脚本加载完成`);
+                    resolve();
+                };
+                script.onerror = () => {
+                    reject(new Error(`组件 "${componentName}" 脚本加载失败`));
+                };
+                document.body.appendChild(script);
+            });
         }
 
         loadedComponents.add(componentName);

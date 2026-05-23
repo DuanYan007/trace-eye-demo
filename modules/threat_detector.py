@@ -60,6 +60,9 @@ class ThreatDetector:
             Dict: 检测结果
         """
         print("开始威胁检测...")
+        self.node_features = {}
+        self.node_scores = {}
+        self.clusters = {}
 
         # 1. 特征提取
         print("提取节点特征...")
@@ -102,7 +105,10 @@ class ThreatDetector:
         """
         nodes = graph.get("nodes", [])
         edges = graph.get("edges", [])
-        adjacency = graph.get("adjacency", {})
+        adjacency = {
+            node_id: set(neighbors or [])
+            for node_id, neighbors in graph.get("adjacency", {}).items()
+        }
 
         # 构建事件时间统计
         node_events = defaultdict(list)
@@ -343,36 +349,24 @@ class ThreatDetector:
         X_std = X.std(axis=0) + 1e-8
         X_normalized = (X - X_mean) / X_std
 
-        # 简化的 Isolation Forest 实现
-        # 由于避免 sklearn 依赖，使用简化的异常检测方法
-        anomaly_scores = {}
-
-        # 使用基于距离的异常检测
-        for i, nid in enumerate(node_ids):
-            # 计算到其他所有点的平均距离
-            distances = []
-            for j, other_nid in enumerate(node_ids):
-                if i != j:
-                    dist = np.linalg.norm(X_normalized[i] - X_normalized[j])
-                    distances.append(dist)
-
-            avg_distance = np.mean(distances) if distances else 0
-            anomaly_scores[nid] = float(avg_distance)
-
-        # 归一化异常分数到 [0, 1]
-        if anomaly_scores:
-            max_score = max(anomaly_scores.values())
-            min_score = min(anomaly_scores.values())
-            score_range = max_score - min_score if max_score > min_score else 1.0
-
-            for nid in anomaly_scores:
-                anomaly_scores[nid] = (anomaly_scores[nid] - min_score) / score_range
+        # 使用稳健中心距离代替全量两两距离。
+        # 原实现是 O(N^2)，18k 节点会产生数亿次距离计算；这里保持无 sklearn 依赖并降为 O(N)。
+        center = np.median(X_normalized, axis=0)
+        distances = np.linalg.norm(X_normalized - center, axis=1)
+        min_score = float(np.min(distances))
+        max_score = float(np.max(distances))
+        score_range = max(max_score - min_score, 1e-8)
+        normalized_scores = (distances - min_score) / score_range
+        anomaly_scores = {
+            nid: float(score)
+            for nid, score in zip(node_ids, normalized_scores)
+        }
 
         # 找出异常节点（降低阈值，使更多节点被检测为异常）
         threshold = self.config["isolation_forest"]["contamination"]
-        # 使用分数分布的动态阈值：前30%的节点被认为是异常的
+        # 使用分数分布的动态阈值：按 contamination 取最高分节点。
         sorted_scores = sorted(anomaly_scores.items(), key=lambda x: x[1], reverse=True)
-        cutoff_idx = max(1, int(len(sorted_scores) * 0.3))  # 至少1个，最多30%
+        cutoff_idx = max(1, int(len(sorted_scores) * threshold))
         if sorted_scores:
             dynamic_threshold = sorted_scores[cutoff_idx - 1][1] if cutoff_idx <= len(sorted_scores) else 0.7
             anomaly_nodes = [nid for nid, score in anomaly_scores.items() if score >= dynamic_threshold]
@@ -403,7 +397,7 @@ class ThreatDetector:
         X_normalized = (X - X_mean) / X_std
 
         # 简化的 K-Means 实现
-        n_clusters = self.config["kmeans"]["n_clusters"]
+        n_clusters = min(self.config["kmeans"]["n_clusters"], len(X_normalized))
 
         # 随机初始化聚类中心
         np.random.seed(42)
@@ -412,13 +406,14 @@ class ThreatDetector:
         max_iter = self.config["kmeans"]["max_iter"]
         labels = {}
 
+        clusters = defaultdict(list)
         for _ in range(max_iter):
             # 分配样本到最近的聚类
             clusters = defaultdict(list)
-            for i, nid in enumerate(node_ids):
-                distances = [np.linalg.norm(X_normalized[i] - c) for c in centroids]
-                cluster_id = np.argmin(distances)
-                clusters[cluster_id].append(i)
+            distances = np.linalg.norm(X_normalized[:, None, :] - centroids[None, :, :], axis=2)
+            assignments = np.argmin(distances, axis=1)
+            for i, cluster_id in enumerate(assignments):
+                clusters[int(cluster_id)].append(i)
 
             # 更新聚类中心
             new_centroids = []
@@ -429,6 +424,7 @@ class ThreatDetector:
                     new_centroids.append(centroids[k])
 
             # 检查收敛
+            new_centroids = np.array(new_centroids)
             if np.allclose(centroids, new_centroids):
                 break
             centroids = new_centroids
@@ -441,10 +437,10 @@ class ThreatDetector:
         # 分析每个簇的异常程度
         cluster_stats = {}
         for k in range(n_clusters):
-            cluster_nodes = [nid for nid, lbl in labels.items() if lbl == k]
+            cluster_indices = clusters.get(k, [])
             cluster_stats[k] = {
-                "node_count": len(cluster_nodes),
-                "avg_feature": X_normalized[[labels[nid] for nid in cluster_nodes]].mean(axis=0).tolist() if cluster_nodes else []
+                "node_count": len(cluster_indices),
+                "avg_feature": X_normalized[cluster_indices].mean(axis=0).tolist() if cluster_indices else []
             }
 
         return {
@@ -489,6 +485,16 @@ class ThreatDetector:
 
         # 获取异常分数
         anomaly_scores = anomaly_results.get("scores", {})
+        anomaly_nodes = set(anomaly_results.get("anomaly_nodes", []))
+        adjacency = {
+            node_id: set(neighbors or [])
+            for node_id, neighbors in graph.get("adjacency", {}).items()
+        }
+        nodes_by_id = {
+            node.get("id", ""): node
+            for node in graph.get("nodes", [])
+            if node.get("id")
+        }
 
         for node_id in self.node_features:
             score = 0.0
@@ -502,11 +508,9 @@ class ThreatDetector:
             score += weights["anomaly_score"] * anomaly_score
 
             # 3. 可疑邻居比例 (10%)
-            adjacency = graph.get("adjacency", {})
             neighbors = adjacency.get(node_id, set())
             if neighbors:
-                suspicious_neighbors = sum(1 for n in neighbors
-                                         if n in anomaly_results.get("anomaly_nodes", []))
+                suspicious_neighbors = sum(1 for n in neighbors if n in anomaly_nodes)
                 neighbor_ratio = suspicious_neighbors / len(neighbors)
                 score += weights["suspicious_neighbors"] * neighbor_ratio
 
@@ -517,16 +521,13 @@ class ThreatDetector:
                 score += weights["temporal_anomaly"]
 
             # 5. 额外：节点类型加权（可疑进程类型）
-            node = graph.get("nodes", {})
-            for n in node:
-                if n.get("id") == node_id:
-                    node_type = n.get("type", "")
-                    node_name = n.get("name", "").lower()
-                    # 进程类型且名称可疑的加分
-                    if node_type == "process":
-                        if any(kw in node_name for kw in ["hidden", "backdoor", "malware", "trojan", "miner", "inject"]):
-                            score = min(score + 0.15, 1.0)
-                    break
+            node = nodes_by_id.get(node_id, {})
+            node_type = node.get("type", "")
+            node_name = node.get("name", "").lower()
+            # 进程类型且名称可疑的加分
+            if node_type == "process":
+                if any(kw in node_name for kw in ["hidden", "backdoor", "malware", "trojan", "miner", "inject"]):
+                    score = min(score + 0.15, 1.0)
 
             threat_scores[node_id] = round(min(score, 1.0), 3)
 

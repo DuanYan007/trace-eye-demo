@@ -2158,6 +2158,127 @@ textarea::placeholder {
     gap: 18px !important;
 }
 
+#page-ai .ai-connection-panel {
+    display: grid;
+    grid-template-columns: minmax(240px, 420px) auto minmax(180px, 1fr);
+    align-items: end;
+    gap: 14px;
+    padding: 18px 20px;
+    margin-bottom: 22px;
+    border: 1px solid rgba(125, 178, 255, 0.18);
+    border-radius: 18px;
+    background:
+        linear-gradient(135deg, rgba(96, 165, 250, 0.09), rgba(52, 211, 153, 0.045)),
+        rgba(255, 255, 255, 0.04);
+}
+
+#page-ai .ai-model-field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+#page-ai .ai-model-field span {
+    color: #dce7f8;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+#page-ai #aiModelName {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 12px;
+    border: 1px solid rgba(125, 178, 255, 0.28);
+    border-radius: 12px;
+    outline: none;
+    background: rgba(8, 15, 31, 0.72);
+    color: #f8fbff;
+    font-weight: 750;
+}
+
+#page-ai #aiModelName:focus {
+    border-color: rgba(96, 165, 250, 0.72);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.16);
+}
+
+#page-ai .ai-connection-status {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 12px;
+    color: #b9c9e3;
+    background: rgba(15, 23, 42, 0.44);
+    font-size: 13px;
+    font-weight: 750;
+    line-height: 1.45;
+}
+
+.upload-success-summary,
+.uploaded-file-row {
+    border: 1px solid rgba(125, 178, 255, 0.18);
+    background:
+        linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(52, 211, 153, 0.05)),
+        rgba(255, 255, 255, 0.045);
+    color: #dce7f8;
+}
+
+.upload-success-summary {
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-weight: 800;
+}
+
+.uploaded-file-row {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 14px;
+    border-radius: 12px;
+}
+
+.uploaded-file-icon {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.uploaded-file-main {
+    min-width: 0;
+}
+
+.uploaded-file-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #f8fbff;
+    font-weight: 850;
+}
+
+.uploaded-file-meta {
+    margin-top: 4px;
+    color: #a8b8d2;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.uploaded-file-status {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(52, 211, 153, 0.16);
+    color: #86efac;
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.upload-result-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 #page-ai .ai-action-area {
     display: flex !important;
     align-items: center !important;
@@ -2232,6 +2353,232 @@ textarea::placeholder {
 #page-ai .ai-stats-inline span {
     min-height: 34px !important;
     padding: 7px 12px !important;
+}
+
+#page-ai .ai-report-charts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+#page-ai .ai-chart-card {
+    min-width: 0;
+    padding: 18px;
+    border-radius: 22px;
+    border: 1px solid rgba(125, 178, 255, 0.18);
+    background:
+        radial-gradient(circle at 20% 0%, rgba(80, 145, 255, 0.14), transparent 34%),
+        rgba(255, 255, 255, 0.045);
+    color: #dbeafe;
+}
+
+#page-ai .ai-chart-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: baseline;
+    margin-bottom: 16px;
+}
+
+#page-ai .ai-chart-title strong {
+    color: #f8fbff;
+    font-size: 15px;
+}
+
+#page-ai .ai-chart-title span {
+    color: #a8b8d2;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+#page-ai .ai-bar-list {
+    display: grid;
+    gap: 10px;
+}
+
+#page-ai .ai-bar-row {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr) 30px;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+}
+
+#page-ai .bar-label {
+    color: #c7d8f4;
+    font-weight: 750;
+}
+
+#page-ai .bar-track {
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.16);
+}
+
+#page-ai .bar-track i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: #60a5fa;
+}
+
+#page-ai .ai-bar-row.critical .bar-track i { background: #fb7185; }
+#page-ai .ai-bar-row.high .bar-track i { background: #f59e0b; }
+#page-ai .ai-bar-row.medium .bar-track i { background: #facc15; }
+#page-ai .ai-bar-row.low .bar-track i { background: #34d399; }
+
+#page-ai .ai-column-chart {
+    height: 150px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+    align-items: end;
+    padding: 4px 12px 0;
+}
+
+#page-ai .ai-column {
+    height: 100%;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    gap: 7px;
+    justify-items: center;
+}
+
+#page-ai .ai-column-bar {
+    width: min(54px, 80%);
+    height: 100%;
+    display: flex;
+    align-items: end;
+    border-radius: 14px;
+    background: rgba(148, 163, 184, 0.16);
+    overflow: hidden;
+}
+
+#page-ai .ai-column-bar i {
+    width: 100%;
+    display: block;
+    border-radius: inherit;
+    background: linear-gradient(180deg, #60a5fa, #245cff);
+}
+
+#page-ai .ai-column.filtered .ai-column-bar i {
+    background: linear-gradient(180deg, #34d399, #0f9f76);
+}
+
+#page-ai .ai-column b {
+    color: #f8fbff;
+}
+
+#page-ai .ai-column span {
+    color: #a8b8d2;
+    font-size: 12px;
+}
+
+#page-ai .ai-stage-chart {
+    display: grid;
+    gap: 10px;
+}
+
+#page-ai .ai-stage-node {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(125, 178, 255, 0.16);
+    background: rgba(255, 255, 255, 0.045);
+}
+
+#page-ai .ai-stage-node b {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(96, 165, 250, 0.18);
+    color: #f8fbff;
+}
+
+#page-ai .ai-stage-node span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#page-ai .ai-donut-wrap {
+    display: grid;
+    grid-template-columns: 116px minmax(0, 1fr);
+    gap: 18px;
+    align-items: center;
+}
+
+#page-ai .ai-donut {
+    width: 106px;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 50%;
+    background: var(--donut);
+    position: relative;
+}
+
+#page-ai .ai-donut::after {
+    content: "";
+    position: absolute;
+    inset: 19px;
+    border-radius: inherit;
+    background: #0a1427;
+}
+
+#page-ai .ai-donut b,
+#page-ai .ai-donut span {
+    position: relative;
+    z-index: 1;
+}
+
+#page-ai .ai-donut b {
+    color: #fff;
+    font-size: 24px;
+    line-height: 1;
+}
+
+#page-ai .ai-donut span {
+    color: #a8b8d2;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1;
+}
+
+#page-ai .ai-ioc-legend {
+    display: grid;
+    gap: 8px;
+}
+
+#page-ai .ai-ioc-legend span {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #c7d8f4;
+    font-size: 12px;
+}
+
+#page-ai .ai-ioc-legend i {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: #60a5fa;
+}
+
+#page-ai .ai-ioc-legend b {
+    margin-left: auto;
+    color: #f8fbff;
 }
 
 #page-ai .ai-split-report {
@@ -2332,7 +2679,108 @@ textarea::placeholder {
     margin-top: 18px !important;
 }
 
+#page-ai .ai-review-mode-switch {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+#page-ai .ai-review-mode {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    text-align: left;
+    padding: 14px 16px !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(125, 178, 255, 0.18) !important;
+    background: rgba(255, 255, 255, 0.045) !important;
+    color: #dbeafe !important;
+}
+
+#page-ai .ai-review-mode.active {
+    border-color: rgba(96, 165, 250, 0.5) !important;
+    background: linear-gradient(135deg, rgba(36, 92, 255, 0.24), rgba(29, 155, 240, 0.12)) !important;
+}
+
+#page-ai .ai-review-mode .mode-icon {
+    font-size: 24px;
+}
+
+#page-ai .ai-review-mode strong,
+#page-ai .ai-review-mode small {
+    display: block;
+}
+
+#page-ai .ai-review-mode small {
+    margin-top: 3px;
+    color: #a8b8d2;
+    line-height: 1.4;
+}
+
+#page-ai .ai-review-mode-panel {
+    display: none;
+}
+
+#page-ai .ai-review-mode-panel.active {
+    display: block;
+}
+
+#page-ai .ai-review-chat {
+    max-height: 220px;
+    overflow-y: auto;
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(125, 178, 255, 0.16);
+    background: rgba(3, 10, 24, 0.38);
+}
+
+#page-ai .ai-chat-message {
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(125, 178, 255, 0.14);
+    background: rgba(255, 255, 255, 0.045);
+}
+
+#page-ai .ai-chat-message.expert {
+    background: rgba(79, 140, 255, 0.12);
+}
+
+#page-ai .ai-chat-message strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #f8fbff;
+}
+
+#page-ai .ai-chat-message p {
+    margin: 0;
+    color: #dbeafe;
+    line-height: 1.6;
+}
+
+#page-ai .ai-review-llm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+#page-ai .ai-review-llm-status {
+    color: #a8b8d2;
+    font-size: 13px;
+}
+
 @media (max-width: 900px) {
+    #page-ai .ai-connection-panel {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
+
     .ai-split-report {
         grid-template-columns: 1fr;
     }
@@ -2348,6 +2796,10 @@ textarea::placeholder {
 
     #page-ai .ai-report-meta {
         grid-template-columns: 1fr !important;
+    }
+
+    #page-ai .ai-report-charts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     #page-ai .ai-split-report {
@@ -2398,6 +2850,10 @@ textarea::placeholder {
         min-height: 460px !important;
     }
 
+    #page-ai .ai-report-charts {
+        grid-template-columns: 1fr;
+    }
+
     #page-ai .ai-panel-title {
         align-items: flex-start !important;
         flex-direction: column !important;
@@ -2445,6 +2901,7 @@ textarea::placeholder {
 
     body.print-ai-report .ai-report-header,
     body.print-ai-report .ai-report-meta,
+    body.print-ai-report .ai-report-charts,
     body.print-ai-report .ai-review-bar,
     body.print-ai-report .ai-md-panel {
         background: #fff !important;
@@ -2458,6 +2915,35 @@ textarea::placeholder {
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;
         gap: 12px !important;
+    }
+
+    body.print-ai-report .ai-report-charts {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 10px !important;
+        margin: 10px 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+    }
+
+    body.print-ai-report .ai-chart-card {
+        background: #fff !important;
+        border: 1px solid #d1d5db !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+
+    body.print-ai-report .ai-chart-title strong,
+    body.print-ai-report .ai-bar-row,
+    body.print-ai-report .ai-column b,
+    body.print-ai-report .ai-stage-node,
+    body.print-ai-report .ai-ioc-legend span,
+    body.print-ai-report .ai-ioc-legend b {
+        color: #111827 !important;
+    }
+
+    body.print-ai-report .ai-donut::after {
+        background: #fff !important;
     }
 
     body.print-ai-report .ai-markdown-body,
@@ -2573,6 +3059,9 @@ textarea::placeholder {
 .empty-state-desc,
 .loading p,
 .process-message,
+.process-runtime,
+.process-runtime-text,
+.process-runtime-eta,
 .file-item-name,
 .file-item-size,
 .detail-item-label,
@@ -2592,6 +3081,8 @@ textarea::placeholder {
 
 .empty-state-desc,
 .loading p,
+.process-runtime,
+.process-runtime-eta,
 .file-item-size,
 .detail-item-label,
 .detail-section-title,
@@ -3410,6 +3901,64 @@ textarea::placeholder {
     color: #f8fbff !important;
 }
 
+#page-relations .threat-node-card {
+    min-height: auto !important;
+    padding: 14px 16px !important;
+    overflow: visible !important;
+}
+
+#page-relations .node-card-header,
+#page-relations .node-card-stats,
+#page-relations .node-card-footer {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+}
+
+#page-relations .node-card-header,
+#page-relations .node-card-footer {
+    justify-content: space-between !important;
+}
+
+#page-relations .node-card-name {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.35 !important;
+    margin-bottom: 10px !important;
+}
+
+#page-relations .node-card-stats {
+    flex-wrap: wrap !important;
+    margin-bottom: 8px !important;
+}
+
+#page-relations .node-stat,
+#page-relations .node-card-type {
+    color: #cbd5e1 !important;
+}
+
+#page-relations .node-card-type {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-height: 30px !important;
+    padding: 5px 12px !important;
+    border-radius: 10px !important;
+    background: rgba(96, 165, 250, 0.18) !important;
+    border: 1px solid rgba(147, 197, 253, 0.34) !important;
+    color: #dbeafe !important;
+    font-weight: 800 !important;
+    letter-spacing: 0 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+#page-threat .timeline-center-info {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
 #page-chains .chain-stat,
 #page-chains .chain-card-tactic,
 #page-chains .technique-tag,
@@ -3833,7 +4382,6 @@ textarea::placeholder {
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
     }
 
-    #page-threat .timeline-center-info,
     #page-threat .threat-timeline-controls,
     #page-threat .timeline-nodes-list,
     #page-threat .threat-network-legend,
@@ -3844,6 +4392,12 @@ textarea::placeholder {
             linear-gradient(135deg, rgba(8, 18, 38, 0.68), rgba(17, 34, 64, 0.48)) !important;
         border: 1px solid rgba(125, 178, 255, 0.16) !important;
         color: #dbeafe !important;
+    }
+
+    #page-threat .timeline-center-info {
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
     }
 
     #page-threat .legend-item,
@@ -3978,5 +4532,490 @@ textarea::placeholder {
         #page-ai .ai-markdown-body {
             padding: 24px !important;
         }
+    }
+}
+
+/* Targeted fixes for threat legend hint and chain card overflow. */
+@media screen {
+    #page-threat .threat-network-legend {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 10px 14px !important;
+        overflow: hidden !important;
+    }
+
+    #page-threat .threat-network-legend .legend-title,
+    #page-threat .threat-network-legend .legend-item,
+    #page-threat .threat-network-legend .legend-divider {
+        color: #dbeafe !important;
+    }
+
+    #page-threat .threat-network-legend .legend-hint {
+        margin-left: auto !important;
+        padding: 7px 12px !important;
+        border-radius: 999px !important;
+        background: rgba(17, 29, 56, 0.86) !important;
+        border: 1px solid rgba(125, 178, 255, 0.22) !important;
+        color: #bfdbfe !important;
+        font-style: normal !important;
+        box-shadow: none !important;
+        white-space: normal !important;
+    }
+
+    #page-chains .chains-forest-layout {
+        grid-template-columns: minmax(300px, 34%) minmax(0, 1fr) !important;
+        align-items: start !important;
+        overflow: visible !important;
+    }
+
+    #page-chains .chain-trees-panel,
+    #page-chains .chain-detail-panel {
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    #page-chains .chain-trees-panel {
+        max-height: calc(100vh - 220px) !important;
+        overflow: hidden !important;
+    }
+
+    #page-chains .chain-trees-list {
+        min-height: 0 !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        gap: 16px !important;
+        padding: 16px 18px 20px 16px !important;
+        align-items: stretch !important;
+        overscroll-behavior: contain !important;
+    }
+
+    #page-chains .chain-tree-card {
+        box-sizing: border-box !important;
+        display: grid !important;
+        grid-template-rows: auto auto auto auto !important;
+        gap: 14px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        padding: 18px !important;
+        overflow: visible !important;
+        contain: none !important;
+    }
+
+    #page-chains .chain-tree-card:hover {
+        transform: none !important;
+    }
+
+    #page-chains .chain-card-header {
+        display: grid !important;
+        grid-template-columns: auto minmax(0, 1fr) !important;
+        gap: 10px !important;
+        align-items: start !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+    }
+
+    #page-chains .chain-card-type {
+        justify-self: end !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+        overflow-wrap: anywhere !important;
+        line-height: 1.25 !important;
+        text-align: center !important;
+    }
+
+    #page-chains .chain-card-title {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        font-size: clamp(18px, 1.25vw, 24px) !important;
+        line-height: 1.45 !important;
+        word-break: break-word !important;
+        overflow-wrap: anywhere !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        white-space: normal !important;
+    }
+
+    #page-chains .chain-card-stats {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+    }
+
+    #page-chains .chain-stat,
+    #page-chains .chain-card-tactic {
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    #page-chains .chain-stat {
+        display: flex !important;
+        align-items: center !important;
+        min-height: 42px !important;
+        padding: 8px 10px !important;
+    }
+
+    #page-chains .chain-card-tactic {
+        display: block !important;
+        white-space: normal !important;
+        margin: 0 !important;
+    }
+
+    #page-chains .chain-detail-content {
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }
+
+    #page-chains .chain-forest-chart-shell {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: auto !important;
+        border-top: 1px solid rgba(93, 139, 218, 0.22) !important;
+        border-bottom: 1px solid rgba(93, 139, 218, 0.22) !important;
+        background:
+            linear-gradient(135deg, rgba(20, 43, 75, 0.68), rgba(12, 23, 47, 0.72)),
+            radial-gradient(circle at 10% 0%, rgba(80, 145, 255, 0.16), transparent 34%) !important;
+        scrollbar-color: rgba(110, 157, 232, 0.8) rgba(9, 17, 34, 0.55) !important;
+        scrollbar-width: thin !important;
+    }
+
+    #page-chains .chain-forest-chart-shell::-webkit-scrollbar {
+        width: 10px !important;
+        height: 10px !important;
+    }
+
+    #page-chains .chain-forest-chart-shell::-webkit-scrollbar-track {
+        background: rgba(9, 17, 34, 0.58) !important;
+    }
+
+    #page-chains .chain-forest-chart-shell::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, rgba(89, 151, 255, 0.82), rgba(72, 108, 184, 0.82)) !important;
+        border-radius: 999px !important;
+    }
+
+    #page-chains .chain-forest-chart {
+        width: max(100%, 1120px) !important;
+        min-width: 1120px !important;
+        height: clamp(500px, 60vh, 760px) !important;
+        overflow: visible !important;
+        border-bottom: 0 !important;
+    }
+
+    #page-chains .chain-forest-chart > div,
+    #page-chains .chain-forest-chart canvas {
+        max-width: none !important;
+    }
+
+    @media (max-width: 1200px) {
+        #page-chains .chains-forest-layout {
+            grid-template-columns: minmax(0, 1fr) !important;
+        }
+
+        #page-chains .chain-card-stats {
+            grid-template-columns: minmax(0, 1fr) !important;
+        }
+
+        #page-threat .threat-network-legend .legend-hint {
+            margin-left: 0 !important;
+        }
+    }
+}
+
+/* Final contrast pass for the system overview page and chain forest labels. */
+@media screen {
+    .overview-page {
+        --overview-text-strong: #f8fbff;
+        --overview-text: #e5eefc;
+        --overview-text-soft: #c7d8f4;
+        --overview-text-muted: #a9badd;
+    }
+
+    .overview-page,
+    .overview-page .stat-title,
+    .overview-page .step-title,
+    .overview-page .threat-name,
+    .overview-page .alert-message,
+    .overview-page .activity-message,
+    .overview-page .action-btn .btn-text,
+    .overview-page .category-name,
+    .overview-page .tactic-name,
+    .overview-page .empty-message {
+        color: var(--overview-text) !important;
+    }
+
+    .overview-page .progress-header h3,
+    .overview-page .top-threats-header h3,
+    .overview-page .timeline-header h3,
+    .overview-page .matrix-header h3,
+    .overview-page .actions-header h3,
+    .overview-page .activity-header h3,
+    .overview-page .chart-header h4,
+    .overview-page .stat-card .stat-value,
+    .overview-page .metric-value,
+    .overview-page .breakdown-value,
+    .overview-page .chain-count,
+    .overview-page .category-count,
+    .overview-page .tactic-count,
+    .overview-page .score-value,
+    .overview-page #overviewProgressPercent,
+    .overview-page #matrixCoverage {
+        color: var(--overview-text-strong) !important;
+    }
+
+    .overview-page .step-desc,
+    .overview-page .breakdown-label,
+    .overview-page .metric-label,
+    .overview-page .chain-label,
+    .overview-page .threat-type,
+    .overview-page .timeline-time,
+    .overview-page .activity-time,
+    .overview-page .matrix-summary,
+    .overview-page .status-text {
+        color: var(--overview-text-muted) !important;
+    }
+
+    .overview-page .status-badge,
+    .overview-page .attack-type-tag,
+    .overview-page .alert-rule,
+    .overview-page .chart-btn,
+    .overview-page .rule-category-mini {
+        color: var(--overview-text-soft) !important;
+        border-color: rgba(125, 178, 255, 0.2) !important;
+        background: rgba(255, 255, 255, 0.06) !important;
+    }
+
+    .overview-page .chart-btn.active,
+    .overview-page .progress-step.active .status-badge,
+    .overview-page .progress-step.running .status-badge,
+    .overview-page .progress-step.completed .status-badge {
+        color: #fff !important;
+    }
+
+    .overview-page .timeline-alert,
+    .overview-page .activity-item,
+    .overview-page .threat-item,
+    .overview-page .metric-item,
+    .overview-page .matrix-tactic {
+        background:
+            linear-gradient(135deg, rgba(17, 29, 56, 0.8), rgba(15, 23, 42, 0.58)),
+            rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(125, 178, 255, 0.15) !important;
+    }
+
+    .overview-page .timeline-alert.high,
+    .overview-page .timeline-alert.medium,
+    .overview-page .timeline-alert.low {
+        background:
+            linear-gradient(135deg, rgba(17, 29, 56, 0.78), rgba(15, 23, 42, 0.54)),
+            rgba(255, 255, 255, 0.045) !important;
+    }
+
+    .overview-page .threat-gauge-label {
+        color: var(--overview-text-muted) !important;
+    }
+
+    .overview-page .gauge-bg {
+        stroke: rgba(148, 163, 184, 0.18) !important;
+    }
+
+    .overview-page .gauge-needle polygon,
+    .overview-page .gauge-needle circle {
+        fill: var(--overview-text-strong) !important;
+    }
+
+    #page-chains .chain-forest-chart {
+        width: max(100%, 1120px) !important;
+        min-width: 1120px !important;
+        min-height: 520px !important;
+        height: clamp(520px, 62vh, 860px) !important;
+    }
+
+    #page-chains .chain-forest-chart-shell {
+        padding: 0 !important;
+        scroll-padding: 24px !important;
+    }
+
+    #page-chains .chain-card-type {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 30px !important;
+        padding: 5px 12px !important;
+        color: #eaf2ff !important;
+        background: rgba(148, 163, 184, 0.16) !important;
+        border: 1px solid rgba(203, 213, 225, 0.22) !important;
+        box-shadow: none !important;
+    }
+}
+
+/* Attack-chain forest card layout: keep every label inside its own card. */
+@media screen {
+    #page-chains .chain-trees-list {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 22px !important;
+        padding: 20px 24px 28px 20px !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    #page-chains .chain-tree-card {
+        position: relative !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 16px !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        padding: 22px !important;
+        overflow: hidden !important;
+        contain: none !important;
+        flex: 0 0 auto !important;
+        isolation: isolate !important;
+    }
+
+    #page-chains .chain-tree-card > * {
+        position: static !important;
+        flex: 0 0 auto !important;
+        transform: none !important;
+    }
+
+    #page-chains .chain-card-header {
+        display: grid !important;
+        grid-template-columns: auto minmax(0, 1fr) !important;
+        align-items: start !important;
+        gap: 12px !important;
+        margin: 0 !important;
+    }
+
+    #page-chains .chain-card-index {
+        line-height: 1.2 !important;
+    }
+
+    #page-chains .chain-card-type {
+        justify-self: end !important;
+        max-width: min(260px, 100%) !important;
+        line-height: 1.25 !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    #page-chains .chain-card-title {
+        display: block !important;
+        margin: 0 !important;
+        font-size: clamp(18px, 1.15vw, 22px) !important;
+        line-height: 1.42 !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: anywhere !important;
+        overflow: visible !important;
+    }
+
+    #page-chains .chain-card-stats {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    #page-chains .chain-stat {
+        display: flex !important;
+        align-items: center !important;
+        min-width: 0 !important;
+        min-height: 44px !important;
+        padding: 9px 12px !important;
+        line-height: 1.25 !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    #page-chains .chain-card-tactic {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 10px 12px !important;
+        line-height: 1.35 !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    #page-chains .chain-tree-card.selected {
+        overflow: hidden !important;
+    }
+}
+
+/* AI report meta overflow guard: long paths and IOC strings must stay inside cards. */
+@media screen {
+    #page-ai .ai-report-meta {
+        display: grid !important;
+        grid-template-columns: minmax(240px, 0.95fr) minmax(320px, 1.15fr) minmax(230px, 0.85fr) !important;
+        align-items: start !important;
+        gap: 20px !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+    }
+
+    #page-ai .ai-threat-level,
+    #page-ai .ai-summary,
+    #page-ai .ai-stats-inline {
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    #page-ai .ai-threat-text,
+    #page-ai .ai-summary {
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+        word-break: break-word !important;
+        line-break: anywhere !important;
+    }
+
+    #page-ai .ai-summary {
+        box-sizing: border-box !important;
+        max-height: min(360px, 42vh) !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain !important;
+        contain: paint !important;
+    }
+
+    #page-ai .ai-stats-inline {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-end !important;
+        align-content: flex-start !important;
+        gap: 10px !important;
+    }
+
+    #page-ai .ai-stats-inline span {
+        flex: 0 1 auto !important;
+        max-width: 100% !important;
+        white-space: nowrap !important;
+    }
+}
+
+@media screen and (max-width: 1280px) {
+    #page-ai .ai-report-meta {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    #page-ai .ai-stats-inline {
+        justify-content: flex-start !important;
     }
 }

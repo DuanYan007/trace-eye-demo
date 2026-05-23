@@ -72,7 +72,10 @@
     <div class="data-section" id="uploadResultSection" style="display:none;">
         <div class="section-header-with-action">
             <h3>已上传的日志文件</h3>
-            <a href="/api/download/logs" class="btn-download" id="downloadLogs" style="display:none;">📥 下载</a>
+            <div class="upload-result-actions">
+                <button id="btnContinueUpload" class="btn btn-secondary" type="button">继续上传</button>
+                <a href="/api/download/logs" class="btn-download" id="downloadLogs" style="display:none;">📥 下载</a>
+            </div>
         </div>
         <div class="data-preview">
             <div id="uploadedFilesList" style="display: flex; flex-direction: column; gap: 10px;"></div>
