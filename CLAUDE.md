@@ -28,7 +28,6 @@
 ```
 trace-eye-demo/
 ├── app.py                      # Flask 主应用入口
-├── main.py                     # 备用启动入口
 ├── requirements.txt            # Python 依赖
 ├── modules/                    # 核心处理模块
 │   ├── __init__.py
